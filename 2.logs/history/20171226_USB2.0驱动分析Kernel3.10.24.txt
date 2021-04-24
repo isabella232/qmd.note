@@ -1,0 +1,303 @@
+可以用wireshark+usbmon捕捉usb协议数据包。
+
+
+
+
+
+/******************************************************
+
+*
+
+*    加载usbcore
+
+*        添加hub interface driver
+
+*        添加hub interface device
+
+*
+
+******************************************************/
+
+
+
+/* usb/core/usb.c */
+
+usb_init()
+
+    bus_register(&usb_bus_type)
+
+    usb_hub_init()
+
+        usb_register(&hub_driver)
+
+        khubd_task = kthread_run(hub_thread, NULL, "khubd")
+
+            hub_thread()
+
+    usb_register_device_driver(&usb_generic_driver, THIS_MODULE)
+
+        new_udriver->drvwrap.for_devices = 1 /* device driver */
+
+        driver_register(&new_udriver->drvwrap.driver)
+
+            bus_add_driver(drv)
+
+                driver_attach(drv)
+
+                    bus_for_each_dev(drv->bus, NULL, drv, __driver_attach)
+
+                        __driver_attach()
+
+                            driver_match_device(drv, dev)
+
+                                usb_device_match()
+
+                                    /* root hub device + generic device driver */
+
+                                    return 1
+
+                            driver_probe_device(drv, dev)
+
+                                really_probe(dev, drv)
+
+                                    generic_probe(dev)
+
+                                        usb_choose_configuration(udev)
+
+                                        usb_set_configuration(udev, c)
+
+                                            device_add(&intf->dev)
+
+
+
+/******************************************************
+
+*
+
+*    加载ehci驱动
+
+*        添加root hub device
+
+*
+
+******************************************************/
+
+/* usb/host/ehci-platform.c */
+
+ehci_abc_init()
+
+    ehci_init_driver(&ehci_abc_hc_driver, NULL)
+
+    platform_driver_register(&ehci_abc_driver)
+
+        ehci_abc_drv_probe()
+
+            hcd = usb_create_hcd(&ehci_abc_hc_driver, &dev->dev, dev_name(&dev->dev))
+
+            usb_add_hcd(hcd, irq, IRQF_SHARED)
+
+                usb_register_bus(&hcd->self) // 注册USB bus
+
+                usb_alloc_dev(NULL, &hcd->self, 0)
+
+                usb_hcd_request_irqs(hcd, irqnum, irqflags)
+
+                hcd->driver->start(hcd)
+
+                register_root_hub(hcd)
+
+                    usb_get_device_descriptor(usb_dev, USB_DT_DEVICE_SIZE)
+
+                        usb_get_descriptor(dev, USB_DT_DEVICE, 0, desc, size)  /* 获取设备描述符 */
+
+                            usb_control_msg() 
+
+                    usb_new_device (usb_dev)
+
+                        usb_enumerate_device(udev)
+
+                            usb_get_configuration(udev)
+
+                                ncfg = dev->descriptor.bNumConfigurations
+
+                                /* 获取配置&接口&端点描述符 */
+
+                                usb_get_descriptor(dev, USB_DT_CONFIG, cfgno, desc, USB_DT_CONFIG_SIZE)
+
+                                usb_get_descriptor(dev, USB_DT_CONFIG, cfgno, bigbuffer, length)
+
+                                usb_parse_configuration(dev, cfgno, &dev->config[cfgno], bigbuffer, length)
+
+                                    usb_parse_interface(ddev, cfgno, config, buffer, size, inums, nalts)
+
+                                        find_next_descriptor(buffer, size, USB_DT_ENDPOINT, USB_DT_INTERFACE, &n)
+
+                                        usb_parse_endpoint(ddev, cfgno, inum, asnum, alt, num_ep, buffer, size)
+
+                        device_add(&udev->dev)
+
+                            bus_probe_device(dev)
+
+                                device_attach(dev)
+
+                                   
+
+            platform_set_drvdata(dev, hcd)
+
+
+
+
+
+/* ehci_hcd中断处理usb/host/ehci-hcd.c */
+
+#include "ehci-timer.c"
+#include "ehci-hub.c"
+#include "ehci-mem.c"
+#include "ehci-q.c"
+#include "ehci-sched.c"
+#include "ehci-sysfs.c"
+
+ehci_irq()
+
+    ehci_work (ehci) /* 传输完成 */
+
+        scan_async(ehci)
+
+        scan_intr(ehci)
+
+        scan_isoc(ehci)
+
+    usb_hcd_poll_rh_status(hcd) /* 有设备热插拔 */
+
+        usb_hcd_giveback_urb(hcd, urb, 0)
+
+            urb->complete (urb)
+
+
+
+
+
+
+http://blog.csdn.net/yaongtime/article/details/19753835
+
+http://blog.csdn.net/yaongtime/article/details/19755143
+
+EHCI HC中与中断相关的register有USBSTS和USBINTR，在linux 中执行EHCI的irq处理函数就是ehci_irq()。
+
+在ehci_def.h中定义了状态寄存器USBSTS：
+
+/* USBSTS: offset 0x04 */
+    u32        status;
+#define STS_PPCE_MASK    (0xff<<16)    /* Per-Port change event 1-16 */
+#define STS_ASS        (1<<15)        /* Async Schedule Status */
+#define STS_PSS        (1<<14)        /* Periodic Schedule Status */
+#define STS_RECL    (1<<13)        /* Reclamation */
+#define STS_HALT    (1<<12)        /* Not running (any reason) */
+/* some bits reserved */
+/* these STS_* flags are also intr_enable bits (USBINTR) */
+#define STS_IAA        (1<<5)        /* Interrupted on async advance */
+#define STS_FATAL    (1<<4)        /* such as some PCI access errors */
+#define STS_FLR        (1<<3)        /* frame list rolled over */
+#define STS_PCD        (1<<2)        /* port change detect */
+#define STS_ERR        (1<<1)        /* "error" completion (overflow, ...) */
+#define STS_INT        (1<<0)        /* "normal" completion (short, ...) */
+
+/* USBINTR: offset 0x08 */
+    u32        intr_enable;
+
+
+
+在中断处理函数ehci_irq()中要对这几种interrupt作出不同的处理。
+
+IAA是指当要从asynchronous schedule传输队列中移除一个QH时，为了解决被移除的QH的值可能在HC（host controller）中有缓存，为了使内存和HC中的 qh保持一致，而需要在HCD（host controller driver）移除某个QH后对HC的缓存进行更新，从而使内存中的QH队列与HC的缓存保持一致，当HC完成缓存更新后，且相应的中断enable，就会发出一个IAA中断告之HCD更新完成。
+PCD（port change detect）是指root hub上某个端口上有设备插入或拔出所产生的中断，需要进一步的读取root hub上各port对应的register判断是插入还是拔出。
+ERR是指在HC和device间数据传输失败后发出的传输出错中断，出错的原因会被回写到当前用于传输的描述中，如qtd的token中。
+INT是指正确完成一次数据传输后所发出的中断，这个中断并不是在传输完成后马上产生的，它要等到下一个中断时隙的到来后才产生。
+ehci_irq()可分成三个阶段。
+
+首先读取中断相关的status register，产生中断的原因包含在其中；
+
+再对status进行解析，找出产生中断的原因，
+
+最后根据对应产生中断的原因进行各自的处理，其中还应该包含一个对相应中断位清零。
+
+
+对ehci_work()函数的调用，可以通过两条路径，一是我们这里的interrupt，二是用timber去polling。这里采用两种方式的原因是提高执行效率，减少interrupt的负担，我们知道在async传输中，如果一次要传输的数据量需要多个qtd才能装载完，那么HCD只会把最后一个qtd的IOC位置1，即在最后一个qtd传输完成后才会产生一个中断，如果这时才去处理这些qtd，将会使中断处理的时间过长，并且如果其中某个qtd传输失败也得不到及时的处理，所以会用一个timer来辅助处理已经完成的qtd，iTD也做了类似的处理。
+
+EHCI的整个传输是基于各种descriptor实现的，这些descriptor的可以说就是EHCI的语法，要与一个HC沟通就要按照这些descriptor的语法在内存中组织数据段。函数ehci_work()的工作是要处理HC按照指定的descriptor完成传输后的结果。具体到EHCI的传输类型可以分为asynchronous和isochronous两大类，qh和qtd的组合常用于asynchronous，itd则常用于isochronous。Asynchronous的进一步处理入口是在15行的scan_async()函数，isochronous则是在17行的scan_periodic()函数中。这里主要分析前者scan_async()函数。
+
+
+
+ 
+
+
+
+
+
+1.设备描述符
+
+struct usb_device_descriptor {
+     __u8  bLength;              --描述符长度
+     __u8  bDescriptorType;      --描述符类型：设备描述符0x01
+     __le16 bcdUSB;              --usb规范版本号
+     __u8  bDeviceClass;         --类代码
+     __u8  bDeviceSubClass;      --子类代码
+     __u8  bDeviceProtocol;      --协议代码
+     __u8  bMaxPacketSize0;      --端点0支持最大数
+     __le16 idVendor;            --供应商ID
+     __le16 idProduct;           --产品ID
+     __le16 bcdDevice;           --设备版本号
+     __u8  iManufacturer;        --供应商字符串描述符的索引值
+     __u8  iProduct;             --产品字符串描述符的索引值
+     __u8  iSerialNumber;        --设备序列号
+     __u8  bNumConfigurations;   --所支持的配置数
+} __attribute__ ((packed));   --结构体字符类型对齐
+
+
+2.配置描述符
+
+
+
+struct usb_config_descriptor {
+     __u8  bLength;              --描述符长度
+     __u8  bDescriptorType;      --描述符类型
+     __le16 wTotalLength;        --配置信息的总长度
+     __u8  bNumInterfaces;       --所支持的接口数
+     __u8  bConfigurationValue;  --配置值
+     __u8  iConfiguration;       --字符串描述符的索引值
+     __u8  bmAttributes;         --配置特征
+     __u8  bMaxPower;            --所需最大的总线电流
+} __attribute__ ((packed));
+
+
+3.接口描述符
+
+
+
+struct usb_interface_descriptor {
+     __u8  bLength;
+     __u8  bDescriptorType;
+     __u8  bInterfaceNumber;     --接口编号
+     __u8  bAlternateSetting;    --备用接口标号
+     __u8  bNumEndpoints;        --接口数目
+     __u8  bInterfaceClass;      --接口类型
+     __u8  bInterfaceSubClass;   --接口子类型
+     __u8  bInterfaceProtocol;   --接口所用协议
+     __u8  iInterface;           --接口索引字符串数值
+} __attribute__ ((packed));
+
+
+4.端点描述符
+
+
+
+struct usb_endpoint_descriptor {
+     __u8  bLength;
+     __u8  bDescriptorType;
+     __u8  bEndpointAddress;      --端点号包括传输方向
+     __u8  bmAttributes;          --端点属性
+     __le16 wMaxPacketSize;       --最大数据包长度
+     __u8  bInterval;             --访问间隔
+     __u8  bRefresh;
+     __u8  bSynchAddress;
+} __attribute__ ((packed));

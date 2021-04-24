@@ -1,0 +1,216 @@
+Ubuntu 14 development env
+
+
+cvt 1800 800 60
+xrandr --newmode "1800x800_60.00"  117.50  1800 1896 2080 2360  800 803 813 831 -hsync +vsync
+xrandr --addmode Virtual1 "1800x800_60.00"
+xrandr -s "1800x800_60.00"
+
+Vmware shared folder需要安装vmware-tools
+
+/etc/samba/smb.conf
+
+[abc]
+comment = abc
+path = /home/user/share
+available = yes 
+browseable = yes 
+public = yes 
+writeable = yes 
+guest ok = yes 
+force user = abc  
+
+/etc/vsftpd.conf
+
+write_enable=YES
+
+
+在win10中安装vmware12+ubuntu14，SecureCRT，WinSCP，sourceInsight。
+
+sudo apt-get update
+
+sudo apt-get install vim openssh-server vsftpd samba dos2unix subversion autoconf
+
+sudo rm /bin/sh && sudo ln -s /bin/bash /bin/sh
+
+sudo vi /etc/vim/vimrc
+
+syntax on
+set history=100
+set encoding=utf-8
+set nocompatible
+set number
+set hlsearch
+set cindent
+set showmatch
+set cursorline
+set ruler
+set laststatus=2
+set cmdheight=1
+set statusline=\ %<%F[%1*%M%*%n%R%H]%=\ %y\ %0(%{&fileformat}\ %{&encoding}\ %c:%l/%L%)\   
+
+
+sudo vi /etc/sudors   增加abc    ALL=(ALL) NOPASSWD: ALL
+
+sudo vi /etc/rc.local  增加sudo mount /dev/sdb1 /home/abc/sdb
+
+sudo chmod +x /etc/rc.local 
+
+sudo fdisk /dev/sdb    --> n / w
+
+sudo mkfs.ext4 /dev/sdb1
+
+sudo vi /etc/hostname
+
+vi ~/.bashrc   PS1中的w改成W
+
+vi ~/.profile 增加PATH=/usr/local/xxx/bin:$PATH
+
+
+
+1. Install Ubuntu 14.04.02 LTS 64-bit
+2. sudo vi sudo
+    Add this line at the end of the file:
+    abc ALL=(ALL) NOPASSWD: ALL
+3. ftp://msdk-4.3.6-mips-EL-2.6.12.6-0.9.30.3.tgz,
+    ftp://arm-2013.11.tgz,
+
+tar xvfz msdk-4.3.6-mips-EL-2.6.12.6-0.9.30.3.tgz
+tar xvfz arm-2013.11.tgz
+sudo mv msdk-4.3.6-mips-EL-2.6.12.6-0.9.30.3 /usr/local
+sudo mv arm-2013.11 /usr/local
+sudo apt-get update --fix-missing
+sudo dpkg --add-architecture i386
+sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386
+sudo apt-get install libc6-i386 lib32z1 lib32stdc++6
+sudo apt-get install build-essential g++ 
+sudo apt-get install ccache autoconf flex texinfo lzop libncurses5-dev libpcre3-dev 
+sudo apt-get install u-boot-tools device-tree-compiler
+sudo apt-get install git subversion meld ctags vim dos2unix zip
+sudo apt-get install nautilus-open-terminal
+sudo apt-get install 
+sudo rm /bin/sh
+sudo ln -s /bin/bash /bin/sh
+
+
+
+Add GNU tools path to $PATH:
+Open ~/.profile in editor, and add the following lines at the end of the file:
+
+if [ -d "/usr/local/msdk-4.3.6-mips-EL-2.6.12.6-0.9.30.3/bin/" ] ; then
+    PATH="/usr/local/msdk-4.3.6-mips-EL-2.6.12.6-0.9.30.3/bin/:$PATH" 
+fi
+if [ -d "/usr/local/arm-2013.11/bin/" ] ; then
+    PATH="/usr/local/arm-2013.11/bin/:$PATH" 
+fi
+
+
+RabbitVCS
+Refer: http://wiki.rabbitvcs.org/wiki/install/ubuntu
+sudo add-apt-repository ppa:rabbitvcs/ppa
+
+sudo apt-get update
+
+sudo apt-get install rabbitvcs-nautilus3 rabbitvcs-thunar rabbitvcs-gedit rabbitvcs-cli
+
+
+实测Ubuntu Source insight
+sudo apt-get install wine
+wine Si3576setup.exe
+SI3US-205035-36448
+
+
+实测Ubuntu SecureCRT
+Download: https://www.vandyke.com/download/securecrt/download.html
+sudo dpkg -i scrt-7.3.3-779.ubuntu13-64.x86_64.deb
+wget http://download.boll.me/securecrt_linux_crack.pl
+sudo perl securecrt_linux_crack.pl /usr/bin/SecureCRT
+
+
+实测Ubuntu beyond Compare
+Download: http://www.scootersoftware.com/download.php
+BC3只有32bit版本，安装后允许提示找不到libXft2库，解决：sudo apt-get install libXft2:i386
+解压bcompare-3.3.8.16340.tar.gz，用keygen生成license，执行install.sh，安装允许软件填写license
+
+
+实测Ubuntu UltraEdit
+Download: http://www.ultraedit.com/downloads/uex.html
+试用版30天，30天到期后到用户目录下如：/home/michzel/.idm 文件夹下面，删除uex文件夹，重新打开UE，就又可以试用30天。
+
+sudo apt-get -f install
+
+
+实测Ubuntu WPS
+Downlaod: http://linux.wps.cn
+
+
+实测Ubuntu Wireshark
+Wireshark源码： http://linux.softpedia.com/get/Internet/HTTP-WWW-/Ethereal-1961.shtml
+libpcap源码： http://www.tcpdump.org/#latest-release
+sudo apt-get install build-essential flex bison checkinstall libpcap-dev libglib2.0-dev libgtk2.0-dev libgtk3.0-cil libgtk3.0-cil-dev
+
+
+gedit中文乱码
+gsettings set org.gnome.gedit.preferences.encodings auto-detected "['GB18030', 'GB2312', 'GBK', 'UTF-8', 'BIG5', 'CURRENT', 'UTF-16']"
+gsettings set org.gnome.gedit.preferences.encodings shown-in-menu "['GB18030', 'GB2312', 'GBK', 'UTF-8', 'BIG5', 'CURRENT', 'UTF-16']"
+
+
+ubuntu wifi抓包方法
+sudo apt-get install aircrack-ng
+sudo airmon-ng start wlan0 11
+sudo iwconfig mon0 channel 6
+sudo airmon-ng stop mon0
+参考：http://www.humbug.in/2012/wireless-sniffer-on-ubuntu-linux-capture-analyze-network-traffic/
+
+
+安装chrome
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+
+
+配置busybox编译选项：
+--- busybox-1.22.x.config 
++++ busybox-1.22.x.config   
+@@ -758,12 +758,12 @@
+ CONFIG_DNSD=y
+ CONFIG_ETHER_WAKE=y
+ # CONFIG_FAKEIDENTD is not set
+-# CONFIG_FTPD is not set
+-# CONFIG_FEATURE_FTP_WRITE is not set
+-# CONFIG_FEATURE_FTPD_ACCEPT_BROKEN_LIST is not set
+-# CONFIG_FTPGET is not set
+-# CONFIG_FTPPUT is not set
+-# CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS is not set
++CONFIG_FTPD=y
++CONFIG_FEATURE_FTP_WRITE=y
++CONFIG_FEATURE_FTPD_ACCEPT_BROKEN_LIST=y
++CONFIG_FTPGET=y
++CONFIG_FTPPUT=y
++CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS=y
+ CONFIG_HOSTNAME=y
+ # CONFIG_HTTPD is not set
+ # CONFIG_FEATURE_HTTPD_RANGES is not set
+
+配置/etc/inetd.conf
+ftp     stream  tcp     nowait  root    ftpd  ftpd -w
+/system/rootfs/shell.develop.avhdd/etc/inetd.conf
+ftp     stream  tcp     nowait  root    /usr/sbin/ftpd  ftpd -w
+
+
+Android编译环境：
+sudo apt-get install openjdk-7-jdk  // Java命令
+sudo apt-get install libxml2-utils // xmllint: command not found
+sudo apt-get install lzma  // lzma: Command not found
+
+使用adb
+sudo apt-get install android-tools-adb
+adb connect 192.168.5.152:5555
+adb kill-server
+adb disconnect 192.168.1.5:5555
+adb install [-l] [-r] <file>  // 安装应用
+adb uninstall [-k] <package> // 卸载应用， 手动卸载： adb shell ， cd /data/app ， rm app.apk
+adb pull <remote> <local> // 下载文件
+adb push <local> <remote> // 上传文件
+adb devices
+adb bugreport
+adb shell
+adb get-product

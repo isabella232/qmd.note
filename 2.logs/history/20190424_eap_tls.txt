@@ -1,0 +1,149 @@
+https://bzsparks.com/tag/eap-tls/
+
+802.1X, EAP-TLS, RADIUS, & OpenSSL. Securing Wireless.
+2 Replies
+Login OK
+
+Successful wireless auth
+
+Trying to continuously improve my home lab I tackled one of the projects that has been on the to-do list for awhile. I secured my wireless network with 802.1x EAP-TLS.
+
+We all know that WiFi security best practices include allowing only authorized users access. But how do we accomplish this? What are our options? There is already a wealth of information available covering types of wireless security, here I will detail the method I opted for and how I chose to implement it.
+
+I wanted to use open source software for this project, but you can accomplish the same result in a Windows environment using Network Policy Server (NPS). FreeRADIUS and OpenSSL are the standard tools available for any *nix environment used to secure network resources.
+
+Our first step is to install the software used for the project.
+Install FreeRADIUS & OpenSSL
+
+Install FreeRADIUS & OpenSSL
+
+OpenSSL configuration:
+We need to create our CA directory structure.
+
+    mkdir ~/CA && chmod 700 ~/CA && cd ~/CA
+    mkdir newcerts
+
+Now we initialize the serial file and create index.txt. These files will be used by OpenSSL to keep a database of created certificates.
+
+    echo "01" > serial
+    touch index.txt
+
+Now copy the openssl.cnf file to the newly created CA directory.
+
+    cp /etc/ssl/openssl.cnf ~/CA
+
+openssl.cnf contains all the specific configuration information used to generate your certificates. Customize this file as you see fit, all the lines that end in _default are the default values presented when you generate a cert.
+
+Now we are ready to create our Certificate Authority. You will be asked for a password and all details pertaining to this CA.
+
+    openssl req -new -x509 -days 7300 -keyout cakey.pem -out cacert.pem -config openssl.cnf
+
+With this CA we will create the following files needed for FreeRADIUS.
+
+    /etc/raddb/certs/root.pem (root CA certificate)
+    /etc/raddb/certs/server.pem (server certificate)
+    /etc/raddb/certs/crl.pem (client revocation list, list of any certs that you revoke)
+    /etc/raddb/certs/dh (Diffie-Hellman, used for negotiating TLS session keys)
+    /etc/raddb/certs/random (file of randomly generated bits, this is used for TLS as well)
+
+CA key:
+
+    openssl pkcs12 -export -in cacert.pem -inkey cakey.pem -out root.p12 -cacerts
+    openssl pkcs12 -in root.p12 -out root.pem
+
+Server Key:
+Windows clients require extended attributes set in the certificate. Create ~/CA/xpextensions containing the following:
+[xpclient_ext]
+extendedKeyUsage = 1.3.6.1.5.5.7.3.2
+[xpserver_ext]
+extendedKeyUsage = 1.3.6.1.5.5.7.3.1
+
+Now create the server key
+
+    openssl req -config openssl.cnf -newkey rsa:4096 -keyout serverkey.pem -out servercert.req
+    openssl ca -config openssl.cnf -out servercert.pem -extensions xpserver_ext -extfile xpextensions -keyfile cakey.pem -infiles servercert.req
+    openssl pkcs12 -export -in servercert.pem -inkey serverkey.pem -out server.p12 -clcerts
+    openssl pkcs12 -in server.p12 -out server.pem
+
+CRL:
+
+    openssl ca -config openssl.cnf -gencrl -out crl.pem
+
+DH:
+
+    openssl dhparam -text -5 1024 -out dh
+
+Random:
+
+    dd if=/dev/random of=random bs=1M count=2
+
+FreeRADIUS configuration:
+Now we need to customize FreeRADIUS so it will take advantage of our SSL certificates for authentication.
+
+The 3 (or 4 depending on version) files we will modify are:
+
+    /etc/raddb/radiusd.conf (Main RADIUS configuration file)
+    /etc/raddb/sites-available/default (used in newer FreeRADIUS versions)
+    /etc/raddb/eap.conf (configuration for EAP types)
+    /etc/raddb/clients.conf (configuration for RADIUS clients)
+
+radiusd.conf
+Here we want to define the general scope of our RADIUS install. This file is well documented and has generally safe defaults. Make sure you have at least the following set.
+listen {
+type = auth
+}
+authenticate {
+eap
+}
+
+eap.conf
+This file defines our EAP-TLS settings
+eap {
+default_eap_type = tls
+}
+tls {
+private_key_password = your_server.pem_password
+private_key_file = ${certdir}/server.pem
+certificate_file = ${certdir}/server.pem
+CA_file = ${cadir}/root.pem
+dh_file = ${certdir}/dh
+random_file = ${certdir}/random
+}
+
+clients.conf
+This file is a bit confusing. When I first started using FreeRADIUS I thought this file was used for all connected devices, i.e “clients”. However, in this context, clients refer to devices that directly communicate with the RADIUS server. For example my access point is a RADIUS client, my android phone connecting via WiFi is not. You will most likely only list your access points here.
+client Aerohive330{
+ipaddr = X.X.X.X
+secret = super_secret
+shortname = AP1
+nastype = other
+}
+
+Finally, you want to allow your devices to connect don’t you? We need to create client certificates for each device you want to use. I have created a small python script to automate this process, but I will detail the steps below.
+
+Create the user key
+
+    openssl req -config openssl.cnf -new -nodes -newkey rsa:2048 -keyout ClientDevice_key.pem -out ClientDevice_cert.req
+
+Create the user cert
+
+    openssl ca -config openssl.cnf -days 1825 -keyfile cakey.pem -out ClientDevice_cert.pem -extensions xpclient_ext -extfile xpextensions -infiles ClientDevice_cert.req
+
+At this point you have both client and server certificates signed by your CA.
+
+Finally we can create the PFX file which will import both the client and server cert onto your device allowing you access to your 802.1X EAP-TLS wireless network.
+
+PFX
+
+    cat root.pem > root_client_cert.pem
+    cat ClientDevice_cert.pem >> root_client_cert.pem
+    openssl pkcs12 -export -in root_client_cert.pem -inkey ClientDevice_key.pem -out ClientDevice.pfx -clcerts
+
+After importing your certs check the radiusd.log for any successful login attempts.
+
+tail -f /var/log/radiusd/radiusd.log
+
+If you have any issues authenticating, running freeradius in debug mode (radiusd -X) will often lead to a quick resolution.
+
+I hope this overview has been helpful. If you have any questions please ask in the comment section.
+This entry was posted in Security, Uncategorized, Wireless and tagged 802.1X, EAP-TLS, OpenSSL, WIFI on February 17, 2013.

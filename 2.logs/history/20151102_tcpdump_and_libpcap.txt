@@ -1,0 +1,99 @@
+linux tcpdump执行过程: tcpdump -i wlan0 -w tcpdump.pcap
+
+
+
+main()  // tcpdump.c
+    pcap_open_live()
+        pcap_create()
+            pcap_create_interface()
+                handle->activate_op = pcap_activate_linux // 设置activate函数指针
+        pcap_activate()
+            p->activate_op(p)  // 即pcap_activate_linux
+                handle->read_op = pcap_read_linux  // 设置读操作指针
+                activate_new()
+                    sock_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL))
+    p = pcap_dump_open(pd, dumpinfo.CurrentFileName)  // open dump文件，得到文件指针
+    callback = dump_packet    // 设置dump回调函数
+    pcap_userdata = (u_char *)p    // 设置文件指针
+    pcap_loop(pd, cnt, callback, pcap_userdata)   // 循环抓包函数
+        for(;;)
+            p->read_op(p, cnt, callback, user)   // 即pcap_read_linux
+                pcap_read_packet(handle, callback, user)
+                    recvfrom(...)
+                    callback(userdata, &pcap_header, bp)
+
+
+
+
+PCAP文件格式： pcap文件头：pcap数据包：pcap数据包：pcap数据包：...
+
+
+
+struct pcap_file_header {
+	bpf_u_int32 magic;
+	u_short version_major;
+	u_short version_minor;
+	bpf_int32 thiszone;	/* gmt to local correction */
+	bpf_u_int32 sigfigs;	/* accuracy of timestamps */
+	bpf_u_int32 snaplen;	/* max length saved portion of each pkt */
+	bpf_u_int32 linktype;	/* data link type (LINKTYPE_*) */
+};
+
+
+
+
+
+
+struct pcap_sf_pkthdr {
+    struct pcap_timeval {
+        bpf_int32 tv_sec;        /* seconds */
+        bpf_int32 tv_usec;        /* microseconds */
+    } ts;	/* time stamp */
+    bpf_u_int32 caplen;		/* length of portion present */
+    bpf_u_int32 len;		/* length this packet (off wire) */
+};
+
+
+
+
+
+
+
+libpcap编程思路
+
+---------------------------------------------------------------------------------------------
+
+char * device; /* 用来捕获数据包的网络接口的名称 */
+pcap_t * p; /* 捕获数据包句柄，最重要的数据结构 */
+struct bpf_program fcode; /* BPF 过滤代码结构 */
+　　
+/* 第一步：查找可以捕获数据包的设备 */
+device = pcap_lookupdev(errbuf);
+　　
+/* 第二步：创建捕获句柄，准备进行捕获 */
+p = pcap_open_live(device, 8000, 1, 500, errbuf);
+　
+/* 第三步：如果用户设置了过滤条件，则编译和安装过滤代码 */
+pcap_compile(p, &fcode, filter_string, 0, netmask)；
+pcap_setfilter(p, &fcode);
+　　
+/* 第四步：进入（死）循环，反复捕获数据包 */
+for( ; ; )
+{
+　　while((ptr = (char *)(pcap_next(p, &hdr))) == NULL);
+　　
+　　/* 第五步：对捕获的数据进行类型转换，转化成以太数据包类型 */
+　　eth = (struct libnet_ethernet_hdr *)ptr;
+　　
+　　/* 第六步：对以太头部进行分析，判断所包含的数据包类型，做进一步的处理 */
+　　if(eth->ether_type == ntohs(ETHERTYPE_IP))
+　　…………
+　　if(eth->ether_type == ntohs(ETHERTYPE_ARP))
+　　…………
+}
+　　
+/* 最后一步：关闭捕获句柄,一个简单技巧是在程序初始化时增加信号处理函数，
+以便在程序退出前执行本条代码 */
+pcap_close(p);
+
+---------------------------------------------------------------------------------------------

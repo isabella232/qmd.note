@@ -1,0 +1,189 @@
+NetworkManagementService.java通过socket向netd发送命令。 可以用ndc在命令行实现相同功能。
+
+Ethernet Bridge
+
+ip link add name br0 type bridge
+ip link set br0 up
+ip link set dev eth0 master br0
+ip link set dev wlan0 master br0/system
+
+brctl addbr br0
+brctl addif br0 eth0
+brctl addif br0 wlan0
+
+
+Ethernet NAT 1
+
+insmod /vendor/modules/.ko
+ndc netd softap set wlan0 OceanHotspot broadcast 6 wpa2-psk 12345678
+ndc netd softap startap
+ndc netd interface setcfg wlan0 192.168.43.1 24 up multicast running broadcast
+ndc netd tether interface add wlan0
+ndc netd network interface add local wlan0
+ndc netd network route add local wlan0 192.168.43.0/24
+ndc netd ipfwd enable actiontec
+ndc netd tether start 192.168.43.100 192.168.43.200
+ndc netd tether dns set 501 8.8.8.8 8.8.4.4
+ndc netd nat enable wlan0 eth0 1 192.168.43.0/24
+
+
+Ethernet NAT 2
+
+cat > $HOSTAPD_CONF <<EOF
+interface=$AP_INTERFACE
+driver=nl80211
+ctrl_interface=$HOSTAPD_CTRL
+ssid=OceanHotspot
+channel=6
+ieee80211n=1
+hw_mode=g
+ignore_broadcast_ssid=0
+wowlan_triggers=any
+wpa=2
+rsn_pairwise=CCMP
+wpa_passphrase=12345678
+EOF
+chmod 644 $HOSTAPD_CONF
+# Init wlan0
+ip link set down dev $AP_INTERFACE
+ip addr flush $AP_INTERFACE
+ip link set up dev $AP_INTERFACE
+ip addr add 192.168.43.1/24 broadcast 192.168.43.255 dev $AP_INTERFACE
+
+echo "Launch hostapd on $AP_INTERFACE"
+hostapd -B -d -e /data/misc/wifi/entropy.bin $HOSTAPD_CONF
+sleep 1
+
+#ndc netd softap startap
+#ndc netd interface setcfg wlan0 192.168.43.1 24 up multicast running broadcast
+ndc netd tether interface add wlan0
+ndc netd network interface add local wlan0
+ndc netd network route add local wlan0 192.168.43.0/24
+
+echo "Launch dnsmasq on $AP_INTERFACE"
+dnsmasq -i $AP_INTERFACE \
+         -a 192.168.43.1 \
+         --bind-interfaces \
+         --dhcp-option-force=1,255.255.255.0 \
+         --dhcp-option-force=3,192.168.43.1 \
+         --dhcp-option-force=6,202.96.128.166,202.96.134.133,8.8.8.8 \
+         --no-daemon \
+         --no-resolv \
+         --no-poll \
+         --no-hosts \
+         --dhcp-authoritative \
+         --dhcp-range=192.168.43.100,192.168.43.200,24h \
+         < /dev/null &
+
+# Start dnsmasq
+#ndc netd tether start 192.168.43.100 192.168.43.200
+#ndc netd tether dns set 501 202.96.128.166
+
+# Start NAT
+ndc netd ipfwd enable actiontec
+ndc netd nat enable wlan0 eth0 1 192.168.43.0/24
+
+
+Wireless Repeater
+
+cat > $WPA_SUPPLICANT_CONF <<EOF
+ctrl_interface=$WPA_SUPPLICANT_CTRL
+update_config=1
+EOF
+chmod 644 $WPA_SUPPLICANT_CONF
+
+wpa_supplicant -B -D nl80211 -i $STA_INTERFACE -c $WPA_SUPPLICANT_CONF
+echo "Launch wpa_supplicant on $STA_INTERFACE ret=$?"
+sleep 1
+
+echo "Connect to ext AP"
+wpa_cli -i $STA_INTERFACE -p $WPA_SUPPLICANT_CTRL add_network
+wpa_cli -i $STA_INTERFACE -p $WPA_SUPPLICANT_CTRL set_network 0 ssid \"$EXT_AP_SSID\"
+wpa_cli -i $STA_INTERFACE -p $WPA_SUPPLICANT_CTRL set_network 0 psk \"$EXT_AP_PASSWORD\"
+wpa_cli -i $STA_INTERFACE -p $WPA_SUPPLICANT_CTRL save_config
+wpa_cli -i $STA_INTERFACE -p $WPA_SUPPLICANT_CTRL select_network 0
+sleep 1
+
+echo "Obtain $STA_INTERFACE IP"
+dhcptool $STA_INTERFACE
+
+#ndc netd tether interface add wlan2
+#ndc netd network interface add local wlan2
+#ndc netd network route add local wlan2 192.168.5.0/24
+  
+ndc netd network create 101
+ndc netd tether interface add $STA_INTERFACE
+ndc netd network interface add 101 $STA_INTERFACE
+ndc netd network route add 101 $STA_INTERFACE $STA_NETWORK_ADDR
+#ndc netd network default set 101
+
+cat > $HOSTAPD_CONF <<EOF
+interface=$AP_INTERFACE
+driver=nl80211
+ctrl_interface=$HOSTAPD_CTRL
+ssid=$AP_SSID
+channel=$AP_CHANNEL
+ieee80211n=1
+hw_mode=g
+ignore_broadcast_ssid=0
+wowlan_triggers=any
+wpa=2
+rsn_pairwise=CCMP
+wpa_passphrase=$AP_PASSWORD
+EOF
+chmod 644 $HOSTAPD_CONF
+
+# Init wlan0
+ip link set down dev $AP_INTERFACE
+ip addr flush $AP_INTERFACE
+ip link set up dev $AP_INTERFACE
+ip addr add $AP_HOST_ADDR broadcast $AP_BROADCAST_ADDR dev $AP_INTERFACE
+
+echo "Launch hostapd on $AP_INTERFACE"
+hostapd -B -e /data/misc/wifi/entropy.bin $HOSTAPD_CONF
+sleep 1
+
+#ndc netd softap startap
+#ndc netd interface setcfg wlan0 192.168.43.1 24 up multicast running broadcast
+ndc netd tether interface add $AP_INTERFACE
+ndc netd network interface add local $AP_INTERFACE
+ndc netd network route add local $AP_INTERFACE $AP_NETWORK_ADDR
+
+#ndc netd network create 100
+#ndc netd tether interface add wlan0
+#ndc netd network interface add 100 wlan0
+#ndc netd network route 100 wlan0 192.168.43.0/24
+#ndc netd network default set 100
+
+echo "Launch dnsmasq on $AP_INTERFACE"
+dnsmasq -i $AP_INTERFACE \
+         -a 192.168.43.1 \
+         --bind-interfaces \
+         --dhcp-option-force=1,$AP_NETMASK \
+         --dhcp-option-force=3,$AP_GATEWAY \
+         --dhcp-option-force=6,$AP_DNS1,$AP_DNS2,$AP_DNS3 \
+         --no-daemon \
+         --no-resolv \
+         --no-poll \
+         --no-hosts \
+         --dhcp-authoritative \
+         --dhcp-range=$AP_DHCP_IP_START,$AP_DHCP_IP_END,24h \
+         < /dev/null &
+
+# Start dnsmasq
+#ndc netd tether start 192.168.43.100 192.168.43.200
+#ndc netd tether dns set 501 202.96.128.166
+
+# Start NAT
+ndc netd ipfwd add $AP_INTERFACE $STA_INTERFACE
+ndc netd ipfwd enable actiontec
+#ndc netd nat enable wlan0 wlan2 1 192.168.43.0/24
+ndc netd nat enable $AP_INTERFACE $STA_INTERFACE 1
+ip route add default via $STA_GATEWAY table $STA_INTERFACE
+
+
+
+
+
+
+https://www.dd-wrt.com/wiki/index.php/Category:Linking_Routers

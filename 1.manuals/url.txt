@@ -1,0 +1,44 @@
+
+
+https://github.com/muaz-khan/WebRTC-Experiment
+
+[GeckoView]
+https://github.com/mdn/webextensions-examples
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts
+https://searchfox.org/mozilla-central/source/mobile/android/examples
+https://searchfox.org/mozilla-central/source/mobile/android/geckoview_example
+https://mozilla.github.io/geckoview/javadoc/mozilla-central/allclasses-noframe.html
+
+################################
+##
+## Books
+##
+################################
+[OpenGL SuperBible] http://www.openglsuperbible.com/
+[OpenGL ES 2.0 Programming Guide] https://github.com/danginsburg/opengles-book-samples.git
+[OpenGL ES 3.0 Programming Guide] https://github.com/danginsburg/opengles3-book.git
+
+
+################################
+##
+## Opensouce Projects
+##
+################################
+linux git=https://github.com/torvalds/linux.git
+busybox git=git://busybox.net/busybox.git
+blender git=https://git.blender.org/blender.git
+hostap git=http://w1.fi/hostap.git
+curl git=https://github.com/curl/curl.git
+putty git=https://git.tartarus.org/simon/putty.git
+ffmpeg git=https://git.ffmpeg.org/ffmpeg.git - http://ffmpeg.org/
+virtualbox svn=http://www.virtualbox.org/svn/vbox/
+wireshark svn=
+tcpdump svn=
+libpcap svn=
+lfs = - http://www.linuxfromscratch.org/
+armbian = 
+android = 
+meld = 
+
+
+

@@ -1,0 +1,82 @@
+PADS原理图文件： *.sch
+
+PADS PCB文件： *.pcb
+
+OrCAD原理图文件： *.dsn
+
+Allegro原理图文件： *.brd
+
+Protel99SE原理图文件： *.ddb
+
+
+
+
+
+Cadence
+
+    |----IC设计
+
+    |----PCB设计
+
+            |----Allegro，定位中高端市场，与Mentor/Zuken竞争
+
+            |----OrCAD，收购公司，定位中低端市场，与Protel/PADS竞争
+
+
+
+Mentor
+
+    |----en
+
+    |----wg
+
+    |----PADS（PowerPCB），收购公司，
+
+
+
+Altium
+
+    |----AD (Protel)，国内中小公司用的比较多。
+
+
+
+2013年，EDA软件排行榜，前三位的是Synopsys、Cadence和Mentor。Cadence才是老大，只是他把一次性购买软件改成了按年度收取License费用，搞得去年帐面收入非常难看，但Cadence的收入还是达到了13亿美刀，只比Synopsys少了一点点。Synopsys主要是做IC设计的，如果你不是做IC生产设计，那么接触的软件只有Quartus、ISE等软件中有Synopsys的部分IP，不直接跟这个公司打交道。线路板级设计软件中，老大是Cadence，老二是Mentor，老三是Zuken，Altium（Protel）排名不祥，估计能进入前10名。
+
+
+
+Cadence的软件是ConceptHDL/Allegro和收购来的OrCAD。Allegro最近很火爆，特别是现在计算机主板以及显卡等附加值高的产品都是Allegro格式，尽管三五年前PowerPCB才是业界标准。 该公司在EDA领域处于国际领先地位，旗下PCB设计领域有市面上众所周知的OrCAD和Allegro SPB两个品牌，其中OrCAD为90年代之收购品牌，Allegro SPB为其自有品牌，早期版本称为Allegro PSD。经过十余载之整合，目前Cadence PCB领域仍执行双品牌战略，OrCAD覆盖中低端市场（以极低的价格就可以获得好用的工具，主要与Protel和Pads竞争），Allegro SPB覆盖中高端市场（与Mentor和Zuken竞争）。OrCAD品牌涵盖原理图工具OrCAD Capture/Capture CIS(含有元件库管理之功能)，原理图仿真工具PSpice（PSpiceAD、PSpiceAA），PCB Layout工具 OrCAD PCB Editor（Allegro L版本，OrCAD原来自有的OrCAD Layout在08年已经全球范围停止销售），信号完整性分析工具OrCAD Signal Explorer（Allegro SI 之基础版本）。Allegro SPB品牌涵盖原理图工具Design Entry CIS(与OrCAD Capture CIS完全相同)，Concept HDL（Cadence自有之原理图工具），原理图仿真工具Allegro AMS Simulator（即PSpiceAD、PSpiceAA），PCB Layout工具 Allegro PCB Editor（有L、Performance、XL、GXL版本）。信号完整性分析工具Allegro PCB SI（有L、Performance、XL、GXL版本）。
+
+
+
+Mentor的产品是Boardstation(en)和ExpeditionPCB(wg)以及收购来的PADS(PowerPCB)。en是传说中的PCB无敌高手，那些只考虑工期不考虑成本，总是做8层～12层PCB的通讯和军工研究所必杀绝技。wg麽，好像所有的BBS都同意这是地球上最好的布线工具。PowerPCB就不说了，用的人也不少。
+
+Zuken的东西是PWS（已停止发展），高端的CR5000和低端的Cadstar，不过据我所知，除了日资和与日本有业务往来的企业外没有人用Zuken的软件。
+
+
+
+PADS / powerPCB
+
+MentorGraphics公司的电路原理图和PCB设计工具软件。国内从事电路设计的工程师和技术人员主要使用的电路设计软件之一，是PCB设计高端用户最常用的工具软件。按时间先后：powerpcb2005----powerpcbS2007----PADS9.0----PADS9.1----PADS9.2----PADS9.3——PADS9.4——PADS9.5(2012-10-18)
+
+
+
+Protel / Altium Designer
+
+Altium公司在80年代末推出的EDA软件。DOS版Protel（1985年）---- Windows版Protel（1991年）----Protel98（1997年）----Protel99(1999年)----Protel99se（2000年）----Protel DXP （2002年）----Protel 2004（2003年）----Altium Designer 6.0（2006年）----Altium Designer Summer 8.0（2008年）----Altium Designer Summer 9.0（2009年）
+
+
+评论：画单面板和简单的板用PROTEL,画大型板，多层板建议用PADS。
+
+评论：用pads 9.5的logic画完原理图，再用layout布局，再用router画线，高速的会偶尔Hyperlynx仿一下。protel是业余中的最专业的，PADS是专业中的比较业余的。
+
+
+
+DxDesigner
+
+
+
+EE（Mentor）
+
+
+
+BS

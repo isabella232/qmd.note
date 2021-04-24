@@ -1,0 +1,164 @@
+源码位置：android/external/skia
+
+
+
+Android Java 2D作图主要通过JNI调用skia图形库完成。Canvas是个2D的概念，在skia中可以把这个canvas理解成系统提供给我们的一块内存区域，但实际上它只是一套绘图API，真正的内存是下面的Bitmap，skia 提供一个bitmap对象。在surface上绘制UI，通过lock来获取surface对应的数据buffer，并当做skia bitmap的内存，unlockandpost来通知Surfaceflinger来输出显示。
+
+SkBitmap用来设置像素。SkCanvas执行写入操作。SkPaint相当于画笔，用来设置颜色(color), 字体(typeface), 文字大小(textSize), 文字粗细(strokeWidth), 渐变(gradients, patterns)等。
+
+int main(int argc, char **argv)
+{
+	// create a client to surfaceflinger
+	sp<SurfaceComposerClient> client = new SurfaceComposerClient();
+	sp<IBinder> dtoken(SurfaceComposerClient::getBuiltInDisplay(
+						ISurfaceComposer::eDisplayIdMain));
+
+	DisplayInfo dinfo;
+	status_t status = SurfaceComposerClient::getDisplayInfo(dtoken, &dinfo);
+	printf("w=%d,h=%d,xdpi=%f,ydpi=%f,fps=%f,ds=%f\n",
+				dinfo.w, dinfo.h, dinfo.xdpi, dinfo.ydpi, dinfo.fps, dinfo.density);
+
+	sp<SurfaceControl> surfaceControl =
+			client->createSurface(String8("debugview"),
+			dinfo.w, dinfo.h,
+			PIXEL_FORMAT_RGBA_8888,
+			0/*ISurfaceComposerClient::eHidden*/);
+
+	surfaceControl;
+
+	SurfaceComposerClient::openGlobalTransaction();
+	surfaceControl->setLayer(100000);
+	surfaceControl->setPosition(20, 20);
+	//surfaceControl->setAlpha(0.3f);
+	//surfaceControl->setSize(800, 800);
+	//surfaceControl->setSize(1500, 1000);
+	//Rect rect(900,900,900,900);
+	//Region region(rect);
+	//surfaceControl->setTransparentRegionHint(region);
+	SurfaceComposerClient::closeGlobalTransaction();
+	surfaceControl->show();
+	sp<Surface> surface = surfaceControl->getSurface();
+
+	ANativeWindow_Buffer outBuffer;
+	//Surface::SurfaceoutBuffer outBuffer;
+	//surface->lock(&outBuffer,NULL);//
+	//ssize_t bpr = outBuffer.stride * bytesPerPixel(outBuffer.format);
+	//android_memset16((uint16_t*)outBuffer.bits, 0xF800, bpr*outBuffer.height);
+	//surface->unlockAndPost();
+	//sleep(1);
+
+	ssize_t bpr;
+	SkBitmap bitmap;
+
+	//SkImageInfo info = SkImageInfo::MakeN32Premul(512, 512)
+	//SkImageInfo info = SkImageInfo::Make(512, 512,
+	//           kN32_SkColorType,
+	//           kOpaque_SkAlphaType);
+	SkImageInfo info = SkImageInfo::Make(512, 512,
+						kN32_SkColorType,
+						kPremul_SkAlphaType);
+
+	surface->lock(&outBuffer, NULL);
+	bpr = outBuffer.stride * bytesPerPixel(outBuffer.format);
+	bitmap.installPixels(info, outBuffer.bits, bpr);
+	SkCanvas canvas(bitmap);
+	canvas.clear(SK_ColorTRANSPARENT);
+	SkPaint paint;
+	paint.setTextSize(28);
+	paint.setColor(SK_ColorBLACK);
+	//canvas.drawColor(SK_ColorRED);
+	const char *str = "aaaaaaaaaaaaaaaaaaE";
+	canvas.drawText(str, strlen(str), 8, 28, paint);
+	surface->unlockAndPost();
+	sleep(3);
+
+#if 0
+	SurfaceComposerClient::openGlobalTransaction();
+	surfaceControl->setLayer(100000);
+	surfaceControl->setPosition(0, 0);
+	SurfaceComposerClient::closeGlobalTransaction();
+	surfaceControl->show();
+
+	sp<Surface> surface = surfaceControl->getSurface();
+
+	ANativeWindow_Buffer outBuffer;
+	surface->lock(&outBuffer,NULL);
+	ssize_t bpr = outBuffer.stride * bytesPerPixel(outBuffer.format);
+	android_memset16((uint16_t*)outBuffer.bits, 0xF800, bpr*outBuffer.height);
+	surface->unlockAndPost();
+	sleep(3);
+
+	SurfaceComposerClient::openGlobalTransaction();
+	surfaceControl->setSize(480, 272);
+	surfaceControl->setPosition(100, 100);
+ 	SurfaceComposerClient::closeGlobalTransaction();
+	surfaceControl->show();
+	FILE *fp = fopen("/tmp/rgb565.rgb","rb");
+	if(fp != NULL){
+		unsigned char *rgb565Data = new unsigned char[480*272*2];
+		memset(rgb565Data,0x00,480*272*2);
+		fread(rgb565Data,1,480*272*2,fp);
+		surface->lock(&outBuffer,NULL);
+		memcpy(outBuffer.bits,rgb565Data,480*272*2);
+		delete[] rgb565Data;
+		surface->unlockAndPost();
+	}
+	fclose(fp);
+	sleep(3);
+
+	SurfaceComposerClient::openGlobalTransaction();
+	surfaceControl->setSize(320, 420);
+	surfaceControl->setPosition(100, 100);
+	SurfaceComposerClient::closeGlobalTransaction();
+	surfaceControl->show();
+	SkPaint paint;
+	paint.setColor(SK_ColorBLUE);
+	Rect rect(0, 0, 320, 240);
+	Region dirtyRegion(rect);
+	surface->lock(&outBuffer, &rect);
+	bpr = outBuffer.stride * bytesPerPixel(outBuffer.format);
+	SkBitmap bitmap;
+	bitmap.setConfig(convertPixelFormat(outBuffer.format), 320, 240, bpr);
+	bitmap.setPixels(outBuffer.bits);
+	SkCanvas canvas;
+	SkRegion clipReg;
+	const Rect b(dirtyRegion.getBounds());
+	clipReg.setRect(b.left, b.top, b.right, b.bottom);
+	canvas.clipRegion(clipReg);
+	canvas.drawARGB(0, 0xFF, 0x00, 0xFF);
+	canvas.drawCircle(200, 200, 100, paint);
+	bitmap.notifyPixelsChanged();
+	surface->unlockAndPost();
+	sleep(3);
+
+	SkFILEStream stream("/tmp/test.jpg");
+	SkImageDecoder* codec = SkImageDecoder::Factory(&stream);
+	if(codec){
+		SkBitmap bmp;
+		stream.rewind();
+		codec->decode(&stream, &bmp,
+				SkBitmap::kRGB_565_Config,
+				SkImageDecoder::kDecodePixels_Mode);
+		surface->lock(&outBuffer,NULL);
+		bpr = outBuffer.stride * bytesPerPixel(outBuffer.format);
+		bitmap.setConfig(convertPixelFormat(outBuffer.format), 320, 240, bpr);
+		bitmap.setPixels(outBuffer.bits);
+		canvas.drawBitmap(bmp, SkIntToScalar(200), SkIntToScalar(300));
+		surface->unlockAndPost();
+		sleep(3);
+	}
+#endif
+
+	return 0;
+}
+
+设置字体
+
+SkTypeface *font = SkTypeface::CreateFromFile("xxx.otf");
+if(font){
+    paint.setARGB(255, 255, 0, 0);
+    paint.setTypeface(font);
+    paint.setTextSize(25);
+    canvas.drawText("abc", 3, 20, 20, paint);
+}
+还可以使用SkTypeface::CreateFromName创建face，skia会遍历SK_FONT_FILE_PREFIX宏所指示的目录下所有*.ttf字库文件，并将其加载内存的。

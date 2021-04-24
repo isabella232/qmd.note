@@ -1,0 +1,78 @@
+cmd.exe常用命令
+
+
+> Open Group Policy Editor and navigate to Computer Configuration > Administrative Templates > Network > QoS Packet Scheduler. 
+  Double-click on Limit reservable bandwidth. Click on Enabled, then change the Bandwidth limit to 0 or 5 to reserve a little bandwidth.
+
+上传提速：
+> netsh interface tcp show global
+Enable: netsh int tcp set global autotuninglevel=normal
+Disable: netsh int tcp set global autotuninglevel=disabled
+
+netsh interface ipv4 show joins
+
+[Install Terminator on Windows with WSL]
+Step 1. Open PowerShell as Administrator and run: Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+Step 2. Install Ubuntu for windows from windows store. After install: 
+        sudo apt install dbus-x11 
+        sudo systemd-machine-id-setup
+Step 3. Install X-Server from https://sourceforge.net/projects/vcxsrv/
+        Create and start desktop shortcut: "C:\Program Files\VcXsrv\vcxsrv.exe" :0 -ac -terminate -lesspointer -multiwindow -clipboard -wgl -dpi auto
+        Check: netstat -abno|findstr 6000
+Step 4. Install terminator and start.
+        sudo apt-get update
+        sudo apt-get install terminator
+        DISPLAY=:0 terminator &
+https://medium.com/@bhupathy/install-terminator-on-windows-with-wsl-2826591d2156
+
+adb shell pm list packages -f | findstr rtc
+
+Win10 command:
+cmd /c # close 
+cmd /k # keep
+calc计算器
+mspaint画板
+regedit注册表
+winver查看win版本
+dxdiag查看directX信息
+taskmgr任务管理器
+notepad记事本
+netstat网络状态
+explorer资源管理器（win+e）
+write写字板
+mstsc远程桌面连接
+osk软键盘
+gpedit组策略
+utilman管理工具
+nslookup地址侦测器
+perfmon性能检测器
+eventvwr事件查看器
+dvdplay播放器
+mmc控制台
+
+start /b [cmd] 后台运行[cmd]
+netsh interface ip show joins #查看组播地址
+
+dir /s *.txt                     #查找所有.txt文件
+findstr /snp "abc" *     #查找包含字符串的文件 = linux grep
+find /N /I /C "abc" test.txt     #查找包含字符串的行
+where cmd                        #查找cmd的路径 = linux which
+dumpbin /headers libucrt.lib | findstr printf
+dumpbin /exports xxx 查看export符号
+dumpbin /dependents xxx 查看依赖库
+type   #linux cat
+rmdir /s /q <dir>
+mkdir <dir>
+del <file>
+
+
+MSVC_ROOT_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105"
+WKIT_ROOT_DIR="C:\Program Files (x86)\Windows Kits\10"
+
+winresrc.h       ==> $(WKIT_ROOT_DIR)\Include\10.0.18362.0\um 
+winapifamily.h   ==> $(WKIT_ROOT_DIR)\Include\10.0.18362.0\shared 
+stdio.h          ==> $(WKIT_ROOT_DIR)\Include\10.0.18362.0\ucrt
+vcruntime.h      ==> $(MSVC_ROOT_DIR)\include
+
+GetOpenFileNameA ==> comdlg32.dll
+GetStockObject   ==> gdi32.dll

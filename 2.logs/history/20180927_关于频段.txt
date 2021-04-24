@@ -1,0 +1,51 @@
+
+国内免许频段
+
+
+
+极低频    Extremely Low Frequency, ELF    3-30 Hz
+超低频    Super Low Frequency, SLF    30-300 Hz
+特低频    Ultra Low Frequency, ULF    300 Hz-3 KHz
+甚低频    Very Low Frequency, VLF    3-30 KHz
+低频    Low Frequency, LF    30-300 KHz
+中频    Medium Frequency, MF    300 KHz-3 MHz
+高频    High Frequency, HF    3-30 MHz
+甚高频    Very High Frequency, VHF    30-300 MHz
+特高频    Ultra High Frequency, UHF    300 MHz-3 GHz
+超高频    Super High Frequency, SHF    3-30 GHz
+极高频    Extremely High Frequency, EHF    30-300 GHz
+
+
+
+sdfas
+
+极低频
+
+
+Extremely Low Frequency, ELF	3-30 Hz
+
+Super Low Frequency, SLF	30-300 Hz
+
+Ultra Low Frequency, ULF	300 Hz-3 KHz
+
+Very Low Frequency, VLF	3-30 KHz
+
+Low Frequency, LF	30-300 KHz
+
+Medium Frequency, MF	300 KHz-3 MHz
+
+High Frequency, HF	3-30 MHz
+
+Very High Frequency, VHF	30-300 MHz
+
+
+
+
+
+
+
+
+
+
+
+asdas

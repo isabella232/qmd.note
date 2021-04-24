@@ -1,0 +1,67 @@
+Windows API
+
+编译工具：
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\bin\Hostx86\x64\nmake.exe
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\bin\Hostx86\x64\cl.exe
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\bin\Hostx86\x64\link.exe
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.23.28105\bin\Hostx86\x64\dumpbin.exe
+C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\rc.exe
+
+dumpbin /exports xxx 查看export符号
+dumpbin /dependents xxx 查看依赖库
+
+头文件
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\ucrt\stdio.h
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um\windows.h
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\shared\winapifamily.h
+
+静态库
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\um\x64\user32.lib
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\um\x64\kernel32.lib
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\um\x64\comctl32.lib
+
+libucrt.lib       # Universal C runtime library (For static link)
+ucrt.lib          # Universal C runtime library (For dynamic link)
+libvcruntime.lib  # VC runtime library (For static link)
+vcruntime.lib     # VC runtime library (For dynamic link)
+libcmt.lib        # Native CRT startup library (For static link)
+msvcrt.lib        # Native CRT startup library (For dynamic link)
+libcpmt.lib       # C++ standard library (For static link)
+msvcprt.lib       # C++ standard library (For dynamic link)
+
+动态库
+C:\Windows\System32\user32.dll
+
+
+Kernel32.lib
+Sleep() # windwos.h/synchapi.h
+
+
+HINSTANCE
+INITCOMMONCONTROLSEX
+HACCEL
+HWND
+MSG
+WNDCLASSEX
+HMENU
+
+
+GetModuleHandle()
+InitCommonControlsEx()
+RegisterClassEx
+CreateWindowEx
+GetSystemMenu
+InsertMenu
+
+
+LoadAccelerators() #加载快捷键表
+
+
+
+
+
+
+
+
+
+

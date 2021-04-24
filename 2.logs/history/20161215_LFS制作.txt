@@ -1,0 +1,59 @@
+
+用VB测试制作的LFS系统
+
+
+
+方法一： 参考VB官网的方法（https://www.virtualbox.org/manual/ch09.html#idm7661），将RAW Disk制作成vmdk。
+
+
+
+VBoxManage internalcommands createrawvmdk -filename /path/to/file.vmdk -rawdisk /dev/sda
+生成的file.vmdk很小，猜测是对/dev/sda做了一些映射，只保存VB对file.vmdk的修改。有时rawdisk的改变可能会影响这种映射，运行后经常报错，ext4相关。
+
+
+
+
+
+方法二： 想办法制作真正的vmdk。下面是我想的办法。参考了网上的方法。
+
+第一步制作无引导的LFS vmdk。
+
+先查看LFS系统大小，根据大小用dd制作空的RAW img文件，注意体积要比LFS系统大。
+
+
+
+dd if=/dev/zero of=lfs.img bs=1024 count=2097152
+格式化并挂载这个lfs.img，将LFS系统拷贝进去，然后卸载lfs.img。 用VB工具将lfs.img转换成vmdk文件。
+
+
+
+
+
+VBoxManage convertfromraw lfs.img vb.vmdk --format vmdk
+
+
+这时这个lfs.img并不能作为启动盘来引导系统启动。
+
+第二步制作可引导的LFS vmdk。
+
+给VB安装ubuntu-14.04.4-desktop-amd64.iso光盘，新建一个100GB的lfs2.vmdk，安装第一步创建的lfs.vmdk。这样有一个光盘，两个硬盘。用光盘的try ubuntu功能启动一个临时系统。在这个系统中，用fdisk将lfs2.vmdk进行分区，一个primary分区98GB /dev/sda1并激活boot flag，剩下2GB为扩展分区/dev/sda2，在扩展分区上新建逻辑分区/dev/sda5，将这个逻辑分区改成swap分区。挂载/dev/sda1和/dev/sdb，将sdb的LFS系统文件全部拷贝到sda1里面。挂载内存文件系统后，chroot到sda1。
+
+
+
+cd /mnt/sda1
+sudo mount -v --bind /dev dev
+sudo mount -vt devpts devpts dev/pts -o gid=5,mode=620
+sudo mount -vt proc proc proc
+sudo mount -vt sysfs sysfs sys
+sudo mount -vt tmpfs tmpfs run
+在chroot之后的系统里面执行grub-install /dev/sda，这一步将会修改sda的MBR，sda将成为可引导启动盘。
+
+
+
+注： virtualbox-fuse只支持virtualbox4.x，我的系统装的vb5,没办法挂载vmdk到ubuntu目录。没有试过vmware-mount，看起来有点繁琐，vmware收费不开源。
+
+
+
+网络：
+
+可以使用VB的PCnet32网卡桥接，所以kernel配置时打开这个配置项：AMD PCnet32 PCI support，来支持这个虚拟硬件，以buildin或者module方式均可。 用ifconfig设置IP和netmask，设置默认网关以访问外网： insmod pcnet32.ko ; ifconfig enp0s3 192.168.5.172 netmask 255.255.255.0 ; ip route add default via 192.167.5.1 dev enp0s3。

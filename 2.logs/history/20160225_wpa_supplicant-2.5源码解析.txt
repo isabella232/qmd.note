@@ -1,0 +1,812 @@
+
+主程序
+
+
+wpa_supplicant/main.c/main()
+
+wpa_supplicant_init()
+
+// 初始化wpa_global, eloop_data
+
+wpa_supplicant_add_iface()
+
+wpa_supplicant_run()
+
+
+
+
+
+1. wpa_global对象描述全局上下文信息，
+
+struct wpa_supplicant *ifaces：指向wpa_supplicant对象链表，
+
+void **drv_priv = wpa_drivers[i]->global_init()：包含driver所需要的全局上下文信息，
+
+struct ctrl_iface_global_priv *ctrl_iface：对应全局控制接口，如果设置了该接口，其他wap_interface设置的控制接口将被代替。
+
+2. 每个wpa_interface对象描述一个无线网络设备，对应一个wpa_supplicant，
+
+confname配置文件名，driver对应的驱动名，ifname网络接口设备名，ctrl_interface控制接口路径。
+
+3. wpa_supplicant对象，
+
+
+
+struct wpa_config *conf
+
+
+
+
+
+struct wpa_ssid *ssid    // Head of the global network list
+
+
+
+struct wpa_sm *wpa：WPA状态机
+
+struct wpa_sm_ctx *ctx
+
+struct eapol_sm *eapol
+
+struct eapol_sm *eapol：
+
+struct eapol_ctx *ctx
+
+struct eap_sm *eap
+
+void *drv_priv：包含driver所需要的全局上下文信息，由 wpa_s->driver->init2()/init()得到，
+
+void *global_drv_priv = global->drv_priv[i]：
+
+struct wpa_driver_ops *driver：
+
+struct ctrl_iface_priv *ctrl_iface：控制接口
+
+4. struct wpa_ssid代表一个network配置，配置文件中每个network会建立一个struct wpa_ssid。
+
+struct wpa_bss代表一个真实的network，一个BSS。
+
+
+
+SM通用宏：
+
+SM_STATE(machine, state)      表示一个Entry Action，一个静态函数声明
+
+SM_ENTRY(machine, state)      表示一段通用的入口代码
+
+SM_ENTER(machine, state)        表示Entry Action的一次调用
+
+SM_ENTER_GLOBAL(machine, state)  表示Entry Action的一次UCT调用，直接进入某个状态
+
+SM_STEP(machine)                    状态机运行的函数定义
+
+SM_STEP_RUN(machine)           调用状态机运行函数
+
+
+
+
+
+RFC 4137描述了EAP协议，Supplicant端和Authenticator端通过SM实现EAP处理流程。
+
+RFC 4137将Supplicant端SM（SSM）分为三层：底层(EAP收发)-SSM层-Method层。EAP SM有13个状态。
+
+
+
+EAPOL参考了IEEE 802.1X规范，实现了EAP协议的底层。802.1X为Supplicant定义了5个状态机：
+
+
+Port Timers SM：     Port超时控制状态机。PT SM，2个状态，wpa_supplicant用eapol_port_timers_tick()实现。
+
+Supplicant PAE SM：   维护Port的状态，PAE即Port Access Entitiy。PAE SM，9个状态。
+
+Supplicant Backend SM： 向Authenticator发送EAPOL回复消息。BE SM，8个状态。
+
+The Key Receiver SM：     处理EAPOL-Key帧相关流程。TKR SM，2个状态。
+The Supplicant Key Transmit SM： 非必选项， WPAS未实现
+
+
+
+
+
+
+
+
+
+
+
+统称PACP（ Port Access Control Protocol）State Machine。
+
+
+
+
+
+
+
+
+
+
+
+
+
+wpa_supplicant_init
+
+
+wpa_supplicant_init()
+
+eap_register_methods()   // 注册EAP方法
+
+eloop_init()  // 初始化eloop_data。处理5种事件：read/write/exception/timeout/signal
+
+wpa_supplicant_global_ctrl_iface_init()   // 初始化全局控制接口对象
+
+wpas_notify_supplicant_initialized()  // 初始化通知机制相关资源， 它和dbus有关
+
+wpa_supplicant_init()主要功能是初始化wpa_global。有两个全局callback函数：wpa_msg_get_ifname_func， 有些输出信息中需要打印出网卡接口名， 该回调函数
+
+用于获取网卡接口名；wpa_msg_cb_func： 除了打印输出信息外， 还可通过该回调函数进行一些特殊处理， 如把输出信息发送给客户端进行处理。
+
+
+
+wpa_supplicant_add_iface
+
+
+wpa_s = wpa_supplicant_add_iface()   // 添加网卡
+
+wpa_supplicant_init_iface()  // 初始化网卡
+
+wpa_config_read()   // 读取网卡对应的配置文件
+
+wpas_init_driver()  // 初始化驱动
+
+wpa_supplicant_set_driver()  // 根据-Dnl80211、-Dwired等参数，确定驱动类型
+
+select_driver() // 遍历wpa_drivers全局结构体，根据名字查找驱动
+
+global->drv_priv[i] = wpa_drivers[i]->global_init()   //  返回struct nl80211_global对象，全局上下文信息
+
+nl80211_global_init()
+
+// 处理网卡状态变化事件：UP/DORMANT/REMOVED
+
+(struct nl80211_global *)global->netlink = netlink_init(cfg)
+
+netlink->sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE)
+
+bind(netlink->sock, (struct sockaddr *) &local, sizeof(local))
+
+eloop_register_read_sock(netlink->sock, netlink_receive, netlink, NULL)
+
+wpa_driver_nl80211_init_nl_global(global)
+
+global->nl = nl_create_handle(global->nl_cb, "nl")  // 用于发送netlink消息
+
+global->nl_event = nl_create_handle(global->nl_cb, "event")  // 用于接收netlink消息
+
+// 设置netlink消息回调处理函数
+
+nl_cb_set(global->nl_cb, NL_CB_VALID, NL_CB_CUSTOM, process_global_event, global)
+
+(struct nl80211_global *)global->ioctl_sock = socket(PF_INET, SOCK_DGRAM, 0)
+
+
+wpa_s->driver = wpa_drivers[i]     // (struct wpa_driver_ops *)
+
+wpa_s->global_drv_priv = global->drv_priv[i]  // 一个struct nl80211_global *global对象
+
+wpa_drv_init()  // driver的局部上下文信息初始化
+wpa_s->drv_priv = wpa_s->driver->init2()/init()  // 返回struct i802_bss对象
+
+wpa_driver_nl80211_init()   =>  wpa_driver_nl80211_drv_init()
+
+wpa_driver_nl80211_capa(drv) // 获取无线网络设备的capability
+
+nl80211_init_bss(bss)
+
+// 设置bss事件处理回调函数，注意此时并没有创建nl_handle即nl_socket
+
+nl_cb_set(bss->nl_cb, NL_CB_VALID, NL_CB_CUSTOM, process_bss_event, bss)
+
+/*
+
+rfkill代表radio frequency（ RF） connector kill switch support， 它是Kernel中的
+一个子系统（ subsystem） 。 其功能是控制系统中射频设备的电源（ 包括Wi-Fi、 GPS、
+BlueTooth、 FM等设备。 注意， 这些设备驱动只有把自己注册到rfkill子系统中后， rfkill
+才能对它们起作用） 的工作以避免浪费电力。 rfkill有软硬两种方式来禁止（ block） RF设
+备。
+
+*/
+
+drv->rfkill = rfkill_init(rcfg)
+
+// 接收rfkill事件，查看无线设备是开启还是关闭。
+
+eloop_register_read_sock(rfkill->fd, rfkill_receive, rfkill, NULL)
+
+linux_iface_up(drv->global->ioctl_sock, ifname)
+
+wpa_driver_nl80211_finish_drv_init()
+
+wpa_driver_nl80211_set_mode()  // 设置接口类型为NL80211_IFTYPE_STATION
+
+
+
+...
+
+
+
+wpa_supplicant_init_wpa()   // 初始化wpa_sm相关的资源
+
+wpa_sm_init()   //  初始化wpa_sm状态机
+
+wpa_drv_get_hw_feature_data()
+
+wpa_supplicant_driver_init()
+
+wpa_supplicant_update_mac_addr()
+
+wpa_s->l2 = l2_packet_init(ETH_P_EAPOL, wpa_supplicant_rx_eapol) // 接收EAPOL回调函数
+
+eloop_register_read_sock()
+
+wpa_supplicant_req_scan()  // 发起有效SSID的扫描
+
+wpas_wps_init()
+
+wpa_supplicant_init_eapol()  // 初始化EAPOL
+
+wpa_s->eapol = eapol_sm_init(ctx)
+
+sm->eap = eap_peer_sm_init()  // 初始化EAP SM
+
+eloop_register_timeout(eapol_port_timers_tick)
+
+wpa_sm_set_eapol()
+
+wpa_supplicant_ctrl_iface_init()
+
+gas_query_init()
+
+wpas_p2p_init()
+
+wpa_bss_init()
+
+
+
+
+wpas_notify_network_added()
+
+
+
+
+
+
+
+
+
+wpa_supplicant_run
+
+
+wpa_supplicant_run()
+
+eloop_run()
+
+
+
+
+
+扫描
+
+
+wpa_supplicant_req_scan()
+
+wpa_supplicant_scan()
+
+wpa_supplicant_trigger_scan()
+
+wpas_trigger_scan_cb()
+
+wpa_driver_nl80211_scan()
+
+
+
+这里driver_nl80211发送NL80211_CMD_TRIGGER_SCAN命令给WiFi driver，通知它开始扫描周围的无线网络。
+
+WiFi driver完成任务后，向注册的三个netlink组播之一的“scan”组播地址发送结果。
+
+driver_nl8021对应的处理回调函数为process_global_event。
+
+
+
+process_global_event()
+
+do_process_drv_event()
+
+case NL80211_CMD_TRIGGER_SCAN
+
+wpa_supplicant_event(EVENT_SCAN_STARTED)
+
+case EVENT_SCAN_STARTED
+
+case NL80211_CMD_NEW_SCAN_RESULTS
+
+send_scan_event()
+
+wpa_supplicant_event(EVENT_SCAN_RESULTS)
+
+case EVENT_SCAN_RESULTS
+
+wpa_supplicant_event_scan_results()  =>  _wpa_supplicant_event_scan_results()
+
+scan_res = wpa_supplicant_get_scan_results()
+
+wpa_drv_get_scan_results2()
+
+wpa_s->driver->get_scan_results2()  =>  wpa_driver_nl80211_get_scan_results()
+
+qsort()  // 对扫描结果进行排序， 排序函数是wpa_scan_result_compar
+
+wpa_bss_update_scan_res()  // 更新WPAS中保存的那些bss信息
+
+wpas_notify_scan_done()  // 通知客户端， 扫描结束
+
+wpas_select_network_from_last_scan()
+
+/* 
+
+根据scan_res（扫描结果）、 wpa_bss（代表一个真实BSS的信息）和
+wpa_ssid（ 代表用户设置的某个无线网络配置项）的匹配情况来选择合适的无线网络wpa_bss
+
+*/
+
+selected = wpa_supplicant_pick_network()
+
+wpa_supplicant_need_to_roam()  // 判断是否需要漫游
+
+wpa_supplicant_connect() 
+
+wpa_supplicant_associate()   //  发起关联
+
+// 预认证处理，更新PMKSA缓存信息，和802.11中的Fast Transition有关
+
+wpa_supplicant_rsn_preauth_scan_results()
+
+
+
+
+
+关联
+
+
+wpa_supplicant_associate()
+
+struct wpa_driver_associate_params params // 主要目的是填充params的内容
+
+radio_add_work(wpas_start_assoc_cb)  // 增加assoc工作任务
+
+
+
+wpas_start_assoc_cb()   // 根据AP的情况选择合适的加密方法及认证方法
+
+wpa_supplicant_cancel_sched_scan()
+
+wpa_supplicant_cancel_scan()
+
+wpa_sm_set_assoc_wpa_ie()  // 清空上一次association时使用的WPA/RSN IE信息
+
+/*
+
+auth_alg为认证方法， 可取值有WPA_AUTH_ALG_OPEN、 WPA_AUTH_ALG_SHARED等。 
+
+如果要使用WPA的话， 在和AP关联时必须使用Open System（即WPA_AUTH_ALG_OPEN）
+
+如果没有设置该值， 其值默认为0
+
+*/
+
+...
+
+...
+
+wpa_clear_keys()  // 清除wlan driver中的key设置
+
+wpa_supplicant_set_state(WPA_ASSOCIATING)
+
+wpa_drv_associate()  // 发起关联请求
+
+wpa_s->driver->associate()   =>   wpa_driver_nl80211_associate()
+
+wpa_supplicant_req_auth_timeout(wpa_s, timeout, 0)   // 设置60s超时回调
+
+eapol_sm_invalidate_cached_session(wpa_s->eapol)   // 设置上一次eapol session无效
+
+wpa_supplicant_rsn_supp_set_config()  // 将加密/身份验证信息设置到wpa_sm对应的变量中去
+
+wpa_supplicant_initiate_eapol()  // 配置eapol sm和eap sm
+
+
+
+wpa_driver_nl80211_associate()
+
+wpa_driver_nl80211_connect()
+
+wpa_driver_nl80211_try_connect()
+
+nl80211_drv_msg(NL80211_CMD_CONNECT)  // 构造NL80211_CMD_CONNECT消息
+
+nl80211_connect_common() 
+
+send_and_recv_msgs()  //  把CONNECT请求发给了驱动， 驱动将完成Authentication帧和Association Request帧的处理。
+
+
+
+驱动会返回NL80211_CMD_CONNECT类型的消息。
+
+process_global_event()
+
+do_process_drv_event()
+
+case NL80211_CMD_CONNECT
+
+mlme_event_connect()
+
+union wpa_event_data event
+
+event.assoc_info.freq = nl80211_get_assoc_freq(drv)   // 通过发送NL80211_GET_SCAN命令获取STA的工作频率
+
+wpa_supplicant_event(EVENT_ASSOC)
+
+case EVENT_ASSOC
+
+wpa_supplicant_event_assoc() 
+
+ft_completed = wpa_ft_is_completed()   // 判断Fast Transition是否完成
+
+wpa_supplicant_event_associnfo()  // 更新RSN/WPA IE信息
+
+wpa_drv_get_bssid()  // 从driver wrapper中获得bssid信息
+
+wpa_supplicant_set_state(WPA_ASSOCIATED)
+
+eapol_sm_notify_portEnabled(TRUE)   // 触发状态机
+
+wpa_supplicant_req_auth_timeout()  // 注册认证超时函数
+
+wpa_supplicant_cancel_scan(wpa_s)   // 取消扫描任务
+
+
+
+
+WPA
+
+
+eapol_sm_notify_portEnabled(TRUE)
+
+sm->portEnabled = enabled
+
+eapol_sm_step(sm)
+
+// 四个状态机状态PAE=DISCONNECTED、KR=NO_KEY_RECEIVER、BE=IDLE、EAP=DISABLD
+
+SM_STEP_RUN(SUPP_PAE)  =>  SM_STEP(SUPP_PAE)
+
+SM_ENTER(SUPP_PAE, CONNECTING)  =>  SM_STATE(SUPP_PAE, CONNECTING)
+
+// 四个状态机状态PAE=CONNECTING、KR=NO_KEY_RECEIVER、BE=IDLE、EAP=DISABLD
+
+SM_STEP_RUN(KEY_RX)
+
+SM_STEP_RUN(SUPP_BE)
+
+eap_peer_sm_step()
+
+SM_STEP_RUN(EAP)
+
+// 使用WPA-PSK时force_disabled变量为True，所以EAP SM进入Disabled
+
+SM_ENTER_GLOBAL(EAP, DISABLED)
+
+
+
+4-Way handshake，AP发送EAPOL 1/4 3/4给STA，STA接收并处理。
+
+wpa_supplicant_rx_eapol()
+
+wpa_supplicant_req_auth_timeout()  // 设置认证请求超时函数
+
+eapol_sm_rx_eapol()  // 非WPA-PSK方法接收函数
+
+wpa_sm_rx_eapol()  // WPA-PSK方法接收函数
+
+peerkey_rx_eapol_4way()
+
+wpa_supplicant_process_3_of_4()
+
+wpa_supplicant_send_4_of_4()  
+
+wpa_supplicant_install_ptk()   // install PTK到HW
+
+wpa_sm_set_state(WPA_GROUP_HANDSHAKE)
+
+wpa_supplicant_pairwise_gtk()  // 处理GTK
+
+wpa_supplicant_install_gtk()  // install GTK到HW
+
+wpa_supplicant_key_neg_complete()
+
+wpa_sm_set_state(WPA_COMPLETED)
+
+eapol_sm_notify_portValid(TRUE)
+
+eapol_sm_step()
+
+eapol_sm_notify_eap_success(TRUE)
+
+eap_notify_success()
+
+eapol_sm_step()
+
+wpa_supplicant_process_1_of_4()
+
+wpa_sm_set_state(WPA_4WAY_HANDSHAKE)
+
+wpa_derive_ptk()
+
+wpa_supplicant_send_2_of_4()  
+
+wpa_eapol_key_send()
+
+wpa_sm_ether_send()
+
+
+
+
+
+WPS
+
+
+wpa_supplicant_ctrl_iface_wps_pin()
+
+wpas_wps_start_pin()
+
+wpas_wps_start_dev_pw()
+
+wpas_wps_add_network()  // 初始化WPS的struct wpa_ssid
+
+eloop_register_timeout(wpas_wps_timeout)   // 注册超时处理函数，120s
+
+wpas_wps_reassoc()  // 重新关联
+
+wpa_supplicant_req_scan()  // 发起扫描、关联，如上所述
+
+
+
+
+
+eapol_sm_notify_portEnabled(TRUE)
+
+sm->portEnabled = enabled
+
+eapol_sm_step(sm)
+
+// 四个状态机状态PAE=DISCONNECTED、KR=NO_KEY_RECEIVER、BE=IDLE、EAP=DISABLD
+
+SM_STEP_RUN(SUPP_PAE)  =>  SM_STEP(SUPP_PAE)
+
+case SUPP_PAE_DISCONNECTED
+
+SM_ENTER(SUPP_PAE, CONNECTING)  =>  SM_STATE(SUPP_PAE, CONNECTING)
+
+sm->startWhen = 1
+
+/*  
+
+PT SM使能后，会再次触发eapol_sm_step(sm)，
+
+再次执行SM_STATE(SUPP_PAE, CONNECTING) => eapol_sm_txStart(sm)   
+
+*/
+
+eapol_enable_timer_tick()
+
+eloop_register_timeout(eapol_port_timers_tick)
+
+eapol_port_timers_tick()
+
+eapol_sm_step(sm)
+
+case SUPP_PAE_CONNECTING
+
+SM_ENTER(SUPP_PAE, CONNECTING)  =>  SM_STATE(SUPP_PAE, CONNECTING)
+
+eapol_enable_timer_tick()
+
+eapol_sm_txStart()   // WPS第二次进入时发送EAP Start
+
+sm->ctx->eapol_send(IEEE802_1X_TYPE_EAPOL_START)   =>   wpa_supplicant_eapol_send()
+
+
+
+// 四个状态机状态PAE=CONNECTING、KR=NO_KEY_RECEIVER、BE=IDLE、EAP=DISABLD
+
+SM_STEP_RUN(KEY_RX)
+
+SM_STEP_RUN(SUPP_BE)
+
+eap_peer_sm_step()
+
+SM_STEP_RUN(EAP)
+
+// 使用WPA-PSK时force_disabled变量为True，所以EAP SM进入Disabled
+
+SM_ENTER_GLOBAL(EAP, DISABLED)
+
+
+
+
+
+eapol_sm_rx_eapol()
+
+
+
+case IEEE802_1X_TYPE_EAP_PACKET
+
+
+
+
+
+sm->eapolEap = TRUE
+
+eapol_sm_step(sm)
+
+
+
+
+
+P2P
+
+
+P2P Listen
+
+
+p2p_ctrl_listen()  =>  wpas_p2p_listen()
+
+wpas_p2p_listen_start()
+
+p2p_listen()  =>  p2p->cfg->start_listen()
+
+wpas_start_listen()
+
+wpas_start_listen_cb()
+
+wpa_drv_set_ap_wps_ie()  // 用于回复Probe Response
+
+wpa_drv_probe_req_report()  // 告诉WiFi驱动上报Probe Request事件
+
+wpa_drv_remain_on_channel()  // 让设备在指定频段上停留duration毫秒，驱动会上报执行情况
+
+eloop_register_timeout(wpas_p2p_long_listen_timeout)
+
+wpas_p2p_long_listen_timeout()
+
+wpa_s->p2p_long_listen = 0
+
+
+
+P2P Ext Listen
+
+
+p2p_ctrl_ext_listen()  =>  wpas_p2p_ext_listen()  =>  p2p_ext_listen()
+
+p2p_ext_listen_timeout()
+
+eloop_register_timeout(p2p_ext_listen_timeout)  // Schedule next extended listen timeout
+
+p2p_listen()
+
+p2p->cfg->start_listen()
+
+
+
+
+
+
+
+P2P Connect
+Source发送GO Neg Req：
+
+p2p_ctrl_connect()
+
+wpas_p2p_connect()
+
+wpas_p2p_create_iface()   // 根据Driver Flags判断是否需要创建一个新的virtual interface
+
+wpas_p2p_start_go_neg()
+
+p2p_connect()
+
+p2p_connect_send()
+
+p2p_build_go_neg_req()
+
+p2p_send_action()
+
+
+
+Sink接收GO Neg Req并发送GO Neg Rsp：
+
+p2p_process_go_neg_req()
+
+p2p_build_go_neg_resp()
+
+p2p_send_action()
+
+
+
+Source接收GO Neg Rsp并发送Go Neg Confirm：
+
+p2p_process_go_neg_resp()
+
+
+
+p2p_build_go_neg_conf()
+
+p2p_send_action()
+
+
+
+
+
+Sink接收GO Neg Confirm：
+
+p2p_process_go_neg_conf()
+
+p2p_go_complete()
+
+p2p->cfg->go_neg_completed()
+
+wpas_go_neg_completed()
+
+if (res->role_go)
+
+wpas_start_wps_go()
+
+else
+wpas_start_wps_enrollee()
+
+wpas_wps_start_pin()  // 启动WPS认证过程
+
+
+
+p2p_connect <dev_addr> 12345670 display persistent join
+
+wpas_p2p_connect()
+
+wpas_p2p_join()
+
+wpas_p2p_join_scan_req()
+
+wpa_drv_scan()
+
+
+
+wpas_p2p_scan_res_join()
+
+wpas_p2p_scan_res_handler()
+
+p2p_scan_res_handler()
+
+p2p_add_device()
+
+p2p->cfg->dev_found()
+
+wpas_dev_found()
+
+wpa_msg_global()
+
+p2p_prov_disc_req()
+
+
+
+wpas_prov_disc_resp()
+
+wpas_p2p_join_start()

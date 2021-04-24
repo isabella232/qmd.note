@@ -1,0 +1,41 @@
+
+
+#!/bin/sh
+
+INSTALL_DIR=$(echo `pwd`/install)
+
+function make_app()
+{
+	echo $INSTALL_DIR
+}
+
+function make_openssl()
+{
+	#tar -xf openssl-1.0.2f.tar.gz
+	cd openssl-1.0.2f
+	make clean
+
+	./config shared --prefix=$INSTALL_DIR
+	make
+	sudo make install
+
+	cd -
+}
+
+function make_freeradius()
+{
+	#tar -xf freeradius-server-3.0.11.tar.gz
+	cd freeradius-server-3.0.11
+	make clean
+
+	#./configure --prefix=`pwd`/../install --with-openssl-lib-dir=`pwd`/../install/lib --with-openssl-include-dir=`pwd`/../install/include
+	./configure --prefix=$INSTALL_DIR --with-openssl-lib-dir=$INSTALL_DIR/lib --with-openssl-include-dir=$INSTALL_DIR/include
+	make
+	sudo make install
+
+	cd -
+}
+
+#make_app
+#make_openssl
+make_freeradius

@@ -1,0 +1,472 @@
+Android NDK支持用户使用“纯粹"的c或c++代码。NativeActivity 为我们定制了native代码的各种接口回调，在ndk的samples里面，提供了一个例子如何使用NativeActivity。我们会发 现，demo中使用了一个胶水层android_native_app_glue.h封装了native层面的ANativeActivity的事件回调。
+
+在native层面ANativeActivity对应的就是，java层面的NativeActivity。通过NativeActivity的java会代码会看到，ANativeActivity的回调函数都是在NativeActivity中被调用的。android_native_app_glue.c 主要做了以下几件事情。1. 实现ANativeActivity启动函数，挂载ANativeActivity的事件回调函数。包括了事件处理，窗口生命周期等等。2. 启动一个独立的线程，给使用者传递事件，和实现绘制。3. 使用ALooper重新定义和实现了事件类型，让使用者实现回调处理。在整个android_native_app_glue代码的核心，就是如何使用ALooper串联起主线程事件，输入输出事件的。主线程事件，就是指在NativeActivity的回调事件。输入输出事件，就是input事件。android_native_app_glue 使用Looper的方式是非回调模式，回调函数传入NULL。就是Looper负责收集和释放事件，事件的处理需要自己调用。当然也有回调模式。ALooper_addFd 就是向Looper注册事件处理的方法。fd是利用管道的读写句柄来进行数据通信的。当ANativeActivity的事件在主线程触发的时候，向msgwrite写入了一个自定义的数据，然后 调用ALooper_pollAll来处理Looper中事件，这时候利用msgwrite去读取写入的数据。由于是非回调Looper处理，所以 android_native_app_glue使用一个结构在存放通用的事件处理，作为最后一个自定义参数传递给ALooper_addFd。
+
+process 有两个实现，一个是处理input的事件，一个是处理主线程事件的。然后，process_input使用input.h的函数去处理，然后利用onInputEvent分发输入输出事件。process_cmd调用自己实现的pre和post以及onAppCmd去对主线程事件进行处理和分发。所以，使用android_native_app_glue的时候，只要我们去实现onAppCmd和onInputEvent，就可以挂载主线程的事件和输入输出事件处理。然后在循环绘制线程中不断的调用ALooper_pollAll去检测Looper是否有事件需要处理，有的话就调用process方法去处理分发我们自己的挂载。
+这里有些值得思考的地方。如果我们自己实现java版本的OpenGL绘制，我们会使用GLSurfaceView去处理openGL上下文初始化以及回调。native的方式我们查看NativeActivity的java代码发现并没有使用GLSurfaceView，而是使用了简单的View。这意味着，我们需要在native端自己去对EGL初始化以及销毁。native的实现方式，绘制线程是用native 代码循环控制的。并不是java的循环利用jni回调给native code。我觉得这里就是提高绘制效率的一个地方。android_native_app_glue 使用了大量互斥条件锁进行线程的同步工作。但是我发现这些不是必要的，甚至主线程的事件都可以简单的处理，不必使用Looper来控制。
+
+使用android_native_app_glue代码的框架结构。
+
+处理input事件
+处理senor事件
+绘制循环处理Looper事件
+挂载onAppCmd和onIputEvent回调
+使用c语言的接口计算每帧消耗的时间
+OpenGL初始化和使用流程
+
+SurfaceFlinger中需要显示的图层（layer）将通过DisplayDevice对象传递到OpenGLES中进行合成，合成之后的 图像再通过HWComposer对象传递到Framebuffer中显示。DisplayDevice对象中的成员变量 mVisibleLayersSortedByZ保存了所有需要显示在本显示设备中显示的Layer对象，同时DisplayDevice对象也保存了和 显示设备相关的显示方向、显示区域坐标等信息。
+
+SurfaceControl调用openTransaction和closeTransaction将所有SurfaceControl的属性等传给SurfaceFlinger。android_view_SurfaceControl.cpp。SurfaceControl.cpp的函数都是调用了SurfaceComposerClient的相关函数。
+
+SurfaceFlinger是一个独立的进程，由init.rc启动，属于core服务。SurfaceFlinger的main函数在framework/native/services/surfaceflinger/main_surfaceflinger.cpp中。在主函数中先设置了该进程的binder线程池最大数为4，然后创建了SurfaceFlinger对象，并且调用了其init函数，接着把SurfaceFlinger服务注册到ServiceManager中，然后调用了run方法。init函数主要工作：
+
+1.初始化OpenGL ES图形库。
+
+2. 创建显示设备的抽象代表，负责和显示设备打交道。
+
+3. 创建显示设备对象。
+
+4. 启动EventThread。监听和处理SurfaceFlinger中的事件。
+
+5.设置软件VSync信号周期。
+
+6.初始化显示设备，调用initializeDisplays完成。
+
+7.启动开机动画，调用了startBootAnim函数，只是设置了两个属性，其中一个ctl.start是启动了bootanim进程。
+
+MessageQueue和用于消息和事件的分发。在SurfaceFlinger中有一个类型为MessageQueue的成员变量mEventQueue，在SurfaceFlinger的onFirstRef函数中会调用其init函数，在这个函数中创建了Looper和Handler对象，并且把flinger保存在mFlinger中。Handler类是MessageQueue类的一个内部类，这个类主要处理3个消息。SurfaceFlinger::run->waitForEvent函数，然后又调用了EventQueue的waitMessage方法，在主线程中循环调用。
+
+DisplayDevice是显示设备的抽象，定义了3中类型的显示设备。1.DISPLAY_PRIMARY：主显示设备，通常是LCD屏；2.DISPLAY_EXTERNAL：扩展显示设备。通过HDMI输出的显示信号；3.DISPLAY_VIRTUAL：虚拟显示设备，通过WIFI输出信号。这3种设备，第一种是基本配置，另外两种需要硬件支持。所有显示设备的输出都要通过HWComposer对象完成，先调用HWComposer的isConnected来检查显示设备是否已 连接，只有和显示设备连接的DisplayDevice对象才会被创建出来。即使没有任何物理显示设备被检测到，SurfaceFlinger都需要一个 DisplayDevice对象才能正常工作，因此，DISPLAY_PRIMARY类型的DisplayDevice对象总是会被创建出来。createBufferQueue函数创建一个producer和consumer，然后又创建了一个FramebufferSurface对象。在新建FramebufferSurface对象时把consumer参数传入了代表是一个消费者。在DisplayDevice的构造函数中，会创建一个Surface对象传递给底层的OpenGL ES使用，而这个Surface是一个生产者。在OpenGl ES中合成好了图像之后会将图像数据写到Surface对象中，这将触发consumer对象的onFrameAvailable函数被调用。这就是Surface数据好了就通知消费者来拿数据做显示用，在onFrameAvailable函数汇总，通过nextBuffer获得图像数据，然后调用HWComposer对象mHwc的fbPost函数输出。DisplayDevice的构造函数主要功能是创建了一个Surface对象mNativeWindow，同时用它作为参数创建EGLSurface对象，这个EGLSurface对象是OpenGL ES中绘图需要的。这样在DisplayDevice中就建立了一个通向Framebuffer的通道，只要向DisplayDevice的mSurface写入数据。就会到消费者FrameBufferSurface的onFrameAvailable函数，然后到HWComposer在到Gralloc模块，最后输出到显示设备。swapBuffers函数将内部缓冲区的图像数据刷新到显示设备的Framebuffer中，它通过调用eglSwapBuffers函数来完成缓冲区刷新工作。但是注意调用swapBuffers输出图像是在显示设备不支持硬件composer的情况下。当VSync信号到来时会调用HWComposer类中的vsync函数。DispSync的addResyncSample函数，看这个函数之前先看下DispSync的构造函数，在构造函数中启动了DispSyncThread线程。来看addResyncSample函数，将VSync信号的时间戳保存大搜了数组mResyncSamples中。然后调用了updateModelLocked函数继续分发VSync信号。EventThread的threadLoop函数，调用waitForEvent来获取事件，然后调用每个连接的postEvent来发送Event。在EventThread的threadLoop函数中调用waitForEvent会阻塞，当这里调用Condition的broadcast之后，waitForEvent就唤醒，并且得到了mVsynEvent中的数据。紧接着就是在EventThread中的threadLoop调用conn->postEvent来发送Event。这里是通过BitTube对象中的socket发送到MessageQueue中。
+
+整个流程，VSync信号从底层产生后，经过几个函数，保存到了SurfaceFlinger的mPrimaryDispSync变量（DisySync 类）的数组中，这样设计的目的让底层的调用尽快结束，否则会耽搁下次VSync信号的发送。然后在mPrimaryDispSync变量关联的线程开始分 发数组中的VSync信号，分发的过程也调用了几个回调函数，最终结果是放在EventThread对象的数组中。EventThread是转发 VSync信号的中心。不但会把VSync信号发给SurfaceFlinger，还会把信号发送到用户进程中去。EventThread的工作比较重， 因此SurfaceFlinger中使用了两个EventThread对象来转发VSync信号。确保能及时转发。SurfaceFlinger中的 MessageQueue收到Event后，会将Event转化成消息发送，这样最终就能在主线程调用SurfaceFlinger的函数处理VSync 信号了。
+
+
+==========================================
+/*
+ * AndroidGlue.c
+ *
+ * Author: scott.cgi
+ */
+
+#include <android/asset_manager.h>
+#include <android/input.h>
+#include <android/looper.h>
+#include <android/native_window.h>
+#include <android/sensor.h>
+#include <android_native_app_glue.h>
+#include <EGL/egl.h>
+#include <EGL/eglplatform.h>
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
+
+//-------------------------------------------------------------------------
+
+typedef struct android_app         AndroidApp;
+typedef struct android_poll_source AndroidPollSource;
+
+
+//static const long EVENT_RATE =  (1000l / 60) * 1000l;
+
+static struct
+{
+    EGLDisplay         display;
+    EGLSurface         surface;
+    EGLContext         context;
+
+    AndroidApp*        app;
+    ASensorManager*    sensorManager;
+    const ASensor*     accelerometerSensor;
+    ASensorEventQueue* sensorEventQueue;
+    bool               isRunning;
+
+	struct timespec    last;
+}
+appData[1];
+
+static void OnResized()
+{
+    EGLint w, h;
+    eglQuerySurface(appData->display, appData->surface, EGL_WIDTH,  &w);
+    eglQuerySurface(appData->display, appData->surface, EGL_HEIGHT, &h);
+
+    AGLConvert->Init(w, h);
+    AApplication->callbacks->OnResized(w, h);
+}
+
+static void OnInit()
+{
+	EGLConfig config;
+	bool result = AGLUtils->CreateEGL(appData->app->window, &appData->display, &appData->context, &appData->surface, &config);
+
+	ALog_A(result, "createEGLContext fail");
+
+	EGLint format;
+    // EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+    // guaranteed to be accepted by ANativeWindow_SetBuffersGeometry()
+    // As soon as we picked a EGLConfig, we can safely reconfigure the
+    // ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID
+    eglGetConfigAttrib(appData->display, config, EGL_NATIVE_VISUAL_ID, &format);
+    ANativeWindow_setBuffersGeometry(appData->app->window, 0, 0, format);
+
+    OnResized();
+    AApplication->Init();
+
+    // start clock
+    clock_gettime(CLOCK_MONOTONIC, &appData->last);
+}
+
+static void OnDestroy()
+{
+	AGLUtils->DestroyEGL(&appData->display, &appData->context, &appData->surface);
+}
+
+/**
+ * Process the next input event
+ */
+static int32_t OnInputEvent(AndroidApp* app, AInputEvent* event)
+{
+    switch (AInputEvent_getType(event))
+    {
+
+		case AINPUT_EVENT_TYPE_MOTION:
+		{
+			int32_t action = AMotionEvent_getAction(event);
+			switch (action & AMOTION_EVENT_ACTION_MASK)
+			{
+				// first pointer down
+				case AMOTION_EVENT_ACTION_DOWN:
+				{
+
+					AApplication->OnTouch
+					(
+						application_subject_touch,
+						AArray_Create
+						(
+							EventTouchPoint, 1,
+							{
+								AGLConvert_ToGLX(AMotionEvent_getX(event, 0)),
+								AGLConvert_ToGLY(AMotionEvent_getY(event, 0)),
+								AMotionEvent_getPointerId(event, 0),
+								event_touch_down,
+							}
+						)
+					);
+				} 	break;
+
+
+				// not first pointer down
+				case AMOTION_EVENT_ACTION_POINTER_DOWN:
+				{
+					int indexDown = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+
+					AApplication->OnTouch
+					(
+						application_subject_touch,
+						AArray_Create
+						(
+							EventTouchPoint, 1,
+							{
+								AGLConvert_ToGLX(AMotionEvent_getX(event, indexDown)),
+								AGLConvert_ToGLY(AMotionEvent_getY(event, indexDown)),
+								AMotionEvent_getPointerId(event, indexDown),
+								event_touch_down,
+							}
+						)
+					);
+				} 	break;
+
+
+				// first pinter up
+				case AMOTION_EVENT_ACTION_UP:
+				{
+
+					AApplication->OnTouch
+					(
+						application_subject_touch,
+						AArray_Create
+						(
+							EventTouchPoint, 1,
+							{
+								AGLConvert_ToGLX(AMotionEvent_getX(event, 0)),
+								AGLConvert_ToGLY(AMotionEvent_getY(event, 0)),
+								AMotionEvent_getPointerId(event, 0),
+								event_touch_up,
+							}
+						)
+					);
+				} 	break;
+
+
+				// not first pointer up
+				case AMOTION_EVENT_ACTION_POINTER_UP:
+				{
+					int  indexUp = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+
+					AApplication->OnTouch
+					(
+						application_subject_touch,
+						AArray_Create
+						(
+							EventTouchPoint, 1,
+							{
+								AGLConvert_ToGLX(AMotionEvent_getX(event, indexUp)),
+								AGLConvert_ToGLY(AMotionEvent_getY(event, indexUp)),
+								AMotionEvent_getPointerId(event, indexUp),
+								event_touch_up,
+							}
+						)
+					);
+
+				} 	break;
+
+				case AMOTION_EVENT_ACTION_MOVE:
+				{
+					int count = AMotionEvent_getPointerCount(event);
+					EventTouchPoint points[count];
+
+					for (int i = 0; i < count; i++)
+					{
+						points[i].x    = AGLConvert_ToGLX(AMotionEvent_getX(event, i));
+						points[i].y    = AGLConvert_ToGLY(AMotionEvent_getY(event, i));
+						points[i].id   = AMotionEvent_getPointerId(event, i);
+						points[i].type = event_touch_move;
+					}
+
+					AApplication->OnTouch(application_subject_touch, (Array[]) {points, count});
+				} 	break;
+
+
+				case AMOTION_EVENT_ACTION_CANCEL:
+				{
+					int count = AMotionEvent_getPointerCount(event);
+					EventTouchPoint points[count];
+
+					for (int i = 0; i < count; i++)
+					{
+						points[i].x    = AGLConvert_ToGLX(AMotionEvent_getX(event, i));
+						points[i].y    = AGLConvert_ToGLY(AMotionEvent_getY(event, i));
+						points[i].id   = AMotionEvent_getPointerId(event, i);
+						points[i].type = event_touch_cancel;
+					}
+
+					AApplication->OnTouch(application_subject_touch, (Array[]) {points, count});
+
+				} 	break;
+
+				default:
+					return 0;
+			}
+
+			return 1;
+		}
+
+		case AINPUT_EVENT_TYPE_KEY:
+		{
+		}
+
+    }
+
+    // default dispatching
+    return 0;
+}
+
+/**
+ * Process the sensor event
+ *
+static int OnSensorEvent(int fd, int events, void* data)
+{
+	ALog_D("OnSensorEvent events = %d", events);
+	if (appData->accelerometerSensor)
+	{
+		ASensorEvent event;
+		while (ASensorEventQueue_getEvents(appData->sensorEventQueue, &event, 1) > 0)
+		{
+			ALog_D
+			(
+				"accelerometer: x=%f y=%f z=%f",
+				event.acceleration.x, event.acceleration.y,
+				event.acceleration.z
+			);
+		}
+	}
+	return 1;
+}
+*/
+
+static void OnCmd(AndroidApp* app, int32_t cmd)
+{
+    switch (cmd)
+    {
+    	case APP_CMD_INPUT_CHANGED:
+    		ALog_D("APP_CMD_INPUT_CHANGED");
+    		break;
+
+        case APP_CMD_INIT_WINDOW:
+        	ALog_D("APP_CMD_INIT_WINDOW");
+            // The window is being shown, get it ready
+        	ALog_A(app->window, "Android window init failed");
+		    OnInit();
+            break;
+
+        case APP_CMD_TERM_WINDOW:
+        	ALog_D("APP_CMD_TERM_WINDOW");
+            // The window is being hidden or closed, clean it up.
+            break;
+
+        case APP_CMD_WINDOW_RESIZED:
+        	ALog_D("APP_CMD_WINDOW_RESIZED");
+        	OnResized();
+        	break;
+
+        case APP_CMD_WINDOW_REDRAW_NEEDED:
+        	ALog_D("APP_CMD_WINDOW_REDRAW_NEEDED");
+        	break;
+
+        case APP_CMD_CONTENT_RECT_CHANGED:
+        	ALog_D("APP_CMD_CONTENT_RECT_CHANGED");
+        	break;
+
+        case APP_CMD_GAINED_FOCUS:
+        	ALog_D("APP_CMD_GAINED_FOCUS");
+
+           // When our app gains focus, we start monitoring the accelerometer.
+           /**
+           if (appData->accelerometerSensor)
+           {
+                ASensorEventQueue_enableSensor
+				(
+					appState->sensorEventQueue,
+					appState->accelerometerSensor
+				);
+                // We'd like to get 60 events per second
+                ASensorEventQueue_SetEventRate
+				(
+					appState->sensorEventQueue,
+					appState->accelerometerSensor, EVENT_RATE
+				);
+            }
+            */
+
+            appData->isRunning = true;
+            break;
+
+        case APP_CMD_LOST_FOCUS:
+        	ALog_D("APP_CMD_LOST_FOCUS");
+
+            // When our app loses focus, we stop monitorisng the accelerometer
+            // This is to avoid consuming battery while not being used
+        	/**
+            if (appData->accelerometerSensor)
+        	{
+               ASensorEventQueue_disableSensor(appData->sensorEventQueue, appData->accelerometerSensor);
+            }
+            */
+
+            // Also stop running.
+            appData->isRunning = false;
+            break;
+
+        case APP_CMD_CONFIG_CHANGED:
+        	ALog_D("APP_CMD_CONFIG_CHANGED");
+        	break;
+
+        case APP_CMD_LOW_MEMORY:
+        	ALog_D("APP_CMD_LOW_MEMORY");
+        	break;
+
+        case APP_CMD_START:
+        	// Application just start
+        	ALog_D("APP_CMD_START");
+        	break;
+
+        case APP_CMD_RESUME:
+        	// Called after application onStart, not visible yet
+        	ALog_D("APP_CMD_RESUME");
+        	break;
+
+        case APP_CMD_SAVE_STATE:
+        	// The system has asked us to save our current state
+        	ALog_D("APP_CMD_SAVE_STATE");
+            break;
+
+        case APP_CMD_PAUSE:
+        	// Called when application going into the background
+        	ALog_D("APP_CMD_PAUSE");
+        	AApplication->callbacks->OnPause();
+        	break;
+
+        case APP_CMD_STOP:
+        	// Called after onPause, when application no longer visible
+        	ALog_D("APP_CMD_STOP");
+        	break;
+
+        case APP_CMD_DESTROY:
+        	// Called after onStop,  when application final before destroyed
+        	ALog_D("APP_CMD_DESTROY");
+        	OnDestroy();
+        	break;
+    }
+}
+
+/**
+ * This is the main entry point of a native application that is using
+ * android_native_app_glue.  It runs in its own thread, with its own
+ * event loop for receiving input events and doing other things
+ */
+void android_main(AndroidApp* app)
+{
+	ALog_D("android_main");
+
+	ApplicationMain();
+
+    // make sure glue isn't stripped
+    app_dummy();
+    memset(appData, 0, sizeof(appData));
+
+    app->onAppCmd     = OnCmd;
+    app->onInputEvent = OnInputEvent;
+    appData->app      = app;
+
+
+    // Prepare to monitor accelerometer
+//	appData->sensorManager        = ASensorManager_getInstance();
+//	appData->accelerometerSensor  = ASensorManager_getDefaultSensor(appData->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+//	appData->sensorEventQueue     = ASensorManager_createEventQueue(appData->sensorManager, app->looper, LOOPER_ID_USER, OnSensorEvent, appData);
+    AndroidPollSource* source     = NULL;
+
+    // loop waiting for stuff to do
+    while (true)
+    {
+    	// Read all pending events
+        // If not running, we will block forever waiting for events
+        // If running, we loop until all events are read
+        // then continue to draw the next frame of run
+        while (ALooper_pollAll(appData->isRunning ? 0 : -1, NULL, NULL, (void**) &source) > -1)
+        {
+
+            // Process this event
+            if (source)
+            {
+                source->process(app, source);
+            }
+
+            // Check if we are exiting
+            if (app->destroyRequested != 0)
+            {
+                return;
+            }
+        }
+
+        struct timespec now;
+    	clock_gettime(CLOCK_MONOTONIC, &now);
+    	float deltaTime = (now.tv_nsec - appData->last.tv_nsec) * 0.000000001 +
+    				      (now.tv_sec  - appData->last.tv_sec);
+
+		appData->last   = now;
+		AApplication->Loop(deltaTime);
+
+	    eglSwapBuffers(appData->display, appData->surface);
+    }
+}
+==========================================

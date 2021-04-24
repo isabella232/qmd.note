@@ -1,0 +1,94 @@
+【网络】
+
+应用层协议工具和库：curl and libcurl
+
+无线网络管理工具：hostapd，wpa_supplicant，wireless tools
+
+系统工具：busybox
+
+ssl库：openssl
+
+cgi库：cgic，cgicc，fastcgi
+
+web server：lighttpd，apache
+
+database：mysql，sqlite
+
+脚本工具：bash，node.js，php
+
+其他：zlib，boost，poco，glibc
+
+
+
+【网络协议】
+
+应用层：http，https，ssl，rtsp，rtp，ftp，sip，dhcp，ssh，telnet
+
+传输层：tcp，udp
+
+网络层：ip，arp，ICMP
+
+链路层：802.11，802.2，802.3
+
+
+
+【多媒体软件】
+
+三维动画制作软件：Blender
+
+图片编辑：GIMP
+
+音乐制作：musescore(谱曲)，LMMS(乐器)，ardour(录音)
+
+
+
+【其他】
+
+绘画，静态图像：GIMP，Krita，MyPaint；
+2D 动画（矢量化和动画过渡）：Synfig Studio；
+2D 逐帧动画：Pencil；
+
+OpenVDB：一个C++库，梦工厂首次开源其特效软件，帮助更容易的创建体积效应，OpenVDB源代码在Mozilla Public License Version 2.0下发布。
+迪士尼旗下的皮克斯开源了Open Subdiv，实现高性能细分曲面的库；卢卡斯影业和索尼影业开源了Alembic，允许特效公司以多种格式储存和共享动画。
+
+
+
+morevna
+
+fretscpp
+
+orDrumbox
+
+jOrgan
+
+freepiano
+
+MusE
+
+KMetronome
+
+Giada
+
+Qtractor
+
+MilkyTracker
+
+Traverso
+
+EasyMetro
+
+Timidity++
+
+NtEd
+
+projectM
+
+eko
+
+Impro-Visor
+
+philip's music writer
+
+Virtural piano keyboard
+
+chunk

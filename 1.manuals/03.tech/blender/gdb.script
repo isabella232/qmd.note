@@ -1,0 +1,14 @@
+file cycles/bin-dbg/bin/cycles
+set args --debug --verbose 99 --background --samples 3 --output image.png cycles/examples/scene_sphere_bump.xml
+#set scheduler-locking step
+set print thread-events
+set pagination off
+set logging file gdb.log
+set logging on
+set print pretty on
+break main
+#break Session::run
+#break run_cpu
+#break CPUDevice::thread_run
+#break kernel_cpu_avx2_path_trace
+break kernel_path_trace

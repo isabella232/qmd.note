@@ -1,0 +1,6 @@
+
+wpa.c实现了WPA状态机、四次/Group Key握手处理。
+
+eap.c实现了EAP状态机和method接口。
+
+eapol_supp_sm.c实现了EAPOL状态机和802.1X处理。

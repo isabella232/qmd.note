@@ -1,0 +1,33 @@
+
+
+UDP->RTP->TS流
+
+可以用wireshark抓RTP包进行分析。Filter: mp2t.pid==0
+
+用EasyICE分析pcap或者TS文件。EasyICE官网：http://www.easyice.cn/
+
+
+
+I帧关键帧，属于帧内压缩，解码时只需本帧即可，包含完整画面。
+
+P帧差别帧，表示本帧与前一帧的差别，没有完整画面，解码时需要把前一个画面缓存一下。
+
+B帧是双向差别帧，记录了本帧与前后帧的差别，解码时不仅需要缓存上一帧，还要解码下一帧。
+
+
+
+PAT PID=0 -> PMT PID -> Video PID / Audio PID
+
+
+
+IDR
+
+GOP
+
+PTS
+
+PCR
+
+ES PES DTS
+
+H264

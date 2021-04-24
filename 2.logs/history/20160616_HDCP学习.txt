@@ -1,0 +1,161 @@
+
+根据《201302.HDCP on HDMI Specification Rev2_2_Final1.pdf》
+
+
+
+TX: HDCP Transmitter
+
+RX: HDCP Receiver
+
+
+
+所有的HDCP设备有一个相同的128 bit全局常量lc_128。TX拥有一个3072 bit的RSA公钥kpub_dcp。RX拥有一个1024 bit的RSA公钥和私钥。公钥存放在公钥证书里面，公钥证书由DCP LLC发布。该证书内容包括DCP LLC签名、RX公钥、RX ID，4136个bit。
+
+
+
+一、HDCP认证协议
+
+HDCP认证协议功能在于实现TX对RX能够接收数据权限的认证。
+
+包括这几个阶段：
+
+1. AKE（Authentication and Key Exchange）。TX认证RX的公钥证书，并交换km（Master Key）。
+
+2. Locality Check。
+
+3. SKE（Session Key Exchange）。TX和RX交换ks（Session Key）。
+
+4. Repeaters的认证。
+
+
+
+在AKE过程中，TX执行如下过程：
+
+1. TX向RX发送AKE_Init消息，包括64 bit随机数r_tx和TxCaps参数；
+
+2. TX从RX接收AKE_Send_Cert消息，包含cert_rx，64 bit随机数r_rx和RxCaps；
+
+3. TX向RX发送AKE_No_Stored_km/AKE_Stored_km消息，包含了加密的k_m；
+
+3.1 如果TX发现本地没有保存与RX ID对应的现成的k_m（Master Key），那么
+
+3.1.1 TX会用kpub_dcp检查cert_rx中的签名；
+
+3.1.2 TX生成128 bit随机字符串k_m，用kpub_rx加密k_m，得到1024 bit E_kpub(K_m)；
+
+RSAES-OAEP encryption scheme
+
+PKCS #1 V2.1: RSA Cryptography Standard
+
+SHA-256
+
+3.1.3 TX向RX发送AKE_No_Stored_km消息，包含E_kpub(K_m)。
+
+3.1.4 TX根据kpub_dcp进行SRM（System Renewability Message）和revocation检查。
+
+3.1.5 TX计算H
+
+128 bit dkey_0 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=0
+
+128 bit dkey_1 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=1
+
+256 bit k_d = dkey_0 || dkey_1
+
+256-bit H = HMAC-SHA256(r_tx || RxCaps || TxCaps, k_d)
+
+3.2 如果TX发现本地保存有与RX ID对应的现成的k_m（Master Key），那么
+
+3.2.1 TX向RX发送AKE_Stored_km消息，消息包含本地保存的128 bit E_kh(k_m)和与RX ID相关的128 bit m。
+
+3.2.2 TX根据kpub_dcp进行SRM（System Renewability Message）和revocation检查。
+
+3.2.3 TX计算H
+
+128 bit dkey_0 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=0
+
+128 bit dkey_1 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=1
+
+256 bit k_d = dkey_0 || dkey_1
+
+256-bit H = HMAC-SHA256(r_tx || RxCaps || TxCaps, k_d)
+
+4. TX从RX接收AKE_Send_H_prime消息，得到H'，比较H和H'。
+
+5. 若No Stored k_m，TX接收AKE_Send_Pairing_Info消息，保存m、k_m、E_kh(k_m)、RX ID。
+
+
+
+在AKE过程中，RX执行如下过程：
+
+1. RX从TX接收AKE_Init消息。
+
+2. RX向TX发送AKE_Send_Cert消息。
+
+3. RX从TX接收AKE_No_Stored_km/AKE_Stored_km消息
+
+3.1 若收到AKE_No_Stored_km消息，那么
+
+3.1.1 RX用RSAES-OAEP decryption scheme+kpriv_rx解密得到k_m；
+
+3.1.2 RX计算H'
+
+128 bit dkey_0 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=0
+
+128 bit dkey_1 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=1
+
+256 bit k_d = dkey_0 || dkey_1
+
+256-bit H' = HMAC-SHA256(r_tx || RxCaps || TxCaps, k_d)
+
+3.2 若收到AKE_Stored_km消息，那么
+3.2.1 RX计算128 bit k_h = SHA-256(kprivrx)[127:0]，m=r_rx||r_tx；
+
+3.2.2 RX用AES(m, k_h)解密E_kh(k_m)，得到k_m；
+
+3.2.3 RX计算H'
+
+128 bit dkey_0 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=0
+
+128 bit dkey_1 = AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr))    注：r_n=0， ctr=1
+
+256 bit k_d = dkey_0 || dkey_1
+
+256-bit H' = HMAC-SHA256(r_tx || RxCaps || TxCaps, k_d)
+
+4. RX向TX发送AKE_Send_H_prime消息。
+
+5. 若No Stored k_m，RX向TX发送AKE_Send_Pairing_Info消息，包含了128 bit E_kh(k_m)和m；
+
+
+
+
+
+在Locality Check过程中，TX向RX发送LC_Init消息，RX必须在20ms内回复LC_Send_L_prime消息。
+
+LC_Init消息包含64 bit r_n；
+
+LC_Send_L_prime消息包含L'=HMAC-SHA256(r_n, k_d XOR r_rx)；
+
+TX会比较L和L'。
+
+
+
+
+
+在SKE过程中，TX向RX发送加密过的Session Key，TX会在之后用这个Session Key加密数据，RX用这个Session Key解密。
+
+1. TX生成128 bit随机数k_s（Session Key）和64 bit随机数r_iv；
+
+2. TX生成dkey_2=AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr)) ，这里由ctr=2；
+
+3. TX计算128 bit E_dkey(k_s)=k_s XOR (dkey_2 XOR r_rx)；
+
+4. TX向RX发送SKE_Send_Eks消息，包含了E_dkey(k_s)和r_iv；
+
+5. RX生成dkey_2=AES-CTR(k_m XOR r_n, r_tx || (r_rx XOR ctr)) ，这里由ctr=2；
+
+6. RX计算k_s=E_dkey(k_s) XOR (dkey_2 XOR r_rx)。
+
+
+
+Repeaters认证

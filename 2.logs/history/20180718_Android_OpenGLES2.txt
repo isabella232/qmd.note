@@ -1,0 +1,75 @@
+源码位置：external/mesa3d/*
+
+OpenGLES1与OpenGLES2最大的差异是1.0使用固定渲染管线，2.0使用可编程渲染管线。
+
+VBO，全名Vertex Buffer Object，顶点缓冲区对象。它是GPU里面的一块缓冲区，当我们需要传递数据的时候，可以先向GPU申请一块内存，然后往里面填充数据。最后，再通过调用 glVertexAttribPointer把数据传递给Vertex Shader。
+
+VAO，全名为Vertex Array Object，顶点数组对象，它的作用主要是记录当前有哪些VBO，每个VBO里面绑定的是什么数据，还有每一个vertex attribute绑定的是哪一个VBO。
+
+
+
+一般先用EGL创建OpenGL本地环境，再利用OpenGL画图。Android的一个典型例子是它的开机动画：framework/base/cmds/bootanimation/BootAnimation.cpp
+
+
+
+
+
+
+
+【纹理映射】
+
+如果想把一幅纹理映射到相应的几何图元，就必须告诉GPU如何进行纹理映射，也就是为图元的顶点指定恰当的纹理坐标。纹理坐标用浮点数来表示，范围一般从 0.0到1.0，左上角坐标为（0.0，0.0），右上角坐标为（1.0，0.0），左下角坐标为（0.0，1.0），右下角坐标为（1.0，1.0）。假设顶点图的四个顶点坐标V1V2V3V4，与纹理图的四个纹理坐标T1T2T3T4依次对应，则传入GPU的顺序也必须保持一致，否则会出现旋转或者翻转。
+
+顶点着色器：
+
+attribute vec4 vPosition;
+attribute vec2 vCoordinate;
+uniform mat4 vMatrix;
+
+varying vec2 aCoordinate;
+
+void main(){
+    gl_Position=vMatrix*vPosition;
+    aCoordinate=vCoordinate;
+}
+片元着色器：
+
+precision mediump float;
+
+uniform sampler2D vTexture;
+varying vec2 aCoordinate;
+
+void main(){
+    gl_FragColor=texture2D(vTexture,aCoordinate);
+}
+sampler2D是GLSL的变量类型之一的取样器。texture2D是GLSL的内置函数，用于2D纹理取样，根据纹理取样器和纹理坐标，可以得到当前纹理取样得到的像素颜色。
+
+顶点坐标 {  -1.0f,1.0f,   -1.0f,-1.0f,   1.0f,1.0f,   1.0f,-1.0f   }
+
+纹理坐标 {  0.0f,0.0f,    0.0f,1.0f,    1.0f,0.0f,   1.0f,1.0f  }
+
+将纹理和纹理坐标传入着色器：
+
+glClear()
+glUseProgram()
+glUniformMatrix4fv()
+glEnableVertexAttribArray()
+glEnableVertexAttribArray()
+glUniform1i()
+
+glGenTextures()
+glBindTexture()
+//设置缩小过滤为使用纹理中坐标最接近的一个像素的颜色作为需要绘制的像素颜色
+glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+//设置放大过滤为使用纹理中坐标最接近的若干个颜色，通过加权平均算法得到需要绘制的像素颜色
+glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+//设置环绕方向S，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
+//设置环绕方向T，截取纹理坐标到[1/2n,1-1/2n]。将导致永远不会与border融合
+glTexParameterf(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
+//根据以上指定的参数，生成一个2D纹理
+glTexImage2D()
+
+glVertexAttribPointer(顶点坐标)
+glVertexAttribPointer(纹理坐标)
+glDrawArrays()

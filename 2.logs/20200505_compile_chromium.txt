@@ -1,0 +1,31 @@
+
+https://chromium.googlesource.com/chromium/src/+/master/docs/android_build_instructions.md
+
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH="$PATH:$PWD/depot_tools"
+mkdir chromium && cd chromium/
+fetch --nohooks --no-history android
+cd src/
+build/install-build-deps-android.sh
+gclient runhooks
+gn args out/Default
+    target_os = "android"
+    target_cpu = "arm"
+    
+# gn gen out/Default --args='target_os="android"'
+# gn gen out/Default --args='target_os="android" target_cpu="arm64"'
+autoninja -C out/Default system_webview_apk
+
+gclient sync --with_branch_heads --with_tags
+git fetch
+git fetch --tags
+git show-ref --tags
+git checkout -b webview74 74.0.3729.186
+gclient sync --with_branch_heads --with_tags
+# gn gen out/webview74 --args='target_os="android" target_cpu="arm" is_debug=false is_java_debug=false'
+gn args out/Default
+    target_os = "android"
+    target_cpu = "arm"
+    is_debug=false
+    is_java_debug=false
+autoninja -C out/webview74 system_webview_apk

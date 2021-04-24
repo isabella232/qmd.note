@@ -1,0 +1,646 @@
+I0823 12:44:25.075893  5112 util_task.cpp:329] Creating pool of 8 threads.
+I0823 12:44:25.075970  5112 util_task.cpp:233] Detected 8 processors in active group.
+I0823 12:44:25.075975  5112 util_task.cpp:243] Not setting thread group affinity.
+Progress 00.00   Loading render kernels (may take a few minutes the first time)
+I0823 12:44:25.076915  5122 session.cpp:714] Requested features:
+Experimental features: Off
+Max nodes group: 2
+Nodes features: 0
+Use Hair: False
+Use Object Motion: False
+Use Camera Motion: False
+Use Baking: False
+Use Subsurface: False
+Use Volume: False
+Use Branched Integrator: False
+Use Patch Evaluation: False
+Use Transparent Shadows: False
+Use Principled BSDF: False
+Use Denoising: False
+I0823 12:44:25.076932  5122 session.cpp:727] Total time spent loading kernels: 2.40803e-05
+Progress 00.00   Waiting for render to start                                   
+I0823 12:44:25.076968  5122 device_cpu.cpp:312] Buffer allocate: RenderBuffers, 6,400,000 bytes. (6.10M)
+I0823 12:44:25.079691  5122 device_cpu.cpp:312] Buffer allocate: display buffer byte, 1,600,000 bytes. (1.53M)
+Progress 00.00   Updating Scene                                                
+Progress 00.00   Updating Shaders                                              
+I0823 12:44:25.079782  5122 svm.cpp:97] Total 5 shaders.
+I0823 12:44:25.079917  5122 constant_fold.cpp:127] Discarding closure emission.
+I0823 12:44:25.079942  5122 svm.cpp:65] Compilation summary:
+Shader name: default_light
+Number of SVM nodes: 3
+Peak stack usage:    0
+Time (in seconds):
+Finalize:            0.000034
+  Surface:           0.000001
+  Bump:              0.000000
+  Volume:            0.000001
+  Displacement:      0.000001
+Generate:            0.000003
+Total:               0.000038
+I0823 12:44:25.079982  5115 svm.cpp:65] Compilation summary:
+Shader name: default_surface
+Number of SVM nodes: 8
+Peak stack usage:    4
+Time (in seconds):
+Finalize:            0.000052
+  Surface:           0.000016
+  Bump:              0.000000
+  Volume:            0.000001
+  Displacement:      0.000001
+Generate:            0.000018
+Total:               0.000071
+I0823 12:44:25.080026  5117 svm.cpp:65] Compilation summary:
+Shader name: default_background
+Number of SVM nodes: 5
+Peak stack usage:    0
+Time (in seconds):
+Finalize:            0.000026
+  Surface:           0.000005
+  Bump:              0.000000
+  Volume:            0.000001
+  Displacement:      0.000001
+Generate:            0.000007
+Total:               0.000034
+I0823 12:44:25.080068  5116 svm.cpp:65] Compilation summary:
+Shader name: default_empty
+Number of SVM nodes: 3
+Peak stack usage:    0
+Time (in seconds):
+Finalize:            0.000009
+  Surface:           0.000002
+  Bump:              0.000000
+  Volume:            0.000000
+  Displacement:      0.000001
+Generate:            0.000003
+Total:               0.000013
+I0823 12:44:25.080140  5115 svm.cpp:65] Compilation summary:
+Shader name: cube
+Number of SVM nodes: 14
+Peak stack usage:    12
+Time (in seconds):
+Finalize:            0.000035
+  Surface:           0.000023
+  Bump:              0.000000
+  Volume:            0.000001
+  Displacement:      0.000001
+Generate:            0.000025
+Total:               0.000060
+I0823 12:44:25.080281  5122 device_cpu.cpp:395] Texture allocate: __svm_nodes, 688 bytes. (688)
+I0823 12:44:25.080319  5122 device_cpu.cpp:395] Texture allocate: __shaders, 160 bytes. (160)
+I0823 12:44:25.135234  5122 svm.cpp:143] Shader manager updated 5 shaders in 0.0554509 seconds.
+Progress 00.00   Updating Background                                           
+Progress 00.00   Updating Camera                                               
+Progress 00.00   Updating Meshes Flags                                         
+Progress 00.00   Updating Objects                                              
+I0823 12:44:25.135339  5122 object.cpp:640] Total 1 objects.
+Progress 00.00   Updating Objects: Copying Transformations to device           
+I0823 12:44:25.135367  5122 device_cpu.cpp:395] Texture allocate: __objects, 176 bytes. (176)
+Progress 00.00   Updating Objects: Applying Static Transformations             
+Progress 00.00   Updating Hair Systems                                         
+Progress 00.00   Updating Hair settings: Copying Hair settings to device       
+Progress 00.00   Updating Particle Systems                                     
+I0823 12:44:25.135421  5122 particles.cpp:101] Total 0 particle systems.
+Progress 00.00   Updating Particle Systems: Copying Particles to device        
+I0823 12:44:25.135433  5122 device_cpu.cpp:395] Texture allocate: __particles, 80 bytes. (80)
+Progress 00.00   Updating Meshes                                               
+I0823 12:44:25.135449  5122 mesh.cpp:2096] Total 1 meshes.
+Progress 00.00   Updating Mesh: Computing attributes                           
+I0823 12:44:25.135502  5122 device_cpu.cpp:395] Texture allocate: __attributes_map, 96 bytes. (96)
+Progress 00.00   Updating Mesh: Copying Attributes to device                   
+I0823 12:44:25.135519  5122 device_cpu.cpp:395] Texture allocate: __attributes_float3, 128 bytes. (128)
+I0823 12:44:25.135557  5122 mesh.cpp:2233] Objects BVH build pool statistics:
+Total time:    0.000022
+Tasks handled: 1
+Progress 00.00   Updating Scene BVH: Building                                  
+I0823 12:44:25.135584  5122 mesh.cpp:1875] Using BVH2 layout.
+Progress 00.00   Updating Scene BVH: Building BVH                              
+I0823 12:44:25.135702  5122 bvh_build.cpp:518] BVH build statistics:
+  Build time: 9.08375e-05
+  Total number of nodes: 5
+  Number of inner nodes: 2
+  Number of leaf nodes: 3
+  Number of unaligned nodes: 0
+  Allocation slop factor: 1
+  Maximum depth: 3
+Progress 00.00   Updating Scene BVH: Packing BVH triangles and strands         
+Progress 00.00   Updating Scene BVH: Packing BVH nodes                         
+Progress 00.00   Updating Scene BVH: Copying BVH to device                     
+I0823 12:44:25.135748  5122 device_cpu.cpp:395] Texture allocate: __bvh_nodes, 128 bytes. (128)
+I0823 12:44:25.135756  5122 device_cpu.cpp:395] Texture allocate: __bvh_leaf_nodes, 48 bytes. (48)
+I0823 12:44:25.135763  5122 device_cpu.cpp:395] Texture allocate: __object_node, 4 bytes. (4)
+I0823 12:44:25.135771  5122 device_cpu.cpp:395] Texture allocate: __prim_tri_index, 48 bytes. (48)
+I0823 12:44:25.135777  5122 device_cpu.cpp:395] Texture allocate: __prim_tri_verts, 576 bytes. (576)
+I0823 12:44:25.135784  5122 device_cpu.cpp:395] Texture allocate: __prim_type, 48 bytes. (48)
+I0823 12:44:25.135790  5122 device_cpu.cpp:395] Texture allocate: __prim_visibility, 48 bytes. (48)
+I0823 12:44:25.135797  5122 device_cpu.cpp:395] Texture allocate: __prim_index, 48 bytes. (48)
+I0823 12:44:25.135803  5122 device_cpu.cpp:395] Texture allocate: __prim_object, 48 bytes. (48)
+Progress 00.00   Updating Mesh: Computing normals                              
+Progress 00.00   Updating Mesh: Copying Mesh to device                         
+I0823 12:44:25.135829  5122 device_cpu.cpp:395] Texture allocate: __tri_shader, 48 bytes. (48)
+I0823 12:44:25.135838  5122 device_cpu.cpp:395] Texture allocate: __tri_vnormal, 128 bytes. (128)
+I0823 12:44:25.135843  5122 device_cpu.cpp:395] Texture allocate: __tri_vindex, 192 bytes. (192)
+I0823 12:44:25.135850  5122 device_cpu.cpp:395] Texture allocate: __tri_patch, 48 bytes. (48)
+I0823 12:44:25.135857  5122 device_cpu.cpp:395] Texture allocate: __tri_patch_uv, 64 bytes. (64)
+Progress 00.00   Updating Objects Flags                                        
+I0823 12:44:25.135874  5122 device_cpu.cpp:395] Texture allocate: __object_flag, 4 bytes. (4)
+Progress 00.00   Updating Images                                               
+Progress 00.00   Updating Camera Volume                                        
+I0823 12:44:25.135897  5122 camera.cpp:512] Camera is outside of the volume.
+Progress 00.00   Updating Lookup Tables                                        
+I0823 12:44:25.135907  5122 tables.cpp:42] Total 1 lookup tables.
+I0823 12:44:25.135911  5122 device_cpu.cpp:395] Texture allocate: __lookup_table, 262,144 bytes. (256.00K)
+Progress 00.00   Updating Lights                                               
+I0823 12:44:25.135932  5122 light.cpp:871] Total 0 lights.
+I0823 12:44:25.135937  5122 light.cpp:653] No effective light, ignoring points update.
+Progress 00.00   Updating Lights: Computing distribution                       
+I0823 12:44:25.135948  5122 light.cpp:292] Total 0 of light distribution primitives.
+Progress 00.00   Updating Integrator                                           
+I0823 12:44:25.146400  5122 device_cpu.cpp:395] Texture allocate: __sobol_directions, 1,329,408 bytes. (1.27M)
+Progress 00.00   Updating Film                                                 
+Progress 00.00   Updating Lookup Tables                                        
+I0823 12:44:25.146916  5122 tables.cpp:42] Total 2 lookup tables.
+I0823 12:44:25.146922  5122 device_cpu.cpp:395] Texture allocate: __lookup_table, 266,240 bytes. (260.00K)
+Progress 00.00   Updating Baking                                               
+Progress 00.00   Updating Device: Writing constant memory                      
+I0823 12:44:25.146946  5122 scene.cpp:288] System memory statistics after full device sync:
+  Usage: 9,864,844 (9.41M)
+  Peak: 10,131,084 (9.66M)
+Progress 00.00   Path Tracing Sample 1/3                                       
+I0823 12:44:25.147446  5120 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.147446  5118 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.147521  5116 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.147568  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.147578  5114 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.147593  5119 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 00.00   Path Tracing Sample 1/3                                       
+I0823 12:44:25.147593  5121 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.147629  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 00.17   Path Tracing Sample 1/3                                       
+Progress 00.47   Path Tracing Sample 1/3                                       
+Progress 00.47   Path Tracing Sample 1/3                                       
+Progress 00.47   Updating Scene                                                
+Progress 00.47   Updating Shaders                                              
+Progress 00.47   Updating Background                                           
+Progress 00.47   Updating Camera                                               
+Progress 00.47   Updating Objects                                              
+Progress 00.47   Updating Hair Systems                                         
+Progress 00.47   Updating Particle Systems                                     
+Progress 00.47   Updating Meshes                                               
+Progress 00.47   Updating Objects Flags                                        
+Progress 00.47   Updating Images                                               
+Progress 00.47   Updating Camera Volume                                        
+I0823 12:44:25.157526  5122 camera.cpp:512] Camera is outside of the volume.
+Progress 00.47   Updating Lookup Tables                                        
+Progress 00.47   Updating Lights                                               
+Progress 00.47   Updating Integrator                                           
+Progress 00.47   Updating Film                                                 
+Progress 00.47   Updating Lookup Tables                                        
+Progress 00.47   Updating Baking                                               
+Progress 00.47   Updating Device: Writing constant memory                      
+Progress 00.47   Path Tracing Sample 1/3                                       
+I0823 12:44:25.158124  5116 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.158149  5114 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.158157  5119 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.158174  5115 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 00.47   Path Tracing Sample 1/3                                       
+I0823 12:44:25.158254  5118 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.158275  5120 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.158177  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 00.50   Path Tracing Sample 1/3                                       
+Progress 00.54   Path Tracing Sample 1/3                                       
+I0823 12:44:25.158212  5121 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 00.83   Path Tracing Sample 1/3                                       
+ Progress 01.14   Path Tracing Sample 1/3                                       
+Progress 01.44   Path Tracing Sample 1/3                                       
+Progress 01.74   Path Tracing Sample 1/3                                       
+Progress 02.05   Path Tracing Sample 1/3                                       
+Progress 02.34   Path Tracing Sample 1/3                                       
+Progress 02.34   Path Tracing Sample 1/3                                       
+Progress 02.34   Updating Scene                                                
+Progress 02.34   Updating Shaders                                              
+Progress 02.34   Updating Background                                           
+Progress 02.34   Updating Camera                                               
+Progress 02.34   Updating Objects                                              
+Progress 02.34   Updating Hair Systems                                         
+Progress 02.34   Updating Particle Systems                                     
+Progress 02.34   Updating Meshes                                               
+Progress 02.34   Updating Objects Flags                                        
+Progress 02.34   Updating Images                                               
+Progress 02.34   Updating Camera Volume                                        
+I0823 12:44:25.175602  5122 camera.cpp:512] Camera is outside of the volume.
+Progress 02.34   Updating Lookup Tables                                        
+Progress 02.34   Updating Lights                                               
+Progress 02.34   Updating Integrator                                           
+Progress 02.34   Updating Film                                                 
+Progress 02.34   Updating Lookup Tables                                        
+Progress 02.34   Updating Baking                                               
+Progress 02.34   Updating Device: Writing constant memory                      
+Progress 02.34   Path Tracing Sample 1/3                                       
+I0823 12:44:25.176188  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.176249  5115 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.176302  5120 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.176307  5118 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.176391  5114 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 02.34   Path Tracing Sample 1/3                                       
+I0823 12:44:25.176417  5116 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.176343  5121 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.176429  5119 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 02.65   Path Tracing Sample 1/3                                       
+Progress 02.96   Path Tracing Sample 1/3                                       
+Progress 03.27   Path Tracing Sample 1/3                                       
+Progress 03.55   Path Tracing Sample 1/3                                       
+Progress 03.82   Path Tracing Sample 1/3                                       
+Progress 04.13   Path Tracing Sample 1/3                                       
+Progress 04.44   Path Tracing Sample 1/3                                       
+Progress 04.75   Path Tracing Sample 1/3                                       
+Progress 05.06   Path Tracing Sample 1/3                                       
+Progress 05.36   Path Tracing Sample 1/3                                       
+Progress 05.64   Path Tracing Sample 1/3                                       
+Progress 05.95   Path Tracing Sample 1/3                                       
+Progress 06.23   Path Tracing Sample 1/3                                       
+Progress 06.54   Path Tracing Sample 1/3                                       
+Progress 06.84   Path Tracing Sample 1/3                                       
+Progress 07.15   Path Tracing Sample 1/3                                       
+Progress 07.46   Path Tracing Sample 1/3                                       
+Progress 07.77   Path Tracing Sample 1/3                                       
+Progress 08.07   Path Tracing Sample 1/3                                       
+Progress 08.38   Path Tracing Sample 1/3                                       
+Progress 08.46   Path Tracing Sample 1/3                                       
+Progress 08.77   Path Tracing Sample 1/3                                       
+Progress 08.84   Path Tracing Sample 1/3                                       
+Progress 08.92   Path Tracing Sample 1/3                                       
+Progress 08.99   Path Tracing Sample 1/3                                       
+Progress 09.27   Path Tracing Sample 1/3                                       
+Progress 09.55   Path Tracing Sample 1/3                                       
+Progress 09.86   Path Tracing Sample 1/3                                       
+Progress 09.86   Path Tracing Sample 1/3                                       
+Progress 09.86   Updating Scene                                                
+Progress 09.86   Updating Shaders                                              
+Progress 09.86   Updating Background                                           
+Progress 09.86   Updating Camera                                               
+Progress 09.86   Updating Objects                                              
+Progress 09.86   Updating Hair Systems                                         
+Progress 09.86   Updating Particle Systems                                     
+Progress 09.86   Updating Meshes                                               
+Progress 09.86   Updating Objects Flags                                        
+Progress 09.86   Updating Images                                               
+Progress 09.86   Updating Camera Volume                                        
+I0823 12:44:25.222525  5122 camera.cpp:512] Camera is outside of the volume.
+Progress 09.86   Updating Lookup Tables                                        
+Progress 09.86   Updating Lights                                               
+Progress 09.86   Updating Integrator                                           
+Progress 09.86   Updating Film                                                 
+Progress 09.86   Updating Lookup Tables                                        
+Progress 09.86   Updating Baking                                               
+Progress 09.86   Updating Device: Writing constant memory                      
+Progress 09.86   Path Tracing Sample 1/3                                       
+I0823 12:44:25.223062  5119 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.223062  5120 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 09.86   Path Tracing Sample 1/3                                       
+I0823 12:44:25.223194  5115 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.223225  5122 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.223232  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.223202  5118 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.223268  5116 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.223243  5114 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 10.16   Path Tracing Sample 1/3                                       
+Progress 10.47   Path Tracing Sample 1/3                                       
+Progress 10.78   Path Tracing Sample 1/3                                       
+Progress 11.09   Path Tracing Sample 1/3                                       
+Progress 11.39   Path Tracing Sample 1/3                                       
+Progress 11.70   Path Tracing Sample 1/3                                       
+Progress 12.01   Path Tracing Sample 1/3                                       
+Progress 12.32   Path Tracing Sample 1/3                                       
+Progress 12.62   Path Tracing Sample 1/3                                       
+Progress 12.93   Path Tracing Sample 1/3                                       
+Progress 13.24   Path Tracing Sample 1/3                                       
+Progress 13.55   Path Tracing Sample 1/3                                       
+Progress 13.86   Path Tracing Sample 1/3                                       
+Progress 14.16   Path Tracing Sample 1/3                                       
+Progress 14.47   Path Tracing Sample 1/3                                       
+Progress 14.78   Path Tracing Sample 1/3                                       
+Progress 15.09   Path Tracing Sample 1/3                                       
+Progress 15.39   Path Tracing Sample 1/3                                       
+Progress 15.70   Path Tracing Sample 1/3                                       
+Progress 16.01   Path Tracing Sample 1/3                                       
+Progress 16.32   Path Tracing Sample 1/3                                       
+Progress 16.63   Path Tracing Sample 1/3                                       
+Progress 16.93   Path Tracing Sample 1/3                                       
+Progress 17.24   Path Tracing Sample 1/3                                       
+Progress 17.55   Path Tracing Sample 1/3                                       
+Progress 17.86   Path Tracing Sample 1/3                                       
+Progress 18.16   Path Tracing Sample 1/3                                       
+Progress 18.47   Path Tracing Sample 1/3                                       
+Progress 18.78   Path Tracing Sample 1/3                                       
+Progress 19.09   Path Tracing Sample 1/3                                       
+Progress 19.39   Path Tracing Sample 1/3                                       
+Progress 19.70   Path Tracing Sample 1/3                                       
+Progress 20.01   Path Tracing Sample 1/3                                       
+Progress 20.32   Path Tracing Sample 1/3                                       
+Progress 20.62   Path Tracing Sample 1/3                                       
+Progress 20.93   Path Tracing Sample 1/3                                       
+Progress 21.24   Path Tracing Sample 1/3                                       
+Progress 21.49   Path Tracing Sample 1/3                                       
+Progress 21.80   Path Tracing Sample 1/3                                       
+Progress 22.05   Path Tracing Sample 1/3                                       
+Progress 22.36   Path Tracing Sample 1/3                                       
+Progress 22.66   Path Tracing Sample 1/3                                       
+Progress 22.97   Path Tracing Sample 1/3                                       
+Progress 23.28   Path Tracing Sample 1/3                                       
+Progress 23.53   Path Tracing Sample 1/3                                       
+Progress 23.84   Path Tracing Sample 1/3                                       
+Progress 24.39   Path Tracing Sample 1/3                                       
+Progress 24.39   Path Tracing Sample 1/3                                       
+Progress 24.70   Path Tracing Sample 1/3                                       
+Progress 25.01   Path Tracing Sample 1/3                                       
+Progress 25.32   Path Tracing Sample 1/3                                       
+Progress 25.62   Path Tracing Sample 1/3                                       
+Progress 25.93   Path Tracing Sample 1/3                                       
+Progress 26.24   Path Tracing Sample 1/3                                       
+Progress 26.49   Path Tracing Sample 1/3                                       
+Progress 26.80   Path Tracing Sample 1/3                                       
+Progress 27.11   Path Tracing Sample 1/3                                       
+Progress 27.41   Path Tracing Sample 1/3                                       
+Progress 27.66   Path Tracing Sample 1/3                                       
+Progress 27.97   Path Tracing Sample 1/3                                       
+Progress 28.28   Path Tracing Sample 1/3                                       
+Progress 28.59   Path Tracing Sample 1/3                                       
+Progress 28.89   Path Tracing Sample 1/3                                       
+Progress 29.20   Path Tracing Sample 1/3                                       
+Progress 29.51   Path Tracing Sample 1/3                                       
+Progress 29.82   Path Tracing Sample 1/3                                       
+Progress 30.07   Path Tracing Sample 1/3                                       
+Progress 30.38   Path Tracing Sample 1/3                                       
+Progress 30.68   Path Tracing Sample 1/3                                       
+Progress 30.99   Path Tracing Sample 1/3                                       
+Progress 31.30   Path Tracing Sample 1/3                                       
+Progress 31.61   Path Tracing Sample 1/3                                       
+Progress 31.86   Path Tracing Sample 1/3                                       
+Progress 32.16   Path Tracing Sample 1/3                                       
+Progress 32.47   Path Tracing Sample 1/3                                       
+Progress 32.78   Path Tracing Sample 1/3                                       
+Progress 33.09   Path Tracing Sample 1/3                                       
+Progress 33.39   Path Tracing Sample 1/3                                       
+Progress 33.70   Path Tracing Sample 1/3                                       
+Progress 33.95   Path Tracing Sample 1/3                                       
+Progress 34.26   Path Tracing Sample 1/3                                       
+Progress 34.57   Path Tracing Sample 1/3                                       
+Progress 34.87   Path Tracing Sample 1/3                                       
+Progress 35.18   Path Tracing Sample 1/3                                       
+Progress 35.49   Path Tracing Sample 1/3                                       
+Progress 35.64   Path Tracing Sample 1/3                                       
+Progress 35.89   Path Tracing Sample 1/3                                       
+Progress 36.20   Path Tracing Sample 1/3                                       
+Progress 36.36   Path Tracing Sample 1/3                                       
+Progress 36.66   Path Tracing Sample 1/3                                       
+Progress 36.82   Path Tracing Sample 1/3                                       
+Progress 37.13   Path Tracing Sample 1/3                                       
+Progress 37.43   Path Tracing Sample 1/3                                       
+Progress 37.59   Path Tracing Sample 1/3                                       
+Progress 37.74   Path Tracing Sample 1/3                                       
+Progress 37.89   Path Tracing Sample 1/3                                       
+Progress 38.14   Path Tracing Sample 1/3                                       
+Progress 38.45   Path Tracing Sample 1/3                                       
+Progress 38.76   Path Tracing Sample 1/3                                       
+Progress 39.07   Path Tracing Sample 1/3                                       
+Progress 39.19   Path Tracing Sample 1/3                                       
+Progress 39.35   Path Tracing Sample 1/3                                       
+Progress 39.60   Path Tracing Sample 1/3                                       
+Progress 39.90   Path Tracing Sample 1/3                                       
+Progress 39.90   Path Tracing Sample 1/3                                       
+Progress 39.90   Path Tracing Sample 2/3                                       
+I0823 12:44:25.401701  5120 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.401870  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 39.90   Path Tracing Sample 2/3                                       
+I0823 12:44:25.401892  5118 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.401902  5121 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.401932  5122 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.401931  5116 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.401898  5119 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.401902  5115 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 40.21   Path Tracing Sample 2/3                                       
+Progress 40.52   Path Tracing Sample 2/3                                       
+Progress 41.13   Path Tracing Sample 2/3                                       
+Progress 41.44   Path Tracing Sample 2/3                                       
+Progress 41.44   Path Tracing Sample 2/3                                       
+Progress 41.75   Path Tracing Sample 2/3                                       
+Progress 42.06   Path Tracing Sample 2/3                                       
+Progress 42.37   Path Tracing Sample 2/3                                       
+Progress 42.52   Path Tracing Sample 2/3                                       
+Progress 42.83   Path Tracing Sample 2/3                                       
+Progress 43.13   Path Tracing Sample 2/3                                       
+Progress 43.44   Path Tracing Sample 2/3                                       
+Progress 43.75   Path Tracing Sample 2/3                                       
+Progress 44.06   Path Tracing Sample 2/3                                       
+Progress 44.67   Path Tracing Sample 2/3                                       
+Progress 44.67   Path Tracing Sample 2/3                                       
+Progress 44.98   Path Tracing Sample 2/3                                       
+Progress 45.29   Path Tracing Sample 2/3                                       
+Progress 45.60   Path Tracing Sample 2/3                                       
+Progress 45.90   Path Tracing Sample 2/3                                       
+Progress 46.21   Path Tracing Sample 2/3                                       
+Progress 46.52   Path Tracing Sample 2/3                                       
+Progress 46.83   Path Tracing Sample 2/3                                       
+Progress 47.13   Path Tracing Sample 2/3                                       
+Progress 47.29   Path Tracing Sample 2/3                                       
+Progress 47.60   Path Tracing Sample 2/3                                       
+Progress 47.90   Path Tracing Sample 2/3                                       
+Progress 48.21   Path Tracing Sample 2/3                                       
+Progress 48.52   Path Tracing Sample 2/3                                       
+Progress 48.83   Path Tracing Sample 2/3                                       
+Progress 49.13   Path Tracing Sample 2/3                                       
+Progress 49.44   Path Tracing Sample 2/3                                       
+Progress 50.06   Path Tracing Sample 2/3                                       
+Progress 50.06   Path Tracing Sample 2/3                                       
+Progress 50.37   Path Tracing Sample 2/3                                       
+Progress 50.52   Path Tracing Sample 2/3                                       
+Progress 50.83   Path Tracing Sample 2/3                                       
+Progress 51.13   Path Tracing Sample 2/3                                       
+Progress 51.44   Path Tracing Sample 2/3                                       
+Progress 51.75   Path Tracing Sample 2/3                                       
+Progress 52.06   Path Tracing Sample 2/3                                       
+Progress 52.37   Path Tracing Sample 2/3                                       
+Progress 52.67   Path Tracing Sample 2/3                                       
+Progress 52.98   Path Tracing Sample 2/3                                       
+Progress 53.29   Path Tracing Sample 2/3                                       
+Progress 53.44   Path Tracing Sample 2/3                                       
+Progress 53.75   Path Tracing Sample 2/3                                       
+Progress 54.06   Path Tracing Sample 2/3                                       
+Progress 54.37   Path Tracing Sample 2/3                                       
+Progress 54.67   Path Tracing Sample 2/3                                       
+Progress 54.98   Path Tracing Sample 2/3                                       
+Progress 55.29   Path Tracing Sample 2/3                                       
+Progress 55.60   Path Tracing Sample 2/3                                       
+Progress 55.90   Path Tracing Sample 2/3                                       
+Progress 56.21   Path Tracing Sample 2/3                                       
+Progress 56.52   Path Tracing Sample 2/3                                       
+Progress 56.83   Path Tracing Sample 2/3                                       
+Progress 57.13   Path Tracing Sample 2/3                                       
+Progress 57.29   Path Tracing Sample 2/3                                       
+Progress 57.60   Path Tracing Sample 2/3                                       
+Progress 57.90   Path Tracing Sample 2/3                                       
+Progress 58.21   Path Tracing Sample 2/3                                       
+Progress 58.52   Path Tracing Sample 2/3                                       
+Progress 58.83   Path Tracing Sample 2/3                                       
+Progress 59.13   Path Tracing Sample 2/3                                       
+Progress 59.44   Path Tracing Sample 2/3                                       
+Progress 59.75   Path Tracing Sample 2/3                                       
+Progress 60.06   Path Tracing Sample 2/3                                       
+Progress 60.37   Path Tracing Sample 2/3                                       
+Progress 60.67   Path Tracing Sample 2/3                                       
+Progress 60.98   Path Tracing Sample 2/3                                       
+Progress 61.29   Path Tracing Sample 2/3                                       
+Progress 61.60   Path Tracing Sample 2/3                                       
+Progress 61.75   Path Tracing Sample 2/3                                       
+Progress 62.06   Path Tracing Sample 2/3                                       
+Progress 62.37   Path Tracing Sample 2/3                                       
+Progress 62.67   Path Tracing Sample 2/3                                       
+Progress 62.98   Path Tracing Sample 2/3                                       
+Progress 63.29   Path Tracing Sample 2/3                                       
+Progress 63.60   Path Tracing Sample 2/3                                       
+Progress 63.90   Path Tracing Sample 2/3                                       
+Progress 64.21   Path Tracing Sample 2/3                                       
+Progress 64.52   Path Tracing Sample 2/3                                       
+Progress 64.83   Path Tracing Sample 2/3                                       
+Progress 65.13   Path Tracing Sample 2/3                                       
+Progress 65.29   Path Tracing Sample 2/3                                       
+Progress 65.60   Path Tracing Sample 2/3                                       
+Progress 65.90   Path Tracing Sample 2/3                                       
+Progress 66.21   Path Tracing Sample 2/3                                       
+Progress 66.52   Path Tracing Sample 2/3                                       
+Progress 66.83   Path Tracing Sample 2/3                                       
+Progress 67.08   Path Tracing Sample 2/3                                       
+Progress 67.33   Path Tracing Sample 2/3                                       
+Progress 67.58   Path Tracing Sample 2/3                                       
+Progress 67.83   Path Tracing Sample 2/3                                       
+Progress 68.08   Path Tracing Sample 2/3                                       
+Progress 68.33   Path Tracing Sample 2/3                                       
+Progress 68.58   Path Tracing Sample 2/3                                       
+Progress 68.83   Path Tracing Sample 2/3                                       
+Progress 69.08   Path Tracing Sample 2/3                                       
+Progress 69.33   Path Tracing Sample 2/3                                       
+Progress 69.45   Path Tracing Sample 2/3                                       
+Progress 69.70   Path Tracing Sample 2/3                                       
+Progress 69.95   Path Tracing Sample 2/3                                       
+Progress 69.95   Path Tracing Sample 2/3                                       
+Progress 69.95   Path Tracing Sample 3/3                                       
+I0823 12:44:25.585728  5117 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.585748  5115 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.585789  5114 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.585827  5118 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.585840  5116 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.585894  5119 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 69.95   Path Tracing Sample 3/3                                       
+I0823 12:44:25.585896  5121 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+I0823 12:44:25.585935  5122 device_cpu.cpp:312] Buffer allocate: kernel_globals, 2,448 bytes. (2.39K)
+Progress 70.26   Path Tracing Sample 3/3                                       
+Progress 70.57   Path Tracing Sample 3/3                                       
+Progress 71.18   Path Tracing Sample 3/3                                       
+Progress 71.49   Path Tracing Sample 3/3                                       
+Progress 71.49   Path Tracing Sample 3/3                                       
+Progress 71.80   Path Tracing Sample 3/3                                       
+Progress 72.11   Path Tracing Sample 3/3                                       
+Progress 72.41   Path Tracing Sample 3/3                                       
+Progress 72.57   Path Tracing Sample 3/3                                       
+Progress 72.87   Path Tracing Sample 3/3                                       
+Progress 73.18   Path Tracing Sample 3/3                                       
+Progress 73.49   Path Tracing Sample 3/3                                       
+Progress 73.80   Path Tracing Sample 3/3                                       
+Progress 74.11   Path Tracing Sample 3/3                                       
+Progress 74.41   Path Tracing Sample 3/3                                       
+Progress 74.72   Path Tracing Sample 3/3                                       
+Progress 75.03   Path Tracing Sample 3/3                                       
+Progress 75.34   Path Tracing Sample 3/3                                       
+Progress 75.64   Path Tracing Sample 3/3                                       
+Progress 75.95   Path Tracing Sample 3/3                                       
+Progress 76.26   Path Tracing Sample 3/3                                       
+Progress 76.57   Path Tracing Sample 3/3                                       
+Progress 76.88   Path Tracing Sample 3/3                                       
+Progress 77.18   Path Tracing Sample 3/3                                       
+Progress 77.34   Path Tracing Sample 3/3                                       
+Progress 77.64   Path Tracing Sample 3/3                                       
+Progress 77.95   Path Tracing Sample 3/3                                       
+Progress 78.26   Path Tracing Sample 3/3                                       
+Progress 78.57   Path Tracing Sample 3/3                                       
+Progress 78.87   Path Tracing Sample 3/3                                       
+Progress 79.18   Path Tracing Sample 3/3                                       
+Progress 79.49   Path Tracing Sample 3/3                                       
+Progress 79.80   Path Tracing Sample 3/3                                       
+Progress 80.11   Path Tracing Sample 3/3                                       
+Progress 80.41   Path Tracing Sample 3/3                                       
+Progress 80.57   Path Tracing Sample 3/3                                       
+Progress 80.87   Path Tracing Sample 3/3                                       
+Progress 81.18   Path Tracing Sample 3/3                                       
+Progress 81.49   Path Tracing Sample 3/3                                       
+Progress 81.80   Path Tracing Sample 3/3                                       
+Progress 82.11   Path Tracing Sample 3/3                                       
+Progress 82.41   Path Tracing Sample 3/3                                       
+Progress 82.72   Path Tracing Sample 3/3                                       
+Progress 83.03   Path Tracing Sample 3/3                                       
+Progress 83.34   Path Tracing Sample 3/3                                       
+Progress 83.64   Path Tracing Sample 3/3                                       
+Progress 83.80   Path Tracing Sample 3/3                                       
+Progress 84.11   Path Tracing Sample 3/3                                       
+Progress 84.41   Path Tracing Sample 3/3                                       
+Progress 84.72   Path Tracing Sample 3/3                                       
+Progress 85.03   Path Tracing Sample 3/3                                       
+Progress 85.34   Path Tracing Sample 3/3                                       
+Progress 85.64   Path Tracing Sample 3/3                                       
+Progress 85.95   Path Tracing Sample 3/3                                       
+Progress 86.26   Path Tracing Sample 3/3                                       
+Progress 86.57   Path Tracing Sample 3/3                                       
+Progress 86.87   Path Tracing Sample 3/3                                       
+Progress 87.18   Path Tracing Sample 3/3                                       
+Progress 87.34   Path Tracing Sample 3/3                                       
+Progress 87.64   Path Tracing Sample 3/3                                       
+Progress 87.95   Path Tracing Sample 3/3                                       
+Progress 88.26   Path Tracing Sample 3/3                                       
+Progress 88.57   Path Tracing Sample 3/3                                       
+Progress 88.88   Path Tracing Sample 3/3                                       
+Progress 89.18   Path Tracing Sample 3/3                                       
+Progress 89.49   Path Tracing Sample 3/3                                       
+Progress 89.80   Path Tracing Sample 3/3                                       
+Progress 90.11   Path Tracing Sample 3/3                                       
+Progress 90.41   Path Tracing Sample 3/3                                       
+Progress 90.72   Path Tracing Sample 3/3                                       
+Progress 91.03   Path Tracing Sample 3/3                                       
+Progress 91.18   Path Tracing Sample 3/3                                       
+Progress 91.49   Path Tracing Sample 3/3                                       
+Progress 91.80   Path Tracing Sample 3/3                                       
+Progress 92.11   Path Tracing Sample 3/3                                       
+Progress 92.41   Path Tracing Sample 3/3                                       
+Progress 92.72   Path Tracing Sample 3/3                                       
+Progress 93.03   Path Tracing Sample 3/3                                       
+Progress 93.34   Path Tracing Sample 3/3                                       
+Progress 93.64   Path Tracing Sample 3/3                                       
+Progress 93.95   Path Tracing Sample 3/3                                       
+Progress 94.26   Path Tracing Sample 3/3                                       
+Progress 94.57   Path Tracing Sample 3/3                                       
+Progress 94.88   Path Tracing Sample 3/3                                       
+Progress 95.03   Path Tracing Sample 3/3                                       
+Progress 95.34   Path Tracing Sample 3/3                                       
+Progress 95.64   Path Tracing Sample 3/3                                       
+Progress 95.95   Path Tracing Sample 3/3                                       
+Progress 96.26   Path Tracing Sample 3/3                                       
+Progress 96.57   Path Tracing Sample 3/3                                       
+Progress 96.88   Path Tracing Sample 3/3                                       
+Progress 97.12   Path Tracing Sample 3/3                                       
+Progress 97.37   Path Tracing Sample 3/3                                       
+Progress 97.62   Path Tracing Sample 3/3                                       
+Progress 97.87   Path Tracing Sample 3/3                                       
+Progress 98.12   Path Tracing Sample 3/3                                       
+Progress 98.37   Path Tracing Sample 3/3                                       
+Progress 98.62   Path Tracing Sample 3/3                                       
+Progress 98.87   Path Tracing Sample 3/3                                       
+Progress 99.12   Path Tracing Sample 3/3                                       
+Progress 99.62   Path Tracing Sample 3/3                                       
+Progress 99.75   Path Tracing Sample 3/3                                       
+Progress 99.75   Path Tracing Sample 3/3                                       
+Progress 100.00   Path Tracing Sample 3/3                                      
+Progress 100.00   Path Tracing Sample 3/3                                      
+Progress 100.00   Finished                                                     
+Progress 100.00   Finished                                                     
+I0823 12:44:25.771704  5112 device_cpu.cpp:312] Buffer allocate: display buffer byte, 1,600,000 bytes. (1.53M)
+Writing image image.png                                                        
+I0823 12:44:25.815866  5112 util_task.cpp:348] De-initializing thread pool of task scheduler.
+Finished Rendering.                                                            

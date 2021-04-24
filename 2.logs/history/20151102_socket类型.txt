@@ -1,0 +1,459 @@
+参考：http://blog.csdn.net/jnu_simba/article/details/12371127
+
+
+
+int socket(int domain, int type, int protocol)
+
+domain ：地址族，主要有PF_INET，PF_PACKET，PF_NETLINK等 ( /usr/src/linux-headers-3.16.0-30/include/linux/socket.h )
+
+type：Socket类型，主要有SOCK_STREAM，SOCK_DGRAM和SOCK_RAW等 ( /usr/src/linux-headers-3.16.0-30/include/linux/net.h )
+
+protocol：协议 ( /usr/src/linux-headers-3.16.0-30/include/uapi/linux/in.h )
+
+
+
+1. socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IP|ETH_P_ARP|ETH_P_RARP|ETH_P_ALL))
+
+可以读写链路层Header，发送接收以太网数据帧。如实现ARP功能，hostapd等。
+
+2. socket(AF_INET, SOCK_RAW, IPPROTO_TCP|IPPROTO_UDP|IPPROTO_ICMP)
+
+可以读写IP Header，发送接收IP数据包，不能用IPPROTO_IP，因为如果是用了IPPROTO_IP，系统根本就不知道该用什么协议。如实现Ping功能。
+
+3. socket(PF_PACKET, SOCK_DGRAM, XXX)
+
+由系统处理链路层header。
+
+4. socket(PF_NETLINK, SOCK_RAW, XXX)
+
+可以实现用户态进程与内核的异步通信。
+
+5. socket(AF_INET, SOCK_PACKET, htons(ETH_P_IP|ETH_P_ARP|ETH_P_ALL))
+
+过时了，不要用。
+
+
+
+
+
+---------------------------------------
+
+/* Supported address families. */
+#define AF_UNSPEC       0
+#define AF_UNIX         1       /* Unix domain sockets          */
+#define AF_LOCAL        1       /* POSIX name for AF_UNIX       */
+#define AF_INET         2       /* Internet IP Protocol         */
+#define AF_AX25         3       /* Amateur Radio AX.25          */
+#define AF_IPX          4       /* Novell IPX                   */
+#define AF_APPLETALK    5       /* AppleTalk DDP                */
+#define AF_NETROM       6       /* Amateur Radio NET/ROM        */
+#define AF_BRIDGE       7       /* Multiprotocol bridge         */
+#define AF_ATMPVC       8       /* ATM PVCs                     */
+#define AF_X25          9       /* Reserved for X.25 project    */
+#define AF_INET6        10      /* IP version 6                 */
+#define AF_ROSE         11      /* Amateur Radio X.25 PLP       */
+#define AF_DECnet       12      /* Reserved for DECnet project  */
+#define AF_NETBEUI      13      /* Reserved for 802.2LLC project*/
+#define AF_SECURITY     14      /* Security callback pseudo AF */
+#define AF_KEY          15      /* PF_KEY key management API */
+#define AF_NETLINK      16
+#define AF_ROUTE        AF_NETLINK /* Alias to emulate 4.4BSD */
+#define AF_PACKET       17      /* Packet family                */
+#define AF_ASH          18      /* Ash                          */
+#define AF_ECONET       19      /* Acorn Econet                 */
+#define AF_ATMSVC       20      /* ATM SVCs                     */
+#define AF_RDS          21      /* RDS sockets                  */
+#define AF_SNA          22      /* Linux SNA Project (nutters!) */
+#define AF_IRDA         23      /* IRDA sockets                 */
+#define AF_PPPOX        24      /* PPPoX sockets                */
+#define AF_WANPIPE      25      /* Wanpipe API Sockets */
+#define AF_LLC          26      /* Linux LLC                    */
+#define AF_IB           27      /* Native InfiniBand address    */
+#define AF_CAN          29      /* Controller Area Network      */
+#define AF_TIPC         30      /* TIPC sockets                 */
+#define AF_BLUETOOTH    31      /* Bluetooth sockets            */
+#define AF_IUCV         32      /* IUCV sockets                 */
+#define AF_RXRPC        33      /* RxRPC sockets                */
+#define AF_ISDN         34      /* mISDN sockets                */
+#define AF_PHONET       35      /* Phonet sockets               */
+#define AF_IEEE802154   36      /* IEEE802154 sockets           */
+#define AF_CAIF         37      /* CAIF sockets                 */
+#define AF_ALG          38      /* Algorithm sockets            */
+#define AF_NFC          39      /* NFC sockets                  */
+#define AF_VSOCK        40      /* vSockets                     */
+#define AF_MAX          41      /* For now.. */
+
+/* Protocol families, same as address families. */
+#define PF_UNSPEC       AF_UNSPEC
+#define PF_UNIX         AF_UNIX
+#define PF_LOCAL        AF_LOCAL
+#define PF_INET         AF_INET
+#define PF_AX25         AF_AX25
+#define PF_IPX          AF_IPX
+#define PF_APPLETALK    AF_APPLETALK
+#define PF_NETROM       AF_NETROM
+#define PF_BRIDGE       AF_BRIDGE
+#define PF_ATMPVC       AF_ATMPVC
+#define PF_X25          AF_X25
+#define PF_INET6        AF_INET6
+#define PF_ROSE         AF_ROSE
+#define PF_DECnet       AF_DECnet
+#define PF_NETBEUI      AF_NETBEUI
+#define PF_SECURITY     AF_SECURITY
+#define PF_KEY          AF_KEY
+#define PF_NETLINK      AF_NETLINK
+#define PF_ROUTE        AF_ROUTE
+#define PF_PACKET       AF_PACKET
+#define PF_ASH          AF_ASH
+#define PF_ECONET       AF_ECONET
+#define PF_ATMSVC       AF_ATMSVC
+#define PF_RDS          AF_RDS
+#define PF_SNA          AF_SNA
+#define PF_IRDA         AF_IRDA
+#define PF_PPPOX        AF_PPPOX
+#define PF_WANPIPE      AF_WANPIPE
+#define PF_LLC          AF_LLC
+#define PF_IB           AF_IB
+#define PF_CAN          AF_CAN
+#define PF_TIPC         AF_TIPC
+#define PF_BLUETOOTH    AF_BLUETOOTH
+#define PF_IUCV         AF_IUCV
+#define PF_RXRPC        AF_RXRPC
+#define PF_ISDN         AF_ISDN
+#define PF_PHONET       AF_PHONET
+#define PF_IEEE802154   AF_IEEE802154
+#define PF_CAIF         AF_CAIF
+#define PF_ALG          AF_ALG
+#define PF_NFC          AF_NFC
+#define PF_VSOCK        AF_VSOCK
+#define PF_MAX          AF_MAX
+
+---------------------------------------
+
+
+
+---------------------------------------
+
+/**
+ * enum sock_type - Socket types
+ * @SOCK_STREAM: stream (connection) socket
+ * @SOCK_DGRAM: datagram (conn.less) socket
+ * @SOCK_RAW: raw socket
+ * @SOCK_RDM: reliably-delivered message
+ * @SOCK_SEQPACKET: sequential packet socket
+ * @SOCK_DCCP: Datagram Congestion Control Protocol socket
+ * @SOCK_PACKET: linux specific way of getting packets at the dev level.
+ *                For writing rarp and other similar things on the user level.
+ *
+ * When adding some new socket type please
+ * grep ARCH_HAS_SOCKET_TYPE include/asm-* /socket.h, at least MIPS
+ * overrides this enum for binary compat reasons.
+ */
+enum sock_type {
+        SOCK_STREAM     = 1,
+        SOCK_DGRAM      = 2,
+        SOCK_RAW        = 3,
+        SOCK_RDM        = 4,
+        SOCK_SEQPACKET  = 5,
+        SOCK_DCCP       = 6,
+        SOCK_PACKET     = 10, 
+};
+
+---------------------------------------
+
+
+
+---------------------------------------
+
+/* Standard well-defined IP protocols.  */
+enum {
+  IPPROTO_IP = 0,               /* Dummy protocol for TCP               */
+#define IPPROTO_IP              IPPROTO_IP
+  IPPROTO_ICMP = 1,             /* Internet Control Message Protocol    */
+#define IPPROTO_ICMP            IPPROTO_ICMP
+  IPPROTO_IGMP = 2,             /* Internet Group Management Protocol   */
+#define IPPROTO_IGMP            IPPROTO_IGMP
+  IPPROTO_IPIP = 4,             /* IPIP tunnels (older KA9Q tunnels use 94) */
+#define IPPROTO_IPIP            IPPROTO_IPIP
+  IPPROTO_TCP = 6,              /* Transmission Control Protocol        */
+#define IPPROTO_TCP             IPPROTO_TCP
+  IPPROTO_EGP = 8,              /* Exterior Gateway Protocol            */
+#define IPPROTO_EGP             IPPROTO_EGP
+  IPPROTO_PUP = 12,             /* PUP protocol                         */
+#define IPPROTO_PUP             IPPROTO_PUP
+  IPPROTO_UDP = 17,             /* User Datagram Protocol               */
+#define IPPROTO_UDP             IPPROTO_UDP
+  IPPROTO_IDP = 22,             /* XNS IDP protocol                     */
+#define IPPROTO_IDP             IPPROTO_IDP
+  IPPROTO_TP = 29,              /* SO Transport Protocol Class 4        */
+#define IPPROTO_TP              IPPROTO_TP
+  IPPROTO_DCCP = 33,            /* Datagram Congestion Control Protocol */
+#define IPPROTO_DCCP            IPPROTO_DCCP
+  IPPROTO_IPV6 = 41,            /* IPv6-in-IPv4 tunnelling              */
+#define IPPROTO_IPV6            IPPROTO_IPV6
+  IPPROTO_RSVP = 46,            /* RSVP Protocol                        */
+#define IPPROTO_RSVP            IPPROTO_RSVP
+  IPPROTO_GRE = 47,             /* Cisco GRE tunnels (rfc 1701,1702)    */
+#define IPPROTO_GRE             IPPROTO_GRE
+  IPPROTO_ESP = 50,             /* Encapsulation Security Payload protocol */
+#define IPPROTO_ESP             IPPROTO_ESP
+  IPPROTO_AH = 51,              /* Authentication Header protocol       */
+#define IPPROTO_AH              IPPROTO_AH
+  IPPROTO_MTP = 92,             /* Multicast Transport Protocol         */
+#define IPPROTO_MTP             IPPROTO_MTP
+  IPPROTO_BEETPH = 94,          /* IP option pseudo header for BEET     */
+#define IPPROTO_BEETPH          IPPROTO_BEETPH
+  IPPROTO_ENCAP = 98,           /* Encapsulation Header                 */
+#define IPPROTO_ENCAP           IPPROTO_ENCAP
+  IPPROTO_PIM = 103,            /* Protocol Independent Multicast       */
+#define IPPROTO_PIM             IPPROTO_PIM
+  IPPROTO_COMP = 108,           /* Compression Header Protocol          */
+#define IPPROTO_COMP            IPPROTO_COMP
+  IPPROTO_SCTP = 132,           /* Stream Control Transport Protocol    */
+#define IPPROTO_SCTP            IPPROTO_SCTP
+  IPPROTO_UDPLITE = 136,        /* UDP-Lite (RFC 3828)                  */
+#define IPPROTO_UDPLITE         IPPROTO_UDPLITE
+  IPPROTO_RAW = 255,            /* Raw IP packets                       */
+#define IPPROTO_RAW             IPPROTO_RAW
+  IPPROTO_MAX
+};
+
+---------------------------------------
+
+
+
+ARP
+
+---------------------------------------
+
+int arping_ip(char *ifname, unsigned int ipaddr, int timeout)
+{
+    int optval = 1;
+    int s;                      /* socket */
+    int rv = -1;                        /* return value */
+    struct sockaddr addr;               /* for interface name */
+    struct arpMsg       arp;
+    fd_set              fdset;
+    struct timeval      tm;
+    time_t              prevTime;
+    unsigned int ip;
+    int ifindex = 0;
+    unsigned char mac[6];
+
+
+    if (get_interface_info(ifname, &ifindex, &ip, mac) < 0) {
+        printf("Could not read interface %s\n", ifname);
+        return -1;
+    }
+
+
+    if ((s = socket (PF_PACKET, SOCK_PACKET, htons(ETH_P_ARP))) == -1) {
+        printf("Could not open raw socket\n");
+        return -1;
+    }
+
+
+    if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(optval)) == -1) {
+        printf("Could not setsocketopt on raw socket\n");
+        close(s);
+        return -1;
+    }
+
+
+    /* send arp request */
+    memset(&arp, 0, sizeof(arp));
+    memcpy(arp.ethhdr.h_dest, MAC_BCAST_ADDR, 6);       /* MAC DA */
+    memcpy(arp.ethhdr.h_source, mac, 6);                /* MAC SA */
+    arp.ethhdr.h_proto = htons(ETH_P_ARP);              /* protocol type (Ethernet) */
+    arp.htype = htons(ARPHRD_ETHER);            /* hardware type */
+    arp.ptype = htons(ETH_P_IP);                        /* protocol type (ARP message) */
+    arp.hlen = 6;                                       /* hardware address length */
+    arp.plen = 4;                                       /* protocol address length */
+    arp.operation = htons(ARPOP_REQUEST);               /* ARP op code */
+    *((u_int *) arp.sInaddr) = ip;                      /* source IP address */
+    memcpy(arp.sHaddr, mac, 6);                 /* source hardware address */
+    *((u_int *) arp.tInaddr) = ipaddr;          /* target IP address */
+
+
+    memset(&addr, 0, sizeof(addr));
+    strcpy(addr.sa_data, ifname);
+    if (sendto(s, &arp, sizeof(arp), 0, &addr, sizeof(addr)) < 0)
+        rv = -1;
+
+
+
+    /* wait arp reply, and check it */
+    tm.tv_usec = 0;
+    time(&prevTime);
+    while (timeout > 0) {
+        FD_ZERO(&fdset);
+        FD_SET(s, &fdset);
+        tm.tv_sec = timeout;
+        if (select(s + 1, &fdset, (fd_set *) NULL, (fd_set *) NULL, &tm) < 0) {
+            printf("Error on ARPING request: %s\n", strerror(errno));
+            if (errno != EINTR) 
+                rv = -1;
+        } else if (FD_ISSET(s, &fdset)) {
+            if (recv(s, &arp, sizeof(arp), 0) < 0 ) 
+                rv = -1;
+            if (arp.operation == htons(ARPOP_REPLY) &&
+                    bcmp(arp.tHaddr, mac, 6) == 0 &&
+                    *((u_int *) arp.sInaddr) == ipaddr) 
+            {
+                printf("Valid arp reply receved for this address\n");
+                rv = 0;
+                break;
+            }
+        }
+        timeout -= time(NULL) - prevTime;
+        time(&prevTime);
+    }
+    close(s);
+    printf("%s arp replies for this address\n", rv ? "No valid" : "Valid");
+    return rv;
+}
+
+---------------------------------------
+
+
+
+net_link.c
+----------------------------------------------------------------------
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/types.h>
+#include <linux/sched.h>
+#include <net/sock.h>
+#include <net/netlink.h>
+#define NETLINK_TEST 21
+struct sock *nl_sk = NULL;
+EXPORT_SYMBOL_GPL(nl_sk);
+void nl_data_ready (struct sk_buff *__skb)
+{
+  struct sk_buff *skb;
+  struct nlmsghdr *nlh;
+  u32 pid;
+  int rc;
+  int len = NLMSG_SPACE(1200);
+  char str[100];
+  printk("net_link: data is ready to read.\n");
+  skb = skb_get(__skb);
+  if (skb->len >= NLMSG_SPACE(0)) {
+    nlh = nlmsg_hdr(skb);
+    printk("net_link: recv %s.\n", (char *)NLMSG_DATA(nlh));
+    memcpy(str,NLMSG_DATA(nlh), sizeof(str)); 
+    pid = nlh->nlmsg_pid; /*pid of sending process */
+    printk("net_link: pid is %d\n", pid);
+    kfree_skb(skb);
+    skb = alloc_skb(len, GFP_ATOMIC);
+    if (!skb){
+      printk(KERN_ERR "net_link: allocate failed.\n");
+      return;
+    }
+    nlh = nlmsg_put(skb,0,0,0,1200,0);
+    NETLINK_CB(skb).pid = 0; /* from kernel */
+    memcpy(NLMSG_DATA(nlh), str, sizeof(str));
+    printk("net_link: going to send.\n");
+    rc = netlink_unicast(nl_sk, skb, pid, MSG_DONTWAIT);
+    if (rc < 0) {
+      printk(KERN_ERR "net_link: can not unicast skb (%d)\n", rc);
+    }
+    printk("net_link: send is ok.\n");
+  }
+  return;
+}
+static int test_netlink(void) {
+  nl_sk = netlink_kernel_create(&init_net, NETLINK_TEST, 0, nl_data_ready, NULL, THIS_MODULE);
+  if (!nl_sk) {
+    printk(KERN_ERR "net_link: Cannot create netlink socket.\n");
+    return -EIO;
+  }
+  printk("net_link: create socket ok.\n");
+  return 0;
+}
+int init_module()
+{
+  test_netlink();
+  return 0;
+}
+void cleanup_module( )
+{
+  if (nl_sk != NULL){
+    sock_release(nl_sk->sk_socket);
+  }
+  printk("net_link: remove ok.\n");
+}
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("kidoln");
+----------------------------------------------------------------------
+
+
+sender.c
+----------------------------------------------------------------------
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <string.h>
+#include <asm/types.h>
+#include <linux/netlink.h>
+#include <linux/socket.h>
+#define MAX_PAYLOAD 1024 /* maximum payload size*/
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct iovec iov;
+int sock_fd;
+struct msghdr msg;
+int main(int argc, char* argv[])
+{
+        sock_fd = socket(PF_NETLINK, SOCK_RAW, 21);
+        memset(&msg, 0, sizeof(msg));
+        memset(&src_addr, 0, sizeof(src_addr));
+        src_addr.nl_family = AF_NETLINK;
+        src_addr.nl_pid = getpid(); /* self pid */
+        src_addr.nl_groups = 0; /* not in mcast groups */
+        bind(sock_fd, (struct sockaddr*)&src_addr, sizeof(src_addr));
+        memset(&dest_addr, 0, sizeof(dest_addr));
+        dest_addr.nl_family = AF_NETLINK;
+        dest_addr.nl_pid = 0; /* For Linux Kernel */
+        dest_addr.nl_groups = 0; /* unicast */
+        nlh=(struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
+        /* Fill the netlink message header */
+        nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+        nlh->nlmsg_pid = getpid(); /* self pid */
+        nlh->nlmsg_flags = 0;
+        /* Fill in the netlink message payload */
+        strcpy(NLMSG_DATA(nlh), "Hello you!");
+        iov.iov_base = (void *)nlh;
+        iov.iov_len = nlh->nlmsg_len;
+        msg.msg_name = (void *)&dest_addr;
+        msg.msg_namelen = sizeof(dest_addr);
+        msg.msg_iov = &iov;
+        msg.msg_iovlen = 1;
+        printf(" Sending message. ...\n");
+        sendmsg(sock_fd, &msg, 0);
+        /* Read message from kernel */
+        memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+        printf(" Waiting message. ...\n");
+        recvmsg(sock_fd, &msg, 0);
+        printf(" Received message payload: %s\n",NLMSG_DATA(nlh));
+         /* Close Netlink Socket */
+        close(sock_fd);
+}
+----------------------------------------------------------------------
+
+
+Makefile
+----------------------------------------------------------------------
+MODULE_NAME :=net_link
+obj-m :=$(MODULE_NAME).o
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
+all:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD)
+    gcc -o sender sender.c
+clean:
+    rm -fr *.ko *.o *.cmd sender $(MODULE_NAME).mod.c
+----------------------------------------------------------------------

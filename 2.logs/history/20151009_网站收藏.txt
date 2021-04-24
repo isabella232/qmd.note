@@ -1,0 +1,36 @@
+【SSL】
+
+测试当前browser的SSL Cipher Suite：https://cc.dcsec.uni-hannover.de/
+
+测试SSL server安全特性的一个命令行工具：http://www.bolet.org/TestSSLServer/
+
+
+
+【FIPS 140-2】
+
+FIPS是美国联邦信息处理标准（Federal Information Processing Standard）的缩写。
+FIPS 140-2认证标准由美国国家标准和技术委员会（NIST：NationalInstitute ofStandardsandTechnology）在2001/5/25制定，2002/11/3更新。
+目的是满足密码模块（包括硬件和软件）的安全需求和标准。
+分四个级别，依次增强：Level 1，Level 2，Level 3，Level 4。认证费：
+安全级别            Base fee              extended fee  
+Level 1                  $2,750                   $1,250 
+Level 2                  $3,750                   $1,750 
+Level 3                 $5,250                   $2,250 
+Level 4                 $7,250                   $3,500
+PDF文件资料（网上有中文版）：http://csrc.nist.gov/publications/PubsFIPS.html
+已获得认证的加密模块：http://csrc.nist.gov/groups/STM/cmvp/documents/140-1/140val-all.htm
+
+
+
+【Web开发】
+web技术在线教程：http://www.w3school.com.cn/
+jquery官方网站：http://jquery.com/
+jquery ui官方网站：http://jqueryui.com/
+timepicker：http://trentrichardson.com/examples/timepicker/
+timepicker：https://github.com/trentrichardson/jQuery-Timepicker-Addon
+html css javascript jquery ajax json php lamp
+
+
+
+【其他】
+版本管理系统：https://github.com/

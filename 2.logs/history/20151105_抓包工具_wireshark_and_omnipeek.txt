@@ -1,0 +1,247 @@
+【常用过滤器】
+
+wireshark捕捉过滤器：
+
+
+
+参考：
+
+http://www.tcpdump.org/manpages/pcap-filter.7.html
+
+https://wiki.wireshark.org/CaptureFilters
+
+
+
+在捕捉过滤器中，fddi、tr（Token Ring）、wlan是ether的别名。
+
+type mtg subtype [assoc-req, assoc-resp, reassoc-req, reassoc-resp, probe-req, probe-resp, beacon, atim, disassoc, auth and deauth]
+
+type ctl subtype [rts, cts, ack ...]
+
+type data subtype [data, qos-data, ...]
+
+ether proto [ip, ip6, arp, rarp, atalk, aarp, decnet, sca, lat, mopdl, moprc, iso, stp, ipx, or netbeui]
+
+ether proto 0x888e
+
+ether src 11:22:33:44:55:66 and ether dst AA:BB:CC:DD:EE:FF
+
+wlan addr1 11:22:33:44:55:66
+
+wlan addr2 AA:BB:CC:DD:EE:FF
+
+tcp port 23 and not src host 10.0.0.5
+
+expr relop expr  ---     proto [ expr : size ]   ---   proto is one of ether, fddi, tr, wlan, ppp, slip, link, ip, arp, rarp, tcp, udp, icmp, ip6 or radio, and indicates the protocol layer for the index operation. (ether, fddi, wlan, tr, ppp, slip and link all refer to the link layer. radio refers to the "radio header" added to some 802.11 captures.)  --- eg. ip[6:2] & 0x1fff = 0
+
+
+
+RX MAC ---------- AA:AA:AA:AA:AA:AA
+TX Dev MAC ---- BB:BB:BB:BB:BB:BB
+TX P2P MAC ---- CC:CC:CC:CC:CC:CC
+
+
+
+所有的包：
+
+(type ctl && (wlan addr1 AA:AA:AA:AA:AA:AA || wlan addr1 BB:BB:BB:BB:BB:BB || wlan addr1 CC:CC:CC:CC:CC:CC)) || 
+(type data && (wlan addr1 AA:AA:AA:AA:AA:AA || wlan addr1 CC:CC:CC:CC:CC:CC)) || 
+(type mgt && (
+    (wlan addr1 AA:AA:AA:AA:AA:AA && (wlan addr2 BB:BB:BB:BB:BB:BB || wlan addr2 CC:CC:CC:CC:CC:CC)) || 
+    (wlan addr2 AA:AA:AA:AA:AA:AA && (wlan addr1 BB:BB:BB:BB:BB:BB || wlan addr1 CC:CC:CC:CC:CC:CC)) || 
+    (wlan addr1 FF:FF:FF:FF:FF:FF && (wlan addr2 AA:AA:AA:AA:AA:AA || wlan addr2 BB:BB:BB:BB:BB:BB || wlan addr2 CC:CC:CC:CC:CC:CC))
+))
+
+
+
+关键包：
+
+(ether proto 0x888e && (wlan addr1 AA:AA:AA:AA:AA:AA || wlan addr1 CC:CC:CC:CC:CC:CC)) || 
+(type mgt && (
+    (wlan addr1 AA:AA:AA:AA:AA:AA && (wlan addr2 BB:BB:BB:BB:BB:BB || wlan addr2 CC:CC:CC:CC:CC:CC)) || 
+    (wlan addr2 AA:AA:AA:AA:AA:AA && (wlan addr1 BB:BB:BB:BB:BB:BB || wlan addr1 CC:CC:CC:CC:CC:CC))
+))
+
+
+
+
+
+wireshark显式过滤器：
+
+参考：
+
+https://wiki.wireshark.org/DisplayFilters
+
+https://www.wireshark.org/docs/dfref/   
+
+https://www.wireshark.org/docs/dfref/w/wlan.html
+
+
+
+eth.addr == AA:BB:CC:DD:EE:FF
+
+wlan.addr == AA:BB:CC:DD:EE:FF
+
+wlan.fc.type == 0 // management frame
+
+wlan.fc.type == 1 // control frame
+
+wlan.fc.type == 2 // data frame
+
+wlan.fc.subtype == 4
+
+wlan.fc.type_subtype == 0x00  // mgt assoc req
+
+wlan.fc.type_subtype == 0x01  // mgt assoc rsp
+
+wlan.fc.type_subtype == 0x04  // mgt probe req
+
+wlan.fc.type_subtype == 0x05  // mgt probe rsp
+
+wlan.fc.type_subtype == 0x08  // mgt Beacon
+
+wlan.fc.type_subtype == 0x0A   // mgt Disassoc
+
+wlan.fc.type_subtype == 0x0B   // mgt Auth
+
+wlan.fc.type_subtype == 0x0C   // mgt Deauth
+
+wlan.fc.type_subtype == 0x0D   // mgt Action
+
+wlan.fc.type_subtype == 0x0E   // mgt Action No Ack
+
+wlan.ta == AA:BB:CC:DD:EE:FF
+
+wlan.ra == AA:BB:CC:DD:EE:FF
+
+wlan.da == AA:BB:CC:DD:EE:FF
+
+wlan.addr == AA:BB:CC:DD:EE:FF
+
+wlan.addr contains AA:BB:CC
+
+ip.addr == 1.2.3.4
+
+tcp.port in {80 443 8080}
+
+tcp.port == 80 || tcp.port == 443 || tcp.port == 8080
+
+
+
+
+
+wlan type and subtype:
+
+
+
+
+
+
+
+00 Management 0000 Association request
+00 Management 0001 Association response
+00 Management 0010 Reassociation request
+00 Management 0011 Reassociation response
+00 Management <strong>0100 Probe request</strong>
+00 Management <strong>0101 Probe response</strong>
+00 Management 0110 Timing Advertisement
+00 Management 0111 Reserved
+00 Management <strong>1000 Beacon</strong>
+00 Management 1001 ATIM
+00 Management 1010 Disassociation
+00 Management 1011 Authentication
+00 Management 1100 Deauthentication
+00 Management <strong>1101 Action</strong>
+00 Management 1110 Action No Ack
+00 Management 1111 Reserved
+
+01 Control 0000–0110 Reserved
+01 Control 0111 Control Wrapper
+01 Control 1000 Block Ack Request (BlockAckReq)
+01 Control 1001 Block Ack (BlockAck)
+01 Control 1010 PS-Poll
+01 Control <strong>1011 RTS</strong>
+01 Control <strong>1100 CT</strong>S
+01 Control 1101 ACK
+01 Control 1110 CF-End
+01 Control 1111 CF-End + CF-Ack
+
+10 Data 0000 Data
+10 Data 0001 Data + CF-Ack
+10 Data 0010 Data + CF-Poll
+10 Data 0011 Data + CF-Ack + CF-Poll
+10 Data 0100 Null (no data)
+10 Data 0101 CF-Ack (no data)
+10 Data 0110 CF-Poll (no data)
+10 Data 0111 CF-Ack + CF-Poll (no data)
+10 Data 1000 <strong>QoS Data</strong>
+10 Data 1001 QoS Data + CF-Ack
+10 Data 1010 QoS Data + CF-Poll
+10 Data 1011 QoS Data + CF-Ack + CF-Poll
+10 Data 1100 QoS Null (no data)
+10 Data 1101 Reserved
+10 Data 1110 QoS CF-Poll (no data)
+10 Data 1111 QoS CF-Ack + CF-Poll (no data)
+11 Reserved 0000–1111 Reserved
+
+
+
+
+
+omnipeek捕捉过滤器：使用图形界面配置方式
+
+omnipeek显式过滤器：使用图形界面配置方式或者手动输入下面的过滤器
+
+addr(wireless:'0E:8B:FD:*:*:*')
+
+addr(ip:'10.4.3.*')
+
+addr(type: ip, addr1: 10.4.3.1, addr2: 10.5.1.1, dir: 1to2)
+
+protocol(protospec: http)
+
+wireless(media:'802.11b', channelnum: 1, encrypted: 1)
+
+pattern(ascii: 'smb', case: off)
+
+pattern(hex: FF464D50)
+
+port(80)
+
+channel(2)
+
+length(min:128,max: 256)
+
+filter('SMB')
+
+
+
+
+
+【解密】
+
+可以使用wireshark配合airpcap抓无线数据包，也可以用omnipeek配合相应网卡D-link抓无线数据包。
+
+抓到的包通常是加密的，wireshark可以解密WEP和WPA，omnipeek可以解密WEP、WPA和WPA2。
+
+Wireshark解密方法： Edit -> Protocols -> IEEE 802.11 -> Enable decryption & Edit ....
+
+Wireshark RTP Decode： Analyze -> Decode As ... -> RTP , Telephony -> RTP -> Stream Analysis ...
+
+使用omnipeek解密的前提是要抓到EAPoL-key四次握手包。
+
+
+
+
+
+ubuntu wifi抓包方法
+
+sudo apt-get install aircrack-ng
+
+sudo airmon-ng start wlan0 11
+
+sudo iwconfig mon0 channel 6
+
+sudo airmon-ng stop mon0
+
+参考：http://www.humbug.in/2012/wireless-sniffer-on-ubuntu-linux-capture-analyze-network-traffic/

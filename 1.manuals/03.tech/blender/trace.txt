@@ -1,0 +1,235 @@
+
+#########################################
+#
+# Main process
+#
+#########################################
+File: app/cycles_standalone.cpp
+main()
+    session_init()
+    options.session->wait()
+    session_exit()
+
+session_init()
+    options.session = new Session(...) => render/session.cpp
+        /************************ 
+         * Create mulit threads 
+         ************************/
+        TaskScheduler::init(params.threads) => util/util_task.cpp
+        device = Device::create(...) => device/device.cpp
+        buffers = new RenderBuffers(device) => render/buffers.cpp
+        display = new DisplayBuffer(...) => render/buffers.cpp
+    scene_init()
+        options.scene = new Scene(...) => render/scene.cpp
+        xml_read_file(...) => app/cycles_xml.cpp
+    options.session->start() => render/session.cpp
+        /*************************
+         * Create session thread 
+         *************************/
+        session_thread = new thread(...)
+            Session::run()
+                load_kernels()
+                run_cpu()
+
+session_exit()
+    delete options.session
+        # render/session.cpp
+        Session::~Session()
+            tonemap(params.samples)
+                DeviceTask task(DeviceTask::FILM_CONVERT)
+                device->task_add(task)
+                device->task_wait()
+            uchar4 *pixels = display->rgba_byte.copy_from_device(0, w, h)
+            params.write_render_cb((uchar*)pixels, w, h, 4)
+                /*************************
+                 * Write buffer to file
+                 *************************/
+                # app/cycles_standalone.cpp
+                =write_render(...)
+            tile_manager.device_free()
+
+#########################################
+#
+# Important data structure
+#
+#########################################
+class Session
+class Scene
+class Camera
+
+File: device/device_memory.h
+class device_memory
+class device_vector : device_memory
+class device_pixels : device_vector
+
+File: render/buffers.h
+class BufferParams
+class RenderBuffers
+class DisplayBuffer
+class RenderTile
+
+class Session
+    Device *device
+    Scene *scene
+    RenderBuffers *buffers
+
+class Scene
+    camera;
+    objects;
+    meshes;
+    shaders;
+    lights;
+    particle_systems;
+    device;
+    params;
+
+class device_vector : device_memory
+    T *data()
+
+class device_pixels : device_vector
+    alloc_to_device(...)
+        device_vector<T>::alloc(...)
+        device_memory::device_alloc()
+    T *copy_from_device(...)
+        device_memory::device_copy_from(...)
+        return device_vector<T>::data()
+
+class BufferParams => render/buffers.h
+
+class RenderBuffers => render/buffers.h
+
+class DisplayBuffer => render/buffers.h
+    device_pixels<uchar4> rgba_byte
+
+class RenderTile => render/buffers.h
+
+TaskScheduler::init(...)
+    system_cpu_thread_count()
+    threads[.] = new thread(...) 
+        # Create render thread
+        TaskScheduler::thread_run(thread_id)
+            while(thread_wait_pop(entry))
+                entry.task->run(thread_id)
+                    # device/device_cpu.cpp
+                    CPUDevice::thread_run()
+                        if DeviceTask::RENDER
+                            thread_render(*task)
+                        if DeviceTask::FILM_CONVERT
+                            thread_film_convert(*task)
+                        if DeviceTask::SHADER
+                            thread_shader(*task)
+
+
+device = Device::create(...)
+    device = device_cpu_create(...)
+    device = new CPUDevice(...)
+    REGISTER_KERNEL(path_trace)
+        path_trace_kernel(KERNEL_FUNCTIONS(path_trace))
+        path_trace_kernel(kernel_cpu_path_trace, \
+                kernel_cpu_sse2_path_trace, \
+                kernel_cpu_sse3_path_trace, \
+                kernel_cpu_sse41_path_trace, \
+                kernel_cpu_avx_path_trace, \
+                kernel_cpu_avx2_path_trace)
+            architecture_name = "AVX2"
+            kernel = kernel_cpu_avx2_path_trace
+        # kernel/kernels/cpu/kernel_avx2.cpp
+        path_trace_kernel=kernel_cpu_avx2_path_trace
+
+xml_read_file() 
+    // TODO
+
+load_kernels()
+    device->load_kernels(requested_features)
+       // No thing ?
+
+File: render/session.cpp
+Session::run_cpu()
+    while(...)
+        update_scene()
+            # render/scene.cpp
+            scene->device_update()
+        render()
+            DeviceTask task(DeviceTask::RENDER)
+            task.acquire_tile = function_bind(&Session::acquire_tile, ...)
+            task.release_tile = function_bind(&Session::release_tile, ...)
+            device->task_add(task)
+        device->task_wait()
+
+File: render/scene.cpp
+Scene::device_update()
+    shader_manager->device_update()
+    background->device_update()
+    camera->device_update()
+    mesh_manager->device_update_preprocess()
+    object_manager->device_update()
+    particle_system_manager->device_update()
+    mesh_manager->device_update()
+    object_manager->device_update_flags()
+    image_manager->device_update()
+    camera->device_update_volume()
+    curve_system_manager->device_update()
+    lookup_tables->device_update()
+    light_manager->device_update()
+    integrator->device_update()
+    film->device_update()
+    lookup_tables->device_update()
+    bake_manager->device_update()
+
+File: device/device_cpu.cpp
+CPUDevice::task_add(...)  
+    load_texture_info()
+    task.split(...)
+    foreach(...)
+        new CPUDeviceTask(this, task)
+            run = function_bind(&CPUDevice::thread_run, device, this)
+        task_pool.push(...)
+            # util/util_task.cpp
+            TaskScheduler::push(...)
+
+File: device/device_cpu.cpp
+CPUDevice::thread_render() 
+    KernelGlobals *kg = new KernelGlobals(...)
+    while(task.acquire_tile(this, tile))
+        path_trace(task, tile, kg)
+            path_trace_kernel()(...)
+            # kernel/kernels/cpu/kernel_avx2.cpp
+            =kernel_cpu_avx2_path_trace(...)
+            # kernel/kernels/cpu/kernel_cpu_impl.h
+            =KERNEL_FUNCTION_FULL_NAME(path_trace)(...)
+                # kernel/kernel_path.h
+                kernel_path_trace()
+
+File: kernel/kernel_path.h
+kernel_path_trace()
+    kernel_path_trace_setup(...)
+    kernel_path_integrate(...)
+    kernel_write_result(...)
+
+
+File: device/device_cpu.cpp
+CPUDevice::thread_film_convert() 
+    for(y...)
+        for(x...) 
+            convert_to_byte_kernel(...)
+            # kernel/kernels/cpu/kernel_avx2.cpp
+            =kernel_cpu_avx2_convert_to_byte(...)
+            # kernel/kernels/cpu/kernel_cpu_impl.h
+            =KERNEL_FUNCTION_FULL_NAME(convert_to_byte)(...)
+                # kernel/kernel_film.h
+                kernel_film_convert_to_byte(...)
+
+File: kernel/kernel_film.h
+    film_map(...)
+
+File: device/device_cpu.cpp
+CPUDevice::thread_shader() 
+    for(sample...)
+        for(x...)
+            shader_kernel(...)
+            # kernel/kernels/cpu/kernel_avx2.cpp
+            =kernel_cpu_avx2_shader(...)
+            # kernel/kernels/cpu/kernel_cpu_impl.h
+            =KERNEL_FUNCTION_FULL_NAME(shader)(...)
+
+

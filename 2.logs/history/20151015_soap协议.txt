@@ -1,0 +1,178 @@
+SOAP(Simple Object Access Protocal)采用了已经广泛使用的两个协议:HTTP 和XML(标准通用标记语言下的一个子集)。HTTP用于实现SOAP的RPC风格的传输, 而XML 是它的编码模式。用于实现web service。
+
+
+
+SOAP请求：
+----------------------------
+POST /InStock HTTP/1.1  
+Host: www.jsoso.net   
+Content-Type: application/soap+xml; charset=utf-8  
+Content-Length: XXX   
+  
+<? xml version="1.0"?>   
+<soap:Envelope   
+xmlns:soap="http://www.w3.org/2001/12/soap-envelope"  
+soap:encodingStyle="http://www.w3.org/2001/12/soap-encoding">   
+  <soap:Body xmlns:m="http://www.jsoso.net/stock">   
+    <m:GetStockPrice>   
+      <m:StockName>IBM</m:StockName>   
+    </m:GetStockPrice>   
+  </soap:Body>     
+</soap:Envelope>  
+----------------------------
+
+
+SOAP响应：
+----------------------------
+HTTP/1.1 200 OK   
+Content-Type: application/soap+xml; charset=utf-8  
+Content-Length: XXX   
+  
+<? xml version="1.0"?>   
+<soap:Envelope   
+xmlns:soap="http://www.w3.org/2001/12/soap-envelope"  
+soap:encodingStyle="http://www.w3.org/2001/12/soap-encoding">   
+  <soap:Body xmlns:m="http://www.jsoso.net/stock">   
+    <m:GetStockPriceResponse>   
+      <m:Price>34.5</m:Price>   
+    </m:GetStockPriceResponse>   
+  </soap:Body>     
+</soap:Envelope>  
+----------------------------
+
+【 Web Service】
+WebService是为解决跨编程语言和跨操作系统平台的远程调用而产生的网络技术。涉及XML+XSD,SOAP和WSDL三大技术。
+三要素：SOAP、WSDL(WebServicesDescriptionLanguage)、UDDI(UniversalDescriptionDiscovery andIntegration)。
+soap用来描述传递信息的格式， WSDL 用来描述如何访问具体的接口， uddi用来管理，分发，查询webService 。
+Web Service = SOAP + HTTP + WSDL
+http://blog.csdn.net/wooshn/article/details/8069087
+http://blog.csdn.net/qjyong/article/details/2148558
+
+
+
+【XML和XSD】
+可扩展的标记语言XML 是Web Service平台中表示数据的基本格式。除了易于建立和易于分析外，XML主要的优点在于它既与平台无关，又与厂商无关。XML是由万维网协会(W3C)创建，W3C制定的XML SchemaXSD 定义了一套标准的数据类型，并给出了一种语言来扩展这套数据类型。
+Web Service平台是用XSD来作为数据类型系统的。当你用某种语言如VB. NET或C# 来构造一个Web Service时，为了符合Web Service标准，所有你使用的数据类型都必须被转换为XSD类型。如想让它使用在不同平台和不同软件的不同组织间传递，还需要用某种东西将它包装起来。这种东西就是一种协议，如 SOAP。
+
+
+【SOAP】
+SOAP即简单对象访问协议(Simple Object Access Protocal)，它是用于交换XML编码信息的轻量级协议。它有三个主要方面:XML-envelope为描述信息内容和如何处理内容定义了框架，将程序对象编码成为XML对象的规则，执行远程过程调用(RPC)的约定。SOAP可以运行在任何其他传输协议上。例如，你可以使用 SMTP，即因特网电子邮件协议来传递SOAP消息，这可是很有诱惑力的。在传输层之间的头是不同的，但XML有效负载保持相同。
+Web Service 希望实现不同的系统之间能够用"软件-软件对话"的方式相互调用，打破了软件应用、网站和各种设备之间的格格不入的状态，实现"基于Web无缝集成"的目标。
+
+
+【WSDL】
+Web Service描述语言WSDL 就是用机器能阅读的方式提供的一个正式描述文档而基于XML的语言，用于描述Web Service及其函数、参数和返回值。因为是基于XML的，所以WSDL既是机器可阅读的，又是人可阅读的。
+
+
+【UDDI】
+UDDI 的目的是为电子商务建立标准;UDDI是一套基于Web的、分布式的、为Web Service提供的、信息注册中心的实现标准规范，同时也包含一组使企业能将自身提供的Web Service注册，以使别的企业能够发现的访问协议的实现标准。
+
+
+【调用RPC与消息传递】
+Web Service本身其实是在实现应用程序间的通信。我们现在有两种应用程序通信的方法:RPC远程过程调用和消息传递。使用RPC的时候，客户端的概念是调用服务器上的远程过程，通常方式为实例化一个远程对象并调用其方法和属性。RPC系统试图达到一种位置上的透明性:服务器暴露出远程对象的接口，而客户端就好像在本地使用的这些对象的接口一样，这样就隐藏了底层的信息，客户端也就根本不需要知道对象是在哪台机器上。
+
+
+XML+XSD：
+  WebService采用HTTP协议传输数据，采用XML格式封装数据（即XML中说明调用远程服务对象的哪个方法，传递的参数是什么，以及服务对象的返回结果是什么）。XML是WebService平台中表示数据的格式。除了易于建立和易于分析外，XML主要的优点在于它既是平台无关的，又是厂商无关的。无关性是比技术优越性更重要的：软件厂商是不会选择一个由竞争对手所发明的技术的。 
+  XML解决了数据表示的问题，但它没有定义一套标准的数据类型，更没有说怎么去扩展这套数据类型。例如，整形数到底代表什么？16位，32位，64位？这些细节对实现互操作性很重要。XML Schema(XSD)就是专门解决这个问题的一套标准。它定义了一套标准的数据类型，并给出了一种语言来扩展这套数据类型。WebService平台就是用XSD来作为其数据类型系统的。当你用某种语言(如VB.NET或C#)来构造一个Web service时，为了符合WebService标准，所有你使用的数据类型都必须被转换为XSD类型。你用的工具可能已经自动帮你完成了这个转换，但你很可能会根据你的需要修改一下转换过程。
+
+
+SOAP：
+   WebService通过HTTP协议发送请求和接收结果时，发送的请求内容和结果内容都采用XML格式封装，并增加了一些特定的HTTP消息头，以说明HTTP消息的内容格式，这些特定的HTTP消息头和XML内容格式就是SOAP协议。SOAP提供了标准的RPC方法来调用Web Service。
+  SOAP协议 = HTTP协议 + XML数据格式
+  SOAP协议定义了SOAP消息的格式，SOAP协议是基于HTTP协议的，SOAP也是基于XML和XSD的，XML是SOAP的数据编码方式。打个比喻：HTTP就是普通公路，XML就是中间的绿色隔离带和两边的防护栏，SOAP就是普通公路经过加隔离带和防护栏改造过的高速公路。
+
+
+WSDL：
+   好比我们去商店买东西，首先要知道商店里有什么东西可买，然后再来购买，商家的做法就是张贴广告海报。 WebService也一样，WebService客户端要调用一个WebService服务，首先要有知道这个服务的地址在哪，以及这个服务里有什么方法可以调用，所以，WebService务器端首先要通过一个WSDL文件来说明自己家里有啥服务可以对外调用，服务是什么（服务中有哪些方法，方法接受的参数是什么，返回值是什么），服务的网络地址用哪个url地址表示，服务通过什么方式来调用。
+   WSDL(Web Services Description Language)就是这样一个基于XML的语言，用于描述Web Service及其函数、参数和返回值。它是WebService客户端和服务器端都能理解的标准格式。因为是基于XML的，所以WSDL既是机器可阅读的，又是人可阅读的，这将是一个很大的好处。一些最新的开发工具既能根据你的Web service生成WSDL文档，又能导入WSDL文档，生成调用相应WebService的代理类代码。
+  WSDL文件保存在Web服务器上，通过一个url地址就可以访问到它。客户端要调用一个WebService服务之前，要知道该服务的WSDL文件的地址。WebService服务提供商可以通过两种方式来暴露它的WSDL文件地址：1.注册到UDDI服务器，以便被人查找；2.直接告诉给客户端调用者。
+
+
+WSDL实例：
+----------------------------
+<?xml version="1.0" encoding="UTF-8"?>   
+<definitions   
+ xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"  
+ xmlns:tns="http://www.jsoso.com/wstest"  
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"  
+ xmlns="http://schemas.xmlsoap.org/wsdl/"  
+ targetNamespace="http://www.jsoso.com/wstest"  
+ name="Example">   
+  
+<types>   
+  <xsd:schema>   
+  <xsd:import  
+   namespace="http://www.jsoso.com/wstest"  
+   schemaLocation="http://localhost:8080/hello?xsd=1"></xsd:import>   
+  </xsd:schema>   
+</types>   
+  
+<message name="toSayHello">   
+  <part name="userName" type="xsd:string"></part>   
+</message>   
+<message name="toSayHelloResponse">   
+  <part name="returnWord" type="xsd:string"></part>   
+</message>   
+  
+<message name="sayHello">   
+  <part name="person" type="tns:person"></part>   
+  <part name="arg1" type="xsd:string"></part>   
+</message>   
+<message name="sayHelloResponse">   
+  <part name="personList" type="tns:personArray"></part>   
+</message>   
+<message name="HelloException">   
+  <part name="fault" element="tns:HelloException"></part>   
+</message>   
+  
+<portType name="Example">   
+  <operation name="toSayHello" parameterOrder="userName">   
+    <input message="tns:toSayHello"></input>   
+    <output message="tns:toSayHelloResponse"></output>   
+  </operation>   
+  <operation name="sayHello" parameterOrder="person arg1">   
+    <input message="tns:sayHello"></input>   
+    <output message="tns:sayHelloResponse"></output>   
+    <fault message="tns:HelloException" name="HelloException"></fault>   
+  </operation>   
+</portType>   
+  
+<binding name="ExamplePortBinding" type="tns:Example">   
+  <soap:binding   
+    transport="http://schemas.xmlsoap.org/soap/http"    
+    style="rpc"></soap:binding>   
+  <operation name="toSayHello">   
+    <soap:operation soapAction="sayHello"></soap:operation>   
+    <input>   
+      <soap:body use="literal"  
+        namespace="http://www.jsoso.com/wstest"></soap:body>   
+    </input>   
+    <output>   
+      <soap:body use="literal"  
+         namespace="http://www.jsoso.com/wstest"></soap:body>   
+    </output>   
+  </operation>   
+  <operation name="sayHello">   
+    <soap:operation soapAction="sayHello"></soap:operation>   
+    <input>   
+      <soap:body use="literal"  
+        namespace="http://www.jsoso.com/wstest"></soap:body>   
+    </input>   
+    <output>   
+      <soap:body use="literal"  
+        namespace="http://www.jsoso.com/wstest"></soap:body>   
+    </output>   
+    <fault name="HelloException">   
+      <soap:fault name="HelloException" use="literal"></soap:fault>   
+    </fault>   
+    </operation>   
+</binding>   
+  
+<service name="Example">   
+  <port name="ExamplePort" binding="tns:ExamplePortBinding">   
+    <soap:address location="http://localhost:8080/hello"></soap:address>   
+  </port>   
+</service>   
+</definitions>  
+----------------------------

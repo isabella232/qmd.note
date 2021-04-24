@@ -1,0 +1,25 @@
+演变历史
+
+Android2.2以前，多媒体框架用opencore。
+
+Android2.3，预设的多媒体框架是Stagefright，加入了真正支持流媒体的nuplayer。Local Playback用stagefrightplayer+awesomeplayer。
+
+Android4.0以后，HttpLive和RTSP协议开始使用nuplayer播放器。
+
+Android4.1，将c/c++部分的多媒体框架单独设置目录framework/av/
+
+Android 5.0开始，本地播放开始使用nuplayer。
+
+
+
+相对于awesomeplayer，nuplayer基于StagefrightPlayer的基础类，利用了更底层的ALooper和AHandler机制来异步处理请求，所以使用更少的mutex lock。
+
+awesomeplayer利用了omxcodec，而nuplayer利用了acodec。
+
+
+
+
+
+CameraHAL
+
+CameraService

@@ -1,0 +1,39 @@
+C/C++ API
+
+#########################
+# Standard C 常用API
+#########################
+
+------------
+- stdio.h
+------------
+printf/scanf/snprintf/sscanf
+fopen/fprintf/fscanf
+
+------------
+- stdlib.h
+------------
+malloc/free
+system/atoi/rand
+
+------------
+- string.h
+------------
+strncpy/strncmp/strlen/strstr/strtok
+memcpy/memset/memcmp
+NULL/size_t
+
+------------
+- time.h
+------------
+time/ctime
+
+#########################
+# Standard C++ 常用API
+#########################
+<map>
+<thread>
+<mutex>
+
+
+

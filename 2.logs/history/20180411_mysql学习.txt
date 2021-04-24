@@ -1,0 +1,25 @@
+mysql --host=127.0.0.1 --port=3307 -u root -p进入mysql命令行。
+
+
+
+show status; -- 显示一些系统特定资源的信息。
+
+show variables; -- 显示系统变量的名称和值。
+
+show databases; -- 显示mysql中所有数据库的名称。
+
+show tables from database_name; -- 显示当前数据库中所有表的名称。
+
+show columns from table_name from database_name; -- 显示表中列名称。
+
+show columns from database_name.table_name; -- 显示表中列名称。
+
+show grants for user_name; -- 显示一个用户的权限。
+
+show engines; -- 显示安装以后可用的存储引擎和默认引擎。
+
+
+
+show full columns from devices
+
+select id,name,level,type,content,status from devices;

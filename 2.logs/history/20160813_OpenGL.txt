@@ -1,0 +1,105 @@
+GLUT用于窗口设计（窗口显示，事件处理），90年代已停止更新，替代品有freeGULT，但是听说freeGULT bug很多，后来出现新的替代品GLFW。
+
+
+
+GLEW
+
+GLEW的功能是为程序在运行时动态加载OpenGL API，相当于一个加载工具。
+
+它提供了一种机制，让程序在运行时决定支持哪一种OpenGL扩展。
+
+http://glew.sourceforge.net/
+
+
+
+
+
+GLX
+
+GLX用来将OpenGL与X Window系统对接。
+
+
+
+GLU
+
+GLU(OpenGL Utility Library)封装OpenGL，用于绘图。
+
+
+
+GLUT
+
+GLUT(OpenGL Utility Toolkit)封装OpenGL，用于窗口设计。
+
+头文件：#incldue <GL/glut.h>
+
+编译：cc -o foo foo.c -lglut -lGLU -lGL -lXmu -lXi -lXext -lX11 -lm
+
+API：glutXxx，V3大约有90+个API函数。
+
+
+
+GLFW
+
+GLFW是GLUT的替代品。
+
+
+
+DRI
+
+
+
+OpenGL API
+
+设置几何图元：在glBegin()和glEnd()之间调用下面函数。
+
+glVertex*()  // 设置顶点坐标
+
+glColor*()  // 设置RGBA颜色
+
+glIndex*()  // 设置颜色索引
+
+glSecondaryColor*()  // 设置纹理应用后的辅助颜色
+
+glNormal*()  // 设置发现向量坐标
+
+glMaterial*()  // 设置材料属性
+
+glFogCoord*()  // 设置雾坐标
+
+glTexCoord*()  // 设置纹理坐标
+
+glMultiTexCoord*()  // 为多重纹理设置纹理坐标
+
+glVertexAttrib*()  // 设置通用的顶点属性
+
+glEdgeFlag*()  // 控制边界的绘制
+
+glArrayElement()  // 提取顶点数组数据
+
+glEvalCoord*(), glEvalPoint*()  // 生成坐标
+
+glCallList(), glCallLists()  // 执行显示列表
+
+
+
+Capability
+
+glEnable()  // 打开指定的Capability
+
+glDisable()  // 关闭指定的Capability
+
+glIsEnabled()  // 查询Capability是否打开
+
+
+
+查询参数
+
+glGetBooleanv()  // 查询布尔型变量
+
+glGetIntegerv()  // 查询整型变量
+
+glGetFloatv()  // 查询单精度浮点型变量
+
+glGetDoublev()  // 查询双精度浮点型变量
+
+glGetPointerv()  // 查询指针类型状态变量

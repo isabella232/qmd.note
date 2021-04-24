@@ -1,0 +1,482 @@
+Linux网络编程中调用的socket函数，是在glibc/uclibc中通过汇编代码封装起来的。
+
+驱动程序  <==>  kernel网络接口层  <==>  kernel网络协议栈  <==>  系统调用  <==>  用户空间
+
+
+
+1. 创建socket
+socket函数定义在：uClibc-0.9.xx.x/libc/inet/socketcalls.c
+
+
+
+#ifdef L_socket
+libc_hidden_proto(socket)
+#ifdef __NR_socket
+_syscall3(int, socket, int, family, int, type, int, protocol)
+#elif defined(__NR_socketcall)
+int socket(int family, int type, int protocol)
+{
+        unsigned long args[3];
+
+        args[0] = family;
+        args[1] = type;
+        args[2] = (unsigned long) protocol;
+        return __socketcall(SYS_SOCKET, args);
+}
+#endif
+libc_hidden_def(socket)
+#endif
+若定义了__NR_socket，那么：linux-2.6.xx/include/asm-mips/unistd.h
+
+
+
+#define _syscall3(type,name,atype,a,btype,b,ctype,c) \
+type name(atype a, btype b, ctype c) \
+{ \
+	register unsigned long __a0 asm("$4") = (unsigned long) a; \
+	register unsigned long __a1 asm("$5") = (unsigned long) b; \
+	register unsigned long __a2 asm("$6") = (unsigned long) c; \
+	register unsigned long __a3 asm("$7"); \
+	unsigned long __v0; \
+	\
+	__asm__ volatile ( \
+	".set\tnoreorder\n\t" \
+	"li\t$2, %5\t\t\t# " #name "\n\t" \
+	"syscall\n\t" \
+	"move\t%0, $2\n\t" \
+	".set\treorder" \
+	: "=&r" (__v0), "=r" (__a3) \
+	: "r" (__a0), "r" (__a1), "r" (__a2), "i" (__NR_##name) \
+	: "$2", "$8", "$9", "$10", "$11", "$12", "$13", "$14", "$15", "$24", \
+	  "memory"); \
+	\
+	if (__a3 == 0) \
+		return (type) __v0; \
+	errno = __v0; \
+	return (type) -1; \
+}
+
+
+
+
+其中内嵌汇编语法：__asm__(汇编语句模板: 输出部分: 输入部分: 破坏描述部分)
+a=SYS_SOCKET, b=args
+1. 设置系统调用号：li   $2    "i"(__NR_##name)    =__NR_socket定义在include/asm-mips/unistd.h/#define __NR_socket (__NR_Linux + 183)
+2. 触发系统调用：syscall
+3. 保存结果：move   "=&r"(__v0)    $2
+指令syscall执行linux-2.6.xx/arch/mips/kernel/scall32-o32.S/syscalltable对应位置的函数入口sys_socket()，定义在linux-2.6.xx/net/socket.c中。
+
+sys_socket()
+
+
+
+sock_create(family, type, protocol, &sock)   =>  __sock_create()
+
+
+
+
+
+security_socket_create(family, type, protocol, kern)
+
+sock = sock_alloc()
+
+try_module_get(net_families[family]->owner)
+
+net_families[family]->create(sock, protocol)
+
+packet_create()   // 以PF_PACKET为例
+
+sk = sk_alloc(PF_PACKET, GFP_KERNEL, &packet_proto, 1)
+
+sock->ops = &packet_ops_spkt
+
+
+
+static struct proto_ops packet_ops_spkt = {
+	.family =	PF_PACKET,
+	.owner =	THIS_MODULE,
+	.release =	packet_release,
+	.bind =		packet_bind_spkt,
+	.connect =	sock_no_connect,
+	.socketpair =	sock_no_socketpair,
+	.accept =	sock_no_accept,
+	.getname =	packet_getname_spkt,
+	.poll =		datagram_poll,
+	.ioctl =	packet_ioctl,
+	.listen =	sock_no_listen,
+	.shutdown =	sock_no_shutdown,
+	.setsockopt =	sock_no_setsockopt,
+	.getsockopt =	sock_no_getsockopt,
+	.sendmsg =	packet_sendmsg_spkt,
+	.recvmsg =	packet_recvmsg,
+	.mmap =		sock_no_mmap,
+	.sendpage =	sock_no_sendpage,
+};
+
+
+po->prot_hook.func = packet_rcv_spkt  // 底层收到数据后的回调函数
+
+po->num = protocol
+
+if (protocol)
+
+po->prot_hook.type = protocol
+
+dev_add_pack(&po->prot_hook)   // 设置到ptype_all/ptype_base链表中
+
+inet_create()   //  以PF_INET为例，
+
+sock->ops = answer->ops
+
+sk = sk_alloc(PF_INET, GFP_KERNEL, answer_prot, 1)
+
+// 该协议族通过inet_register_protosw()对外提供协议注册接口，自带tcp、udp、raw等协议操作接口：
+
+
+
+static struct inet_protosw inetsw_array[] =
+{
+        {
+                .type =       SOCK_STREAM,
+                .protocol =   IPPROTO_TCP,
+                .prot =       &tcp_prot,
+                .ops =        &inet_stream_ops,
+                .capability = -1,
+                .no_check =   0,
+                .flags =      INET_PROTOSW_PERMANENT,
+        },
+
+        {
+                .type =       SOCK_DGRAM,
+                .protocol =   IPPROTO_UDP,
+                .prot =       &udp_prot,
+                .ops =        &inet_dgram_ops,
+                .capability = -1,
+                .no_check =   UDP_CSUM_DEFAULT,
+                .flags =      INET_PROTOSW_PERMANENT,
+       },
+
+
+       {
+               .type =       SOCK_RAW,
+               .protocol =   IPPROTO_IP,	/* wild card */
+               .prot =       &raw_prot,
+               .ops =        &inet_sockraw_ops,
+               .capability = CAP_NET_RAW,
+               .no_check =   UDP_CSUM_DEFAULT,
+               .flags =      INET_PROTOSW_REUSE,
+       }
+};
+
+
+以TCP为例，注册了stream类型接口和tcp协议接口：
+
+
+
+struct proto_ops inet_stream_ops = {
+	.family =	PF_INET,
+	.owner =	THIS_MODULE,
+	.release =	inet_release,
+	.bind =		inet_bind,
+	.connect =	inet_stream_connect,
+	.socketpair =	sock_no_socketpair,
+	.accept =	inet_accept,
+	.getname =	inet_getname,
+	.poll =		tcp_poll,
+	.ioctl =	inet_ioctl,
+	.listen =	inet_listen,
+	.shutdown =	inet_shutdown,
+	.setsockopt =	sock_common_setsockopt,
+	.getsockopt =	sock_common_getsockopt,
+	.sendmsg =	inet_sendmsg,
+	.recvmsg =	sock_common_recvmsg,
+	.mmap =		sock_no_mmap,
+	.sendpage =	tcp_sendpage
+};
+
+
+
+
+struct proto tcp_prot = {
+	.name			= "TCP",
+	.owner			= THIS_MODULE,
+	.close			= tcp_close,
+	.connect		= tcp_v4_connect,
+	.disconnect		= tcp_disconnect,
+	.accept			= tcp_accept,
+	.ioctl			= tcp_ioctl,
+	.init			= tcp_v4_init_sock,
+	.destroy		= tcp_v4_destroy_sock,
+	.shutdown		= tcp_shutdown,
+	.setsockopt		= tcp_setsockopt,
+	.getsockopt		= tcp_getsockopt,
+	.sendmsg		= tcp_sendmsg,
+	.recvmsg		= tcp_recvmsg,
+	.backlog_rcv		= tcp_v4_do_rcv,
+	.hash			= tcp_v4_hash,
+	.unhash			= tcp_unhash,
+	.get_port		= tcp_v4_get_port,
+	.enter_memory_pressure	= tcp_enter_memory_pressure,
+	.sockets_allocated	= &tcp_sockets_allocated,
+	.memory_allocated	= &tcp_memory_allocated,
+	.memory_pressure	= &tcp_memory_pressure,
+	.sysctl_mem		= sysctl_tcp_mem,
+	.sysctl_wmem		= sysctl_tcp_wmem,
+	.sysctl_rmem		= sysctl_tcp_rmem,
+	.max_header		= MAX_TCP_HEADER,
+	.obj_size		= sizeof(struct tcp_sock),
+};
+
+
+
+try_module_get(sock->ops->owner)
+
+module_put(net_families[family]->owner)
+
+
+
+security_socket_post_create(sock, family, type, protocol, kern)
+
+
+
+sock_map_fd(sock)
+
+
+
+
+
+struct file *file = get_empty_filp()
+
+file->f_op = SOCK_INODE(sock)->i_fop = &socket_file_ops
+
+
+
+static struct file_operations socket_file_ops = {
+	.owner =	THIS_MODULE,
+	.llseek =	no_llseek,
+	.aio_read =	sock_aio_read,
+	.aio_write =	sock_aio_write,
+	.poll =		sock_poll,
+	.unlocked_ioctl = sock_ioctl,
+	.mmap =		sock_mmap,
+	.open =		sock_no_open,	/* special open code to disallow open via /proc */
+	.release =	sock_close,
+	.fasync =	sock_fasync,
+	.readv =	sock_readv,
+	.writev =	sock_writev,
+	.sendpage =	sock_sendpage
+};
+
+
+在net/socket.c中定义了int sock_register(struct net_proto_family *ops)，用来向net_families[]数组注册协议族。
+
+
+
+net/packet/af_packet.c                    sock_register(&packet_family_ops)
+
+net/ipv4/af_inet.c                            sock_register(&inet_family_ops)
+
+net/ipv4/af_inet6.c                           sock_register(&inet6_family_ops)
+
+net/netlink/af_netlink.c                    sock_register(&netlink_family_ops)
+
+net/unix/af_unix.c                           sock_register(&unix_family_ops)
+
+net/ipx/af_ipx.c                               sock_register(&ipx_family_ops)
+
+net/bluetooth/af_bluetooth.c            sock_register(&bt_sock_family_ops)
+
+不同协议族的操作函数不同。
+
+
+
+
+
+2. 读写socket
+
+
+write函数定义在libc/sysdeps/linux/common/write.c，
+
+
+
+extern __typeof(write) __libc_write;
+#define __NR___libc_write __NR_write
+_syscall3(ssize_t, __libc_write, int, fd, const __ptr_t, buf, size_t, count)
+libc_hidden_proto(write)
+weak_alias(__libc_write,write)
+libc_hidden_weak(write)
+其中weak_alias(__libc_write,write)表示当write没有在任何地方定义时，连接器就会用__libc_write代替write符号。
+
+
+
+通过_syscall3调用内核系统调用函数sys_write()，定义在linux-2.6.xx/fs/read_write.c中。
+
+同理read函数通过_syscall3调用内核系统调用函数sys_read()，定义在linux-2.6.xx/fs/read_write.c中。
+
+
+
+extern __typeof(read) __libc_read;
+#define __NR___libc_read __NR_read
+_syscall3(ssize_t, __libc_read, int, fd, __ptr_t, buf, size_t, count)
+libc_hidden_proto(read)
+weak_alias(__libc_read,read)
+libc_hidden_weak(read)
+
+
+sys_write()  => vfs_write()  =>  file->f_op->aio_write()  => sock_aio_write()  =>  __sock_recvmsg()
+
+sys_read()  => vfs_read()  =>  file->f_op->aio_read()  => sock_aio_read()  =>  __sock_sendmsg()
+
+
+
+
+
+Kernel的网络接口层在系统初始化时调用net/core/dev.c/subsys_initcall(net_dev_init)，执行net_dev_init()函数：
+
+
+
+net_dev_init()
+	INIT_LIST_HEAD(&ptype_all)  // 初始化
+	for (i = 0; i < NR_CPUS; i++)
+		struct softnet_data *queue = &per_cpu(softnet_data, i)
+		queue->backlog_dev.poll = process_backlog         // poll处理回调函数
+	open_softirq(NET_TX_SOFTIRQ, net_tx_action, NULL)    // 软中断处理函数
+	open_softirq(NET_RX_SOFTIRQ, net_rx_action, NULL)    // 软中断处理函数
+
+网卡驱动收到数据时，调用net/core/dev.c/netif_rx()函数（新处理方式用NAPI），进入网络接口层：
+
+
+
+
+
+
+
+int netif_rx(struct sk_buff *skb)
+	if (queue->input_pkt_queue.qlen <= netdev_max_backlog) {  // 队列未满
+		if (queue->input_pkt_queue.qlen) {  // 队列不为空
+			if (queue->throttle)
+				goto drop;
+enqueue:
+			dev_hold(skb->dev);
+			__skb_queue_tail(&queue->input_pkt_queue, skb);
+			local_irq_restore(flags);
+			return queue->cng_level;
+		}
+		// 队列为空，触发软中断
+		netif_rx_schedule(&queue->backlog_dev);
+		goto enqueue;
+	}
+其中netif_rx_schedule会触发软中断，调用net_rx_action函数。
+
+
+
+net_rx_action()
+	dev->poll(dev, &budget)  =>  process_backlog()
+		skb = __skb_dequeue(&queue->input_pkt_queue)
+		netif_receive_skb(skb)
+			if (aei_ip_hook)  // Kernel capture at here
+				(*aei_ip_hook)(skb)
+			list_for_each_entry_rcu(ptype, &ptype_all, list)
+				deliver_skb(skb, pt_prev)
+					pt_prev->func(skb, skb->dev, pt_prev)
+			list_for_each_entry_rcu(ptype, &ptype_base[ntohs(type)&15], list)
+				deliver_skb(skb, pt_prev)
+					pt_prev->func(skb, skb->dev, pt_prev)
+
+
+此处func时协议相关的包处理回调函数，如PF_PACKET协议族的packet_rcv_spkt函数。这里调用的是协议栈的函数，进入kernel协议栈。
+
+
+
+3. 内核协议栈
+在net/socket.c中定义了sock_register(struct net_proto_family *ops)提供协议族net_families的注册接口。
+
+在net/core/sock.c中定义了proto_register(struct proto *prot, int alloc_slab)提供proto_list的注册接口。
+
+在net/core/dev.c中维护了ptype_all和ptype_base[16]链表，不同协议族在初始化或者创建socket的时候，会添加rx回调函数到这些链表（dev_add_pack函数）。内核调用netif_receive_skb()时，会遍历这些链表，执行rx回调函数。
+
+net/ipv4/af_inet.c/module_init(inet_init)
+
+
+
+inet_init()
+
+proto_register(&tcp_prot, 1)
+
+proto_register(&udp_prot, 1)
+
+proto_register(&raw_prot, 1)
+
+sock_register(&inet_family_ops)
+
+inet_add_protocol(&icmp_protocol, IPPROTO_ICMP)
+
+inet_add_protocol(&udp_protocol, IPPROTO_UDP)
+
+inet_add_protocol(&tcp_protocol, IPPROTO_TCP)
+
+inet_add_protocol(&igmp_protocol, IPPROTO_IGMP)
+
+for (r = &inetsw[0]; r < &inetsw[SOCK_MAX]; ++r)
+
+INIT_LIST_HEAD(r)
+
+for (q = inetsw_array; q < &inetsw_array[INETSW_ARRAY_LEN]; ++q)
+
+inet_register_protosw(q)
+
+arp_init()
+
+ip_init()
+
+
+
+dev_add_pack(&ip_packet_type)
+
+
+
+static struct packet_type ip_packet_type = {
+	.type = __constant_htons(ETH_P_IP),
+	.func = ip_rcv,
+};
+
+
+
+
+tcp_v4_init(&inet_family_ops)
+
+tcp_init()
+
+icmp_init(&inet_family_ops)
+
+init_ipv4_mibs()
+
+ipv4_proc_init()
+
+ipfrag_init()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+参考：http://biancheng.dnbcw.info/linux/430376.html
+
+参考：http://itlab.idcquan.com/linux/administer/836038.html

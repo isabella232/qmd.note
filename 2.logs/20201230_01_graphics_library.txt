@@ -1,0 +1,17 @@
+Graphics Library
+
+
+
+【基于OpenGL的图形库】
+优点：高效，跨平台（苹果和微软在逐渐淡化OpenGL）。
+缺点：依赖硬件。
+
+MiniFB: https://github.com/emoon/minifb.git
+NanoVG: https://github.com/memononen/NanoVG
+NanoGUI-new: https://github.com/mitsuba-renderer/nanogui
+NanoGUI-old: https://github.com/wjakob/nanogui
+
+
+【2D矢量图形库】
+SDL，Skia
+

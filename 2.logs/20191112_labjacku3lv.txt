@@ -1,0 +1,158 @@
+https://labjack.com/products/u3
+
+
+1. Test AV sync
+
+Hardware: Labjack U3-LV and MultiTick adapter
+Driver: Win10/LabJack-2019-05-20.exe
+
+Source/Flash40.wmv
+    |
+  sink/TV
+    |
+	|--Video--|
+	|         |-->LabJack+MultiTick-->AnalysisPC
+	|--Audio--|
+
+
+2. Test video latency
+
+Hardware: LabJack U3 LV
+Driver: Win10/LabJack-2019-05-20.exe
+
+AnalysisPC
+    |
+LabJack+MultiTick
+    |
+	|--Video1
+	|--Video2
+
+Run "LatencyTool.exe" in WiDi host PC.
+Run "WiDiLatencyStreamingR1P1.exe" in control/analysis PC.
+
+
+
+--------------------WiDi-AVSync-MultiTick-ProcedureR1.docx Start--------------------
+
+LabJack /MultiTick AV-Sync: setup and measurement procedure
+19Nov2012, C. Brabenac
+Summary
+This document summarizes the software/hardware setup and procedure for measuring audio-video synchronization using the MultiTick adapter and Labjack U3-LV.
+References
+[1]“Labjack WiDi MultiTick User’s Guide”, Rev 0.4, C. Brabenac, 19Sep2012
+[2]“Labjack U3 User’s Guide” (see http://labjack.com/support/u3/users-guide )
+[3]“VH236/VH232/VH202 Series LCD Monitor User Guide”, Asus, Nov2008
+Setup diagram and hardware requirements
+Refer to the setup diagram below, and related hardware requirements that follow it.
+
+
+
+The following hardware components are required: 
+1)Labjack U3-LV (see http://labjack.com/catalog/u3-lv), firmware version 1.320 or later.
+    (Note: Verify/update firmware version using Labjack LJSelfUpgrade tool)
+2)MultiTick adapter
+3)One phototransistor cable assembly for MultiTick
+4)One 3.5mm stereo plug to dual RCA plug adapter cable (one RCA plug is unused)
+5)Analysis PC -- Sandy Bridge i5 or better platform is recommended
+6)Host PC.
+7)Local reference (REF) Display
+8)Device Under Test (DUT) Display
+
+
+
+REF Display / DUT Display:
+As shown in the AV Sync Reference Waveforms section, measurements for WiDi are incremental with respect to a wired reference.  In order for measurements to be valid and relevant, the following conventions must be followed:
+
+Scenario #1:  Sink device = WiDi Adapter
+1)Both displays shall be Asus VH236H HDMI monitors.  The reason for this choice is that these monitors are known for having predictably small internal delays (~1.7msec) and jitter, and have a backlight spectrum known to be compatible with MultiTick phototransistor bandwidth.
+The behavior of other uncharacterized displays superimposed on top of WiDi latency measurements could impact both the time required to obtain valid measurements, and any conclusions about temporal latency variations of the WiDi function.
+2)Both Asus displays shall be first reset to their factory default settings, and then put into gaming mode.  This assures that measurements are not skewed by dissimilar internal delays within the displays.
+3)The RCA 3.5mm stereo plug is to be installed in the 3.5mm headphone jack at the bottom of the HDMI monitor.
+
+Scenario #2:  Sink device = Integrated WiDi
+1)Both displays shall be identical (same manufacturer, same model#).  The assumption here is that the video processing pipeline after wired HDMI / DP inputs or after the (integrated) WiDi input will be shared in common.  This is important, since many TVs have very long video processing pipelines (yes, even when in gaming mode).
+2)Both displays shall be first reset to their factory default setting, and then put into gaming mode (if such a mode is available)
+3)As described in reference document [1] Section 4, special precautions are required for unspecified PWM displays in order to obtain valid measurements.
+4)The RCA 3.5mm stereo plug is to be installed in the 3.5mm headphone jack output on the display, if available.  If no 3.5mm headphone jack is available, you must “improvise” to obtain line level audio output from the display.  Examples:
+a.If the display has RCA jack line outputs, simply use that instead with an RCA-to-RCA cable
+b.If no analog outputs are available, use a microphone with a simply analog amplifier to achieve line level.
+
+
+
+
+Phototransistor cable assembly
+The phototransistor assembly has RCA plugs on one end, which are plugged into the RCA jacks of J1 which have white plastic rings (Left column when facing jacks).  The REF cable is the one with a white tag, and plugs into the bottom jack.   See reference document [1], section 2.1 for details.
+
+Audio adapter cable 
+The audio adapter cable has a 3.5mm (1/8”) stereo mini-plug on one end, and two RCA plugs on the other end.  A cable of this type may be found many local stores – for example Radio Shack part number 42-495 http://www.radioshack.com/product/index.jsp?productId=3452165 .
+
+
+
+
+
+PC Software setup and description
+Analysis PC
+1)Windows 7 OS 32-bit or 64-bit
+2)Installation of Labjack UD Setup V3.25 (LabJackUDSetupV325.exe).  This install package contains the Labjack driver, LJSelfUpgrade firmware utility, etc.
+3)WiDi-AV-Sync-MultiTickR1p2.exe, copied into a folder of your choice
+Host PC
+1)Windows 7 OS
+2)A copy of Flash40.wmv.
+3)Windows Media player
+
+
+Flash40.wmv
+This is a short video clip that was authored specifically to assist in AV-Sync measurements / evaluation.  It plays a “flash-beep” sequence, where a white square is first momentarily flashed on the center of the display, followed by a beep on the audio track.  This particular clip was authored to have a 40msec delay from the black-to-white transition of the square until the audio beep – this authored delay must be taken into account (subtracted) for all AV Sync relative measurements.
+
+NOTE:  Players are not able to achieve perfect AV sync, even for local wired playback.  There are two AV sync impairments that will be evident on even the local wired display:
+a)The Present() calls of the video are aligned with VSYNC by the video display hardware.  At a display refresh rate of 60Hz, the AV-Sync variation can be up to +/- 8.33ms (16.7ms peak to peak).
+b)The buffering of audio by the player application and by the OS can vary by some fixed constant amount
+As a result, you can expect to see both a buffering offset as well as a variation in AV sync on the REF display.  These effects are removed by using the average AV sync over many samples.
+
+WiDi-AV-Sync-MultiTickR1p2.exe
+    This is a standalone Win32 console application that:
+a)Interfaces with the Labjack adapter and MultiTick module over USB, via Labjack drivers.
+b)Collects raw samples from both the REF phototransistor and DUT audio input at a rate of 10kHz (i.e., 100usec resolution)
+c)Measures AV-sync delay using black-to-white square transition times and the onset of audio beep.
+d)Calculates statistics (min, max, mean, stdev, confidence intervals) of all measurements
+e)Generates both a time plot of latency, and a frequency distribution (histogram) of measurements.
+
+LabJackUDSetupV325.exe
+This is the standard Labjack U3-LV driver and utility distribution provided by Labjack.  Link to Labjack website for U3-LV Adapter:  http://labjack.com/u3
+
+
+
+Measurement Procedures
+1)Perform calibration of MultiTick to the phototransistor sensitivity, as explained in [1] section 4.4.  This typically only needs to be done once for a particular phototransistor/display pairing.
+2)Position and attach phototransistor cable assembly onto REF display.  Please follow all procedures and heed cautions as explained in [1] section 4, particularly with respect to phototransistor assembly handling.
+3)Plug one side of the 3.5mm stereo mini into the REF display headphone output jack, and plug the white RCA plug into the MultiTick DUT audio jack (yellow/rightmost column, top jack).
+4)Verify that the MultiTick D7 diagnostic LED is initially OFF.  If not, make sure that no audio is playing.  Otherwise the MultiTick calibration has likely been tampered with, and you may need to calibrate the audio input sensitivity (i.e., backing out R7 adjustment screw CCW) as explained in [1] section 2.1
+5)Play Flash40.wmv, configuring the player to continuously loop this clip.
+6)Turn up the player volume control and Windows mixer volume control up all the way.  Verify that the MultiTick D4 diagnostic LED is turning on during every white square flash, and that the MultiTick D7 diagnostic LED is turning on shortly thereafter (during every beep, which you won’t be able to hear) 
+7)Run WiDi-AV-Sync-MultiTickR1p2.exe.
+a.After a few seconds of initialization, latency measurement of sample transitions will begin printing on the console.
+b.After 100 samples have been taken, the statistical analysis of confidence interval will begin.
+c.Collection of samples will continue the confidence IntervalSize has reached 1.0.  This means that there is a statistical 99% confidence that the true average AV delay lies within a 1msec interval (i.e., +/- 500us) within the final Mean AV delay reported.
+d.Alternatively, collection of samples may be terminated prematurely by entering Ctrl-C.
+e.After sampling has terminated, an AV delay plot will be drawn in a separate Window.  Use Alt-tab or click on Windows tray to find it.  The graph has menus for viewing and saving the plot.  Close the plot when ready by entering Esc.
+f.After the AV delay plot is closed, a separate AV delay frequency distribution histogram will be drawn.  Again, view or save plot as desired.
+
+Each sample taken is written out in the same direction to a logfile named “WiDiDelay.csv”.  This allows for analysis and plotting using other tools such as Excel as desired.
+8)REPEAT steps 1-7 above, this time using the DUT display instead of the REF display.  Note that the MultiTick jack positions do NOT change – you are just moving the 3.5mm mini plug and phototransistor over the to the WiDi DUT display.
+9)Subtract the measured average delay obtained using the local wired DUT display from the measurement obtained using the remote WiDi REF display.  The result will be the AV-sync error introduced by the WiDi datapath.
+
+
+
+
+
+AV Sync Reference Waveforms
+
+
+
+
+AV Sync is a relative measurement , comparing the measurement of REF wired against DUT wireless
+Identical displays must be used
+
+
+
+--------------------WiDi-AVSync-MultiTick-ProcedureR1.docx End--------------------

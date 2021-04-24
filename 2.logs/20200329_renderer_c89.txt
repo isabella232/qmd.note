@@ -1,0 +1,55 @@
+https://github.com/zauonlok/renderer.git
+
+main() // main.c
+  test_blinn() // tests/test_blinn.c 
+    test_create_scene() // tests/test_helper.c 
+      blinn_azura_scene() // scenes/blinn_scenes.c 
+        scene_from_file() // scenes/scene_helper.c 
+          read_light()
+          read_blinn_materials()
+          read_transforms()
+          read_models()
+          create_blinn_scene()
+            blinn_create_model() // shaders/blinn_shader.c 
+              program_create() // core/graphics.c
+                program->vertex_shader = blinn_vertex_shader
+                program->fragment_shader = blinn_fragment_shader
+              program->shader_uniforms->basecolor = material->basecolor
+              ...
+              model->program = program 
+              model->update = update_model
+              model->draw = draw_model
+            create_scene()
+              skybox_create_model()
+              scene_create() // core/scene.c 
+                framebuffer_create()
+                texture_create()
+    test_enter_mainloop() // tests/test_blinn.c 
+      windwo_create()
+      framebuffer_create()
+      camera_create()
+      while()
+        update_camera()
+        update_light()
+        update_click()
+        tick_function()
+          test_build_perframe()
+          test_draw_scene() // tests/test_helper.c 
+            model->update()
+              update_model() // shaders/blinn_shader.c 
+            skybox->update()
+            model->draw()
+              draw_model() // shaders/blinn_shader.c             
+        window_draw_buffer()
+        input_poll_events()
+      
+        
+draw_model() // shaders/blinn_shader.c 
+  /* For each face */
+  graphics_draw_triangle() // core/graphics.c 
+    program->vertex_shader()
+    clip_triangle()
+    rasterize_triangle()
+  
+  
+  

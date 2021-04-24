@@ -1,0 +1,41 @@
+变量关系树：
+
+bpy<bpy_struct>
+
+  |----data<BlendData>
+
+  |       |----filepath<string>
+
+  |       |----lamps<BlendDataLamps>
+
+  |       |----objects<BlendDataObjects>
+
+  |       |----meshes<BlendDataMeshes>
+
+  |       |----materials<BlendDataMaterials>
+
+  |----ops<>
+
+  |      |----object<>
+
+  |      |        |----add()
+
+
+
+类型关系树：
+
+bpy_struct
+
+    |----BlendData
+
+    |----BlendDataLamps
+
+    |----BlendDataObjects
+
+    |----BlendDataMeshes
+
+    |----BlendDataMaterials
+
+    |----ID
+
+    

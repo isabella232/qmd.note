@@ -1,0 +1,58 @@
+
+------------------------------------
+
+socket返回值
+
+read：阻塞与非阻塞返回值都是>0接收到数据大小，=0：连接关闭，<0：出错。非阻塞模式下<0时并且(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)的情况下认为连接是正常的，继续接收。阻塞模式下read会阻塞着接收数据，非阻塞模式下如果没有数据会返回，不会阻塞着读，需要循环读取。
+
+write：阻塞与非阻塞返回值都是>0发送数据大小，=0：连接关闭，<0：出错。非阻塞模式下返回值 <0时并且 (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)的情况下认为连接是正常的， 继续发送。阻塞模式下write会阻塞着发送数据，非阻塞模式下如果暂时无法发送数据会返回，不会阻塞着 write，需要循环发送。
+
+recv：阻塞与非阻塞返回值都是>0接收到数据大小，=0：连接关闭，<0：出错。非阻塞模式下返回值 <0时并且(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)的情况下认为连接是正常的，继续接收。阻塞模式下recv会阻塞着接收数据，非阻塞模式下如果没有数据会返回，不会阻塞着读，需要循环读取。
+
+send：阻塞与非阻塞返回值都是>0发送数据大小，=0：连接关闭，<0：出错。非阻塞模式下返回值 <0时并且 (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)的情况下认为连接是正常的， 继续发送。阻塞模式下send会阻塞着发送数据，非阻塞模式下如果暂时无法发送数据会返回，不会阻塞着 send，需要循环发送。
+
+
+
+------------------------------------
+
+多线程
+
+用pthread_cond_timedwait()代替sleep及时唤醒睡眠线程。
+
+1. 初始化mutex和cond。
+
+pthread_mutex_init(&mutex, NULL);
+
+pthread_cond_init(&cond, NULL);
+
+2. 在睡眠线程中调用pthread_cond_timedwait()进入睡眠状态。该函数内部睡眠前会自动释放锁，唤醒后自动加锁。 注意该函数是取消点，如果其他线程调用pthread_cancel()，睡眠线程会从睡眠中苏醒-自动加锁-退出线程，锁最终不会被释放。
+
+struct timeval now;
+
+struct timespec timeout;
+
+gettimeofday(&now, NULL);
+
+timeout.tv_sec = now.tv_sec;
+
+timeout.tv_nsec = (now.tv_usec + 300) * 1000;
+
+pthread_mutex_lock(&mutex);
+
+pthread_cond_timedwait(&cond, &mutex, &timeout);
+
+pthread_mutex_unlock(&mutex);
+
+3. 在唤醒线程中调用pthread_cond_signal()唤醒睡眠线程。
+
+pthread_mutex_lock(&mutex);
+
+pthread_cond_signal(&cond);
+
+pthread_mutex_unlock(&mutex);
+
+4. 销毁mutex和cond。
+
+pthread_mutex_destroy(&mutex);
+
+pthread_cond_destroy(&cond);

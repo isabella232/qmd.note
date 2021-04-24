@@ -1,0 +1,94 @@
+
+下载地址：http://www.wi-fi.org/discover-wi-fi/specifications
+
+
+
+【WiFi Dislay Architecture】
+
+
+
+
+
+
+
+
+
+TX ------- OPTIONS -----> RX 
+
+TX <----- Reply ------ RX
+
+TX <------ OPTIONS ------ RX
+
+TX -------- Reply -------->  RX
+
+
+
+TX ------- GET_PARAMETER -----> RX
+
+TX <------- Reply -------- RX
+
+
+
+
+
+TX ------- SET_PARAMETER -----> RX
+
+
+
+wfd_video_formats: xxx
+
+wfd_audio_codecs: xxx
+
+wfd_presentation_URL: rtsp://192.168.137.1/wfd1.0/streamid=0 none
+
+wfd_client_rtp_ports: RTP/AVP/UDP;unicast 24030 0 mode=play
+
+intel_overscan_comp: x=0, y=0
+
+wfd_uibc_capability: input_category_list=HIDC;xxx
+
+
+
+TX <------- Reply -------- RX
+
+
+
+
+
+TX ------- SET_PARAMETER -----> RX
+
+
+
+wfd_trigger_method: SETUP
+
+
+
+TX <------- Reply -------- RX
+
+
+
+TX <------- SETUP -----> RX
+
+TX ------- Reply -------> RX
+
+
+
+TX <-------- PLAY ------- RX
+
+TX ------- Reply -------> RX
+
+
+
+
+
+TX <------- SET_PARAMETER ----- RX
+
+
+
+wfd_idr_request
+
+
+
+TX ------- Reply -------> RX
+
+Server: MSMiracastSource/10.00.14367.0000 guid/xxxx

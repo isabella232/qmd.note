@@ -1,0 +1,102 @@
+
+
+#!/bin/sh
+
+HOST=arm-linux-gnueabihf
+CC=$HOST-gcc
+CPP=$HOST-g++
+AR=$HOST-ar
+LD=$HOST-ld
+NM=$HOST-nm
+RANLIB=$HOST-ranlib
+STRIP=$HOST-strip
+INSTALL=`pwd`/../install
+
+
+function make_zlib()
+{
+	app=zlib-1.2.8
+	if ! [ -d $app ]; then
+		tar -xvf $app.tar.gz
+	fi
+
+	cd $app
+	./configure --prefix=`pwd`/../install/zlib --static
+	make clean
+	make CC=$CC AR=$AR CFLAGS="-O3 -fPIC -D_LARGEFILE64_SOURCE=1 -DHAVE_HIDDEN"
+	make install
+	cd -
+}
+
+function make_openssli110()
+{
+	app=openssl-1.1.0
+	if ! [ -d $app ]; then
+		tar -xvf $app.tar.gz
+	fi
+
+	cd $app
+	./config --prefix=`pwd`/../install/openssl no-asm
+	### sed -i "" 's|\"iphoneos-cross\"\,\"llvm-gcc\:-O3|\"iphoneos-cross\"\,\"clang\:-Os|g' Configure
+	### sed -i "" 's/CC= cc/CC= clang/g' Makefile.org
+	### sed -i "" 's/CFLAG= -O/CFLAG= -Os/g' Makefile.org
+	### sed -i "" 's/MAKEDEPPROG=makedepend/MAKEDEPPROG=$(CC) -M/g' Makefile.org
+	sed -i 's/\-m64/ /g' Makefile
+	make clean
+	make CROSS_COMPILE=$HOST-
+	### make CC=$CC AR=$AR RANLIB=$RANLIB
+	make install
+
+	cd -
+}
+
+function make_openssl()
+{
+	app=openssl-1.0.2h
+	if ! [ -d $app ]; then
+		tar -xvf $app.tar.gz
+	fi
+
+	cd $app
+	./config --prefix=`pwd`/../install/openssl no-asm no-shared -fPIC
+	### sed -i "" 's|\"iphoneos-cross\"\,\"llvm-gcc\:-O3|\"iphoneos-cross\"\,\"clang\:-Os|g' Configure
+	### sed -i "" 's/CC= cc/CC= clang/g' Makefile.org
+	### sed -i "" 's/CFLAG= -O/CFLAG= -Os/g' Makefile.org
+	### sed -i "" 's/MAKEDEPPROG=makedepend/MAKEDEPPROG=$(CC) -M/g' Makefile.org
+	sed -i 's/\-m64/ /g' Makefile
+	make clean
+	### make CROSS_COMPILE=$HOST-
+	make CC=$CC AR="$AR r" RANLIB=$RANLIB
+	make install
+
+	cd -
+}
+
+function make_openssh()
+{
+	app=openssh-7.3p1
+	if ! [ -d $app ]; then
+		tar -xvf $app.tar.gz
+	fi
+
+	cd $app
+	#./configure --host=$HOST --prefix=`pwd`/../install/openssh --with-zlib=`pwd`/../install/zlib --with-ssl-dir=`pwd`/../install/openssl --without-shadow --disable-etc-default-login
+	./configure --host=$HOST --with-zlib=`pwd`/../install/zlib --with-ssl-dir=`pwd`/../install/openssl --without-shadow --disable-etc-default-login
+	make clean
+	make
+	#make install
+
+	cd -
+}
+
+function make_install()
+{
+
+
+}
+
+
+#make_zlib
+#make_openssl
+#make_openssh
+make_install

@@ -1,0 +1,496 @@
+USB WiFi驱动属于USB设备驱动，底层是USB主机控制器驱动。USB主机控制器驱动根据USB协议向USB设备驱动提供读写接口。USB WiFi驱动根据USB主机控制器驱动提供的读写接口对USB WiFi网卡进行寄存器设置、数据收发。
+
+
+
+Kernel
+WiFi/os_dep
+WiFi/core
+WiFi/hal
+USB/core
+Hardware
+
+
+core/：802.11协议相关功能文件（隔离硬件和OS）
+
+hal/：硬件相关文件
+
+os_dep/：OS相关文件
+
+
+
+关键点：
+
+1. 启动一个CMD内核线程；
+
+2. 使用tasklet处理接收和发送；
+
+
+
+hostapd在启动时，通过ioctl设置网卡参数，如设置beacan参数后，硬件自动发生beacon帧。
+
+
+当ifconfig wlan0 up时，wlan0调用open() => netdev_open()
+
+
+
+【数据结构】
+
+struct net_device
+
+
+
+void *priv = struct rtw_netdev_priv_indicator
+
+void *priv = struct _ADAPTER
+
+
+
+struct _ADAPTER
+
+
+
+struct hal_ops HalFunc
+
+struct dvobj_priv dvobjpriv
+
+struct mlme_priv mlmepriv
+
+struct mlme_ext_priv mlmeextpriv
+
+struct cmd_priv cmdpriv
+
+struct evt_priv evtpriv
+
+struct io_priv iopriv
+
+struct xmit_priv xmitpriv
+
+struct recv_priv recvpriv
+
+struct sta_priv stapriv
+
+struct security_priv securitypriv
+
+struct registry_priv registrypriv
+
+struct hostapd_priv *phostapdpriv
+
+struct wifidirect_info wdinfo
+
+
+
+
+
+【驱动加载】
+
+module_init(rtw_drv_entry)
+
+usb_register(&drvpriv.rtw_usb_drv)
+
+static drv_priv drvpriv.rtw_usb_drv.probe = rtw_drv_init
+
+rtw_drv_init(struct usb_interface *pusb_intf, const struct usb_device_id *pdid)
+
+pnetdev = rtw_init_netdev(NULL)
+
+pnetdev = rtw_alloc_etherdev(sizeof(_adapter))  /* 申请net_device和priv(即_adapter)内存 */
+
+pnetdev = alloc_etherdev(sizeof(struct rtw_netdev_priv_indicator))
+
+alloc_netdev(sizeof(struct rtw_netdev_priv_indicator), "eth%d", ether_setup)   /* 申请net_device内存*/
+
+pnpi = netdev_priv(pnetdev)   /* priv = struct rtw_netdev_priv_indicator */
+
+pnpi->priv = rtw_zvmalloc(sizeof_priv)   /* 申请_adapter内存 */
+
+pnpi->sizeof_priv=sizeof_priv
+
+padapter = rtw_netdev_priv(pnetdev)  /* 获取adapter地址 */
+
+padapter->pnetdev = pnetdev
+
+pnetdev->open = netdev_open        /* 应用层打开设备 */
+
+pnetdev->hard_start_xmit = rtw_xmit_entry
+
+pnetdev->do_ioctl = rtw_ioctl       /* 应用层ioctl */
+
+loadparam(padapter, pnetdev)      /* 设置adapter基本参数 */
+
+padapter = rtw_netdev_priv(pnetdev)      /* 获取adapter地址 */
+
+pdvobjpriv = &padapter->dvobjpriv
+
+/* 
+
+设置usb相关hal接口函数hal/rtl8192d/usb/usb_halinit.c    
+
+*/
+
+rtl8192du_set_hal_ops(padapter)
+
+pHalFunc->hal_init = &rtl8192du_hal_init   /* HAL初始化 */
+
+pHalFunc->init_xmit_priv = &rtl8192du_init_xmit_priv   /* 发生priv初始化 */
+
+pHalFunc->init_recv_priv = &rtl8192du_init_recv_priv   /* 接收priv初始化 */
+
+/*
+
+设置usb无关hal接口函数hal/rtl8192d/rtl8192d_hal_init.c
+
+*/
+
+rtl8192d_set_hal_ops(pHalFunc)
+
+padapter->dvobj_init=&usb_dvobj_init
+
+padapter->intf_start=&usb_intf_start
+
+status = padapter->dvobj_init(padapter) => usb_dvobj_init()
+
+rtw_init_io_priv(padapter)
+
+/* 
+
+设置usb读写接口函数hal/rtl8192d/usb/usb_ops_linux.c
+
+*/
+
+rtl8192du_set_intf_ops(&pintf->io_ops)
+
+pops->_read8 = &usb_read8
+
+pops->_read_port = &usb_read_port
+
+pops->_write8 = &usb_write8
+
+pops->_write_port = &usb_write_port
+
+rtw_init_intf_priv(padapter)
+
+intf_read_chip_info(padapter)  /* 读取efuse/eeprom数据和MAC地址 */
+
+padapter->HalFunc.read_adapter_info(padapter) => ReadAdapterInfo8192DU() => _ReadAdapterInfo8192DU()
+
+_ReadRFType(Adapter)  /* 读常量 */
+
+_ReadPROMContent(Adapter)   /* 读寄存器  */
+
+_InitOtherVariable(Adapter)
+
+/*
+
+初始化各个priv结构
+
+*/
+
+status = rtw_init_drv_sw(padapter)
+
+rtw_init_cmd_priv(&padapter->cmdpriv) => _rtw_init_cmd_priv (pcmdpriv)
+
+_rtw_init_sema(&(pcmdpriv->cmd_queue_sema), 0) => sema_init(sema, init_val)
+
+_rtw_init_sema(&(pcmdpriv->terminate_cmdthread_sema), 0)
+
+_rtw_init_queue(&(pcmdpriv->cmd_queue))
+
+pcmdpriv->cmd_buf = ...   /* 申请buffer内存 */
+
+pcmdpriv->rsp_buf = ... /* 申请buffer内存 */
+
+rtw_init_evt_priv(&padapter->evtpriv) => _rtw_init_evt_priv(pevtpriv)
+//_rtw_init_queue(&(pevtpriv->evt_queue))
+
+rtw_init_mlme_priv(padapter) => _rtw_init_mlme_priv(padapter)
+
+_rtw_init_queue(&(pmlmepriv->free_bss_pool))
+
+_rtw_init_queue(&(pmlmepriv->scanned_queue))
+
+pmlmepriv->free_bss_buf = rtw_zvmalloc(MAX_BSS_CNT * (sizeof(struct wlan_network)))
+
+rtw_init_mlme_timer(padapter)
+
+_init_timer(&(pmlmepriv->assoc_timer), padapter->pnetdev, rtw_join_timeout_handler, padapter)
+
+_init_timer(&(pmlmepriv->scan_to_timer), padapter->pnetdev, _rtw_scan_timeout_handler, padapter)
+
+init_mlme_ext_priv(padapter)
+
+init_mlme_ext_priv_value(padapter)
+
+init_mlme_ext_timer(padapter)
+
+init_mlme_ap_info(padapter)
+
+start_ap_mode(padapter)
+
+init_channel_set()
+
+init_channel_list()
+
+_rtw_init_xmit_priv(&padapter->xmitpriv, padapter)
+
+/* 
+
+初始化发送tasklet
+
+*/
+
+padapter->HalFunc.init_xmit_priv(padapter) => rtl8192du_init_xmit_priv()
+
+tasklet_init(&pxmitpriv->xmit_tasklet,rtl8192du_xmit_tasklet,padapter)
+
+_rtw_init_recv_priv(&padapter->recvpriv, padapter)
+
+/*
+
+初始化接收tasklet
+
+*/
+
+padapter->HalFunc.init_recv_priv(padapter) => rtl8192du_init_recv_priv()
+
+tasklet_init(&precvpriv->recv_tasklet,rtl8192du_recv_tasklet,padapter)
+
+_rtw_init_sta_priv(&padapter->stapriv)
+
+rtw_init_netdev_name(pnetdev, ifname)
+
+//hostapd_mode_init(padapter)
+
+register_netdev(pnetdev)  /* 向内核注册网络设备 */
+
+rtw_drv_if2_init(padapter, NULL)
+
+
+
+
+
+【启动open】
+
+netdev_open(struct net_device *pnetdev)
+
+
+
+rtw_hal_init(padapter)
+
+
+
+
+
+padapter->HalFunc.hal_deinit(padapter)
+
+padapter->HalFunc.hal_init(padapter)
+
+rtw_start_drv_threads(padapter)
+
+
+/* 
+
+启动CMD线程 
+
+*/
+
+padapter->cmdThread = kernel_thread(rtw_cmd_thread, padapter, CLONE_FS|CLONE_FILES)
+
+init_hw_mlme_ext(padapter) 
+
+set_channel_bwmode() 
+
+padapter->HalFunc.set_channel_handler(padapter, center_ch)
+
+SetBWMode(padapter, bwmode, channel_offset)
+
+padapter->HalFunc.set_bwmode_handler()
+
+padapter->intf_start(padapter) => usb_intf_start()
+
+padapter->HalFunc.inirp_init(padapter) => rtl8192du_inirp_init()
+
+pintfhdl->io_ops._read_port() => usb_read_port()  /* hal/8192d/usb/usb_ops_linux.c */
+
+rtl8192du_init_recvbuf(adapter, precvbuf)
+
+pipe = ffaddr2pipehdl(pdvobj, addr)
+
+usb_fill_bulk_urb(purb, pusbd, pipe, precvbuf->pbuf, MAX_RECVBUF_SZ, usb_read_port_complete, precvbuf)
+
+usb_submit_urb(purb, GFP_ATOMIC)
+
+
+
+
+
+【接收】
+
+usb读到数据后，调用usb_read_port_complete():
+
+usb_read_port_complete()
+
+
+
+tasklet_schedule(&precvpriv->recv_tasklet)   /* 启动tasklet执行后续任务 */
+
+
+
+
+
+rtl8192du_recv_tasklet()
+
+
+
+
+
+pskb = skb_dequeue(&precvpriv->rx_skb_queue)
+
+recvbuf2recvframe(padapter, pskb)
+
+rtw_recv_entry(precvframe)
+
+recv_func(padapter, precvframe)
+
+retval = validate_recv_frame(padapter, prframe)
+
+switch (type)
+
+case WIFI_MGT_TYPE: validate_recv_mgnt_frame(adapter, precv_frame)
+
+case WIFI_CTRL_TYPE: validate_recv_ctrl_frame(adapter, precv_frame)
+
+case WIFI_DATA_TYPE: validate_recv_data_frame(adapter, precv_frame)
+
+
+
+rtw_read_port(padapter, precvpriv->ff_hwaddr, 0, (unsigned char *)precvbuf)  /* 继续读usb */
+
+
+
+
+
+【发送】
+
+
+
+
+
+【控制ioctl】
+
+rtw_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
+
+
+
+switch (cmd)
+
+
+
+
+
+case RTL_IOCTL_WPA_SUPPLICANT
+
+
+
+
+
+wpa_supplicant_ioctl(dev, &wrq->u.data)
+
+
+
+
+
+case RTL_IOCTL_HOSTAPD
+
+
+
+
+
+rtw_hostapd_ioctl(dev, &wrq->u.data)
+
+
+
+param = (struct ieee_param *)rtw_malloc(p->length)
+
+
+
+copy_from_user(param, p->pointer, p->length)
+
+
+
+
+
+switch (param->cmd)
+
+case RTL871X_HOSTAPD_SET_BEACON
+
+
+
+
+
+rtw_set_beacon(dev, param, p->length)
+
+
+
+
+
+start_bss_network(padapter, (u8*)pbss_network)
+
+
+
+
+
+update_beacon(padapter, _TIM_IE_, NULL, _FALSE)
+
+
+
+
+
+update_BCNTIM(padapter)
+
+
+
+
+
+set_tx_beacon_cmd(padapter)
+
+
+
+
+
+init_h2fwcmd_w_parm_no_rsp(ph2c, ptxBeacon_parm, GEN_CMD_CODE(_TX_Beacon))
+
+
+
+
+
+rtw_enqueue_cmd(pcmdpriv, ph2c)
+
+
+
+
+
+send_beacon(padapter)
+
+
+
+
+
+issue_beacon(padapter)
+
+
+
+
+
+dump_mgntframe(padapter, pmgntframe)
+
+
+
+
+
+padapter->HalFunc.GetHwRegHandler(padapter, HW_VAR_TX_BCN_DONE, (u8 *)(&bxmitok))
+
+
+
+
+
+update_bmc_sta(padapter)

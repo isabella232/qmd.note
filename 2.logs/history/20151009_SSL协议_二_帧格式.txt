@@ -1,0 +1,197 @@
+TLS record
+This is the general format of all TLS records.
+
++	Byte +0	Byte +1	Byte +2	Byte +3
+Byte
+0	Content type
+Bytes
+1..4	Version	Length
+(Major)	(Minor)	(bits 15..8)	(bits 7..0)
+Bytes
+5..(m-1)	Protocol message(s)
+Bytes
+m..(p-1)	MAC (optional)
+Bytes
+p..(q-1)	Padding (block ciphers only)
+Content type
+
+This field identifies the Record Layer Protocol Type contained in this Record.
+
+Content types
+Hex	Dec	Type
+0x14	20	ChangeCipherSpec
+0x15	21	Alert
+0x16	22	Handshake
+0x17	23	Application
+0x18	24	Heartbeat
+Version
+
+This field identifies the major and minor version of TLS for the contained message. For a ClientHello message, this need not be the highest version supported by the client.
+
+Versions
+Major
+version	Minor
+version	Version type
+3	0	SSL 3.0
+3	1	TLS 1.0
+3	2	TLS 1.1
+3	3	TLS 1.2
+Length
+
+The length of Protocol message(s), MAC and Padding, not to exceed 214 bytes (16 KiB).
+
+Protocol message(s)
+
+One or more messages identified by the Protocol field. Note that this field may be encrypted depending on the state of the connection.
+
+MAC and Padding
+
+A message authentication code computed over the Protocol message, with additional key material included. Note that this field may be encrypted, or not included entirely, depending on the state of the connection.
+
+No MAC or Padding can be present at end of TLS records before all cipher algorithms and parameters have been negotiated and handshaked and then confirmed by sending a CipherStateChange record (see below) for signalling that these parameters will take effect in all further records sent by the same peer.
+
+Handshake protocol[edit]
+
+Most messages exchanged during the setup of the TLS session are based on this record, unless an error or warning occurs and needs to be signaled by an Alert protocol record (see below), or the encryption mode of the session is modified by another record (see ChangeCipherSpec protocol below).
+
++	Byte +0	Byte +1	Byte +2	Byte +3
+Byte
+0	22
+Bytes
+1..4	Version	Length
+(Major)	(Minor)	(bits 15..8)	(bits 7..0)
+Bytes
+5..8	Message type	Handshake message data length
+(bits 23..16)	(bits 15..8)	(bits 7..0)
+Bytes
+9..(n-1)	Handshake message data
+Bytes
+n..(n+3)	Message type	Handshake message data length
+(bits 23..16)	(bits 15..8)	(bits 7..0)
+Bytes
+(n+4)..	Handshake message data
+Message type
+
+This field identifies the Handshake message type.
+
+Message types
+Code	Description
+0	HelloRequest
+1	ClientHello
+2	ServerHello
+4	NewSessionTicket
+11	Certificate
+12	ServerKeyExchange
+13	CertificateRequest
+14	ServerHelloDone
+15	CertificateVerify
+16	ClientKeyExchange
+20	Finished
+Handshake message data length
+
+This is a 3-byte field indicating the length of the handshake data, not including the header.
+
+Note that multiple Handshake messages may be combined within one record.
+
+Alert protocol[edit]
+
+This record should normally not be sent during normal handshaking or application exchanges. However, this message can be sent at any time during the handshake and up to the closure of the session. If this is used to signal a fatal error, the session will be closed immediately after sending this record, so this record is used to give a reason for this closure. If the alert level is flagged as a warning, the remote can decide to close the session if it decides that the session is not reliable enough for its needs (before doing so, the remote may also send its own signal).
+
++	Byte +0	Byte +1	Byte +2	Byte +3
+Byte
+0	21
+Bytes
+1..4	Version	Length
+(Major)	(Minor)	0	2
+Bytes
+5..6	Level	Description
+Bytes
+7..(p-1)	MAC (optional)
+Bytes
+p..(q-1)	Padding (block ciphers only)
+Level
+
+This field identifies the level of alert. If the level is fatal, the sender should close the session immediately. Otherwise, the recipient may decide to terminate the session itself, by sending its own fatal alert and closing the session itself immediately after sending it. The use of Alert records is optional, however if it is missing before the session closure, the session may be resumed automatically (with its handshakes).
+
+Normal closure of a session after termination of the transported application should preferably be alerted with at least the Close notify Alert type (with a simple warning level) to prevent such automatic resume of a new session. Signalling explicitly the normal closure of a secure session before effectively closing its transport layer is useful to prevent or detect attacks (like attempts to truncate the securely transported data, if it intrinsically does not have a predetermined length or duration that the recipient of the secured data may expect).
+
+Alert level types
+Code	Level type	Connection state
+1	warning	connection or security may be unstable.
+2	fatal	connection or security may be compromised, or an unrecoverable error has occurred.
+Description
+
+This field identifies which type of alert is being sent.
+
+Alert description types
+Code	Description	Level types	Note
+0	Close notify	warning/fatal
+10	Unexpected message	fatal
+20	Bad record MAC	fatal	Possibly a bad SSL implementation, or payload has been tampered with e.g. FTP firewall rule on FTPS server.
+21	Decryption failed	fatal	TLS only, reserved
+22	Record overflow	fatal	TLS only
+30	Decompression failure	fatal
+40	Handshake failure	fatal
+41	No certificate	warning/fatal	SSL 3.0 only, reserved
+42	Bad certificate	warning/fatal
+43	Unsupported certificate	warning/fatal	e.g. certificate has only Server authentication usage enabled and is presented as a client certificate
+44	Certificate revoked	warning/fatal
+45	Certificate expired	warning/fatal	Check server certificate expire also check no certificate in the chain presented has expired
+46	Certificate unknown	warning/fatal
+47	Illegal parameter	fatal
+48	Unknown CA (Certificate authority)	fatal	TLS only
+49	Access denied	fatal	TLS only – e.g. no client certificate has been presented (TLS: Blank certificate message or SSLv3: No Certificate alert), but server is configured to require one.
+50	Decode error	fatal	TLS only
+51	Decrypt error	warning/fatal	TLS only
+60	Export restriction	fatal	TLS only, reserved
+70	Protocol version	fatal	TLS only
+71	Insufficient security	fatal	TLS only
+80	Internal error	fatal	TLS only
+90	User canceled	fatal	TLS only
+100	No renegotiation	warning	TLS only
+110	Unsupported extension	warning	TLS only
+111	Certificate unobtainable	warning	TLS only
+112	Unrecognized name	warning/fatal	TLS only; client's Server Name Indicator specified a hostname not supported by the server
+113	Bad certificate status response	fatal	TLS only
+114	Bad certificate hash value	fatal	TLS only
+115	Unknown PSK identity (used in TLS-PSK andTLS-SRP)	fatal	TLS only
+120	No Application Protocol	fatal	TLS only, client's ALPN did not contain any server-supported protocols
+ChangeCipherSpec protocol[edit]
+
++	Byte +0	Byte +1	Byte +2	Byte +3
+Byte
+0	20
+Bytes
+1..4	Version	Length
+(Major)	(Minor)	0	1
+Byte
+5	CCS protocol type
+CCS protocol type
+
+Currently only 1.
+
+Application protocol[edit]
+
++	Byte +0	Byte +1	Byte +2	Byte +3
+Byte
+0	23
+Bytes
+1..4	Version	Length
+(Major)	(Minor)	(bits 15..8)	(bits 7..0)
+Bytes
+5..(m-1)	Application data
+Bytes
+m..(p-1)	MAC (optional)
+Bytes
+p..(q-1)	Padding (block ciphers only)
+Length
+
+Length of application data (excluding the protocol header and including the MAC and padding trailers)
+
+MAC
+
+20 bytes for the SHA-1-based HMAC, 16 bytes for the MD5-based HMAC.
+
+Padding
+
+Variable length; last byte contains the padding length.

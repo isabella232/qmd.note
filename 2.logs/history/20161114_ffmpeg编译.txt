@@ -1,0 +1,810 @@
+Download: https://www.x.org/releases/X11R7.7/src/
+
+
+
+
+
+#!/bin/sh
+
+
+DIR_SRC=$PWD/src
+DIR_BUILD=$PWD/build
+DIR_INSTALL=$PWD/install
+
+export PKG_CONFIG_PATH=${DIR_INSTALL}/lib/pkgconfig/:${DIR_INSTALL}/share/pkgconfig/:$PKG_CONFIG_PATH
+
+#sudo apt-get install python-dev
+#sudo apt-get install libxml2-dev
+#sudo apt-get install xsltproc
+#sudo apt-get install libasound2-dev # For ALSA header file support
+
+function make_pixman()
+{
+#  To fix pixman error
+#
+	app=pixman-0.34.0
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xproto()
+{
+# To fix libx11 build configure error:
+# checking keysym definitions... configure: error: Cannot find keysymdef.h
+#
+
+	app=xproto-7.0.23
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xextproto()
+{
+	app=xextproto-7.2.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xtrans()
+{
+	app=xtrans-1.2.7
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_pthread_stubs()
+{
+# Fix xcb configure error
+#
+	app=libpthread-stubs-0.3
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xau()
+{
+	app=libXau-1.0.7
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xcb()
+{
+	app=libxcb-1.8.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_kbproto()
+{
+	app=kbproto-1.0.6
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_inputproto()
+{
+	app=inputproto-2.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_libx11()
+{
+	app=libX11-1.5.0
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_glproto()
+{
+# For xorg-server configure error
+#
+#
+	app=glproto-1.4.15
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xf86driproto()
+{
+# For xorg-server configure error
+#
+#
+	app=xf86driproto-2.1.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_fixesproto()
+{
+# For xorg-server configure error
+#
+#
+	app=fixesproto-5.0
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_damageproto()
+{
+# For xorg-server configure error
+#
+#
+	app=damageproto-1.2.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_xcmiscproto()
+{
+# For xorg-server configure error
+#
+#
+	app=xcmiscproto-1.2.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_bigreqsproto()
+{
+# For xorg-server configure error
+#
+#
+	app=bigreqsproto-1.1.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_randrproto()
+{
+# For xorg-server configure error
+#
+#
+	app=randrproto-1.3.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_renderproto()
+{
+# For xorg-server configure error
+#
+#
+	app=renderproto-0.11.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_fontsproto()
+{
+# For xorg-server configure error
+#
+#
+	app=fontsproto-2.1.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_videoproto()
+{
+# For xorg-server configure error
+#
+#
+	app=videoproto-2.3.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+
+
+}
+
+function make_compositeproto()
+{
+# For xorg-server configure error
+#
+#
+	app=compositeproto-0.4.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_recordproto()
+{
+# For xorg-server configure error
+#
+#
+	app=recordproto-1.14.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_scrnsaverproto()
+{
+# For xorg-server configure error
+#
+#
+	app=scrnsaverproto-1.2.2
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_resourceproto()
+{
+# For xorg-server configure error
+#
+#
+	app=resourceproto-1.2.0
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xineramaproto()
+{
+# For xorg-server configure error
+#
+#
+	app=xineramaproto-1.2.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_libxkbfile()
+{
+# For xorg-server configure error
+#
+#
+	app=libxkbfile-1.0.8
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_freetype()
+{
+# For libXfont configure error
+#
+#
+	app=freetype-2.3.5
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_libfontenc()
+{
+# For libXfont configure error
+#
+#
+	app=libfontenc-1.1.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_libXfont()
+{
+# For xorg-server configure error
+#
+#
+	app=libXfont-1.4.5
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_libpciaccess()
+{
+# For xorg-server configure error
+#
+#
+	app=libpciaccess-0.13.1
+
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# make clean
+	# echo ./configure --prefix=${DIR_INSTALL}
+	./configure --prefix=${DIR_INSTALL}
+	make
+	make install
+	cd -
+}
+
+function make_xorg()
+{
+# For SDL
+#
+	app=xorg-server-1.12.2
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# export PKG_CONFIG_PATH=${DIR_INSTALL}/lib/pkgconfig/:$PKG_CONFIG_PATH
+	./configure --prefix=${DIR_INSTALL} --disable-glx --disable-dri
+	make
+	make install
+	cd -
+}
+
+function make_libXext()
+{
+# For SDL
+#
+	app=libXext-1.3.1
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# export PKG_CONFIG_PATH=${DIR_INSTALL}/lib/pkgconfig/:$PKG_CONFIG_PATH
+	./configure --prefix=${DIR_INSTALL} --disable-glx --disable-dri
+	make
+	make install
+	cd -
+}
+
+function make_sdl()
+{
+	app=SDL2-2.0.5
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.gz -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	./configure --prefix=${DIR_INSTALL} --x-includes=${DIR_INSTALL}/include/ --x-libraries=${DIR_INSTALL}/lib/ #--with-x --enable-video-x11
+	 make clean
+	 make
+	 make install
+	cd -
+}
+
+function make_ffmpeg()
+{
+	app=ffmpeg-3.2
+	if [ -d ${DIR_BUILD}/$app ]; then
+		echo $app
+		# rm -rf ${DIR_BUILD}/$app
+	else
+		tar -xvf ${DIR_SRC}/$app.tar.bz2 -C ${DIR_BUILD}
+	fi
+
+	cd ${DIR_BUILD}/$app
+	# export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:${DIR_INSTALL}/lib/pkgconfig/
+	# echo $PKG_CONFIG_PATH
+	# pkg-config --list-all
+	./configure --prefix=${DIR_INSTALL} --disable-yasm #--enable-ffplay --enable-sdl2 --pkg-config=/usr/bin/pkg-config
+	make clean
+	make
+	#make install
+	cd -
+}
+
+#make_pixman
+#make_xproto
+#make_xextproto
+#make_xtrans
+#make_pthread_stubs # Fox xcb
+#make_xau # For xcb
+#make_xcb
+#make_kbproto
+#make_inputproto
+#make_libx11
+
+#make_glproto
+#make_xf86driproto
+#make_fixesproto
+#make_damageproto
+#make_xcmiscproto
+#make_bigreqsproto
+#make_randrproto
+#make_renderproto
+#make_fontsproto
+#make_videoproto
+#make_compositeproto
+#make_recordproto
+#make_scrnsaverproto
+#make_resourceproto
+#make_xineramaproto
+#make_libxkbfile
+#make_freetype
+#make_libfontenc
+#make_libXfont
+#make_libpciaccess
+#make_xorg
+#make_libXext
+
+make_sdl
+make_ffmpeg

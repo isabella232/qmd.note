@@ -1,0 +1,359 @@
+
+
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <stdio.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/route.h>
+
+#define AEIDEBUGERROR printf
+#define AEIDEBUGIMPORTANTINFO printf
+
+/*!
+ *
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+int wifi_getLocalMac(const char *ifname, unsigned char mac[6])
+{
+	struct ifreq ifr;
+	int skfd;
+
+	if((skfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		AEIDEBUGERROR("create socket fail\n");
+		return -1;
+	}
+
+	memset(&ifr,0,sizeof(ifr));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+	if(ioctl( skfd, SIOCGIFHWADDR, &ifr) < 0) {
+		AEIDEBUGERROR("get %s ioctl mac error\n", ifname);
+		close(skfd);
+		return -1;
+	}
+	close(skfd);
+
+	mac[0] = (unsigned char)ifr.ifr_hwaddr.sa_data[0];
+	mac[1] = (unsigned char)ifr.ifr_hwaddr.sa_data[1];
+	mac[2] = (unsigned char)ifr.ifr_hwaddr.sa_data[2];
+	mac[3] = (unsigned char)ifr.ifr_hwaddr.sa_data[3];
+	mac[4] = (unsigned char)ifr.ifr_hwaddr.sa_data[4];
+	mac[5] = (unsigned char)ifr.ifr_hwaddr.sa_data[5];
+
+	AEIDEBUGIMPORTANTINFO("Get Local MAC: [%02X:%02X:%02X:%02X:%02X:%02X]\n",
+		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+	return 0;
+}
+
+/*!
+ *
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+int wifi_getLocalIpaddr(const char *ifname, in_addr_t *ipaddr)
+{
+/*
+struct ifreq {
+	#define IFHWADDRLEN 6
+	union {
+		char ifrn_name[IFNAMSIZ];  // if name, e.g. "en0"
+	} ifr_ifrn;
+
+	union {
+		struct sockaddr ifru_addr;
+		struct sockaddr ifru_dstaddr;
+		struct sockaddr ifru_broadaddr;
+		struct sockaddr ifru_netmask;
+		struct sockaddr ifru_hwaddr;
+		short ifru_flags;
+		int ifru_ivalue;
+		int ifru_mtu;
+		struct ifmap ifru_map;
+		char ifru_slave[IFNAMSIZ];      // Just fits the size
+		char ifru_newname[IFNAMSIZ];
+		void __user * ifru_data;
+		struct if_settings ifru_settings;
+	} ifr_ifru;
+}
+
+typedef unsigned short sa_family_t
+struct sockaddr {                        // include/linux/socket.h
+	sa_family_t	sa_family;	             // address family, AF_xxx
+	char		sa_data[14];	         // 14 bytes of protocol address
+}
+
+#define __SOCK_SIZE__	16		      // sizeof(struct sockaddr)
+struct sockaddr_in {                  // in.h Structure describing an Internet (IP) socket address.
+  sa_family_t		sin_family;	      // Address family
+  unsigned short int	sin_port;	  // Port number
+  struct in_addr	sin_addr;	        // Internet address
+  // Pad to size of `struct sockaddr'.
+  unsigned char		__pad[__SOCK_SIZE__ - sizeof(short int) -
+			sizeof(unsigned short int) - sizeof(struct in_addr)];
+}
+
+struct in_addr {
+	union {
+		struct { u_char s_b1,s_b2,s_b3,s_b4;} S_un_b;
+		struct { u_short s_w1,s_w2;} S_un_w;
+		u_long S_addr;
+	#define s_addr S_un.S_addr
+	} S_un;
+}
+
+inet_addr("192.168.0.1") = 0xC0A80001
+my_addr.sin_addr.s_addr = inet_addr("192.168.0.1");
+*/
+
+	struct ifreq ifr;
+	int skfd;
+
+	if((skfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+		AEIDEBUGERROR("socket create fail\n");
+		return -1;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+	if(ioctl(skfd, SIOCGIFADDR, &ifr) < 0) {
+		AEIDEBUGERROR("%s ioctl SIOCGIFADDR error\n", ifname);
+		close(skfd);
+		return -1;
+	}
+	close(skfd);
+
+	*ipaddr = ((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr.s_addr;
+	AEIDEBUGIMPORTANTINFO("Get local IP: %08X-%s\n", *ipaddr,
+		inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+
+	return 0;
+}
+
+/*!
+ *
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+int wifi_setLocalIpaddr(const char *ifname, in_addr_t ipaddr)
+{
+	struct ifreq ifr;
+	int skfd;
+
+	if((skfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		AEIDEBUGERROR("socket create fail\n");
+		return -1;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+	((struct sockaddr_in*)&ifr.ifr_addr)->sin_family = AF_INET;
+	((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr.s_addr = ipaddr;
+	if(ioctl( skfd, SIOCSIFADDR, &ifr) < 0) {
+		AEIDEBUGERROR( "Set %s ip error\n", ifname);
+		close(skfd);
+		return -1;
+	}
+
+	/*
+	ifr_req.ifr_flags |= IFF_UP |IFF_RUNNING;
+	if(ioctl(skfd, SIOCSIFFLAGS, &ifr_req) < 0) {
+		AEIDEBUGERROR("SIOCSIFFLAGS");
+		close(skfd);
+		return -1;
+	}
+	*/
+
+	close(skfd);
+	AEIDEBUGIMPORTANTINFO("Set local IP: %08X-%s\n", ipaddr,
+		inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+
+	return 0;
+}
+
+/*!
+ *
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+unsigned long wifi_getLocalNetmask(const char *ifname, in_addr_t *netmask)
+{
+	struct ifreq ifr;
+	int skfd;
+
+	if ((skfd = socket(AF_INET, SOCK_DGRAM, 0)) <= 0) {
+		AEIDEBUGERROR("create socket fail\n");
+		return -1;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name )-1);
+	if ((ioctl(skfd, SIOCGIFNETMASK, &ifr)) < 0) {
+		AEIDEBUGERROR("mac ioctl error\n");
+		close(skfd);
+		return -1;
+	}
+	close(skfd);
+
+	*netmask =  ((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr.s_addr;
+	AEIDEBUGIMPORTANTINFO("Get local netmask: %08X-%s\n", *netmask,
+		inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+
+	return 0;
+}
+
+
+/*!
+ *
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+int wifi_setLocalNetmask(const char *ifname, in_addr_t netmask)
+{
+	struct ifreq ifr;
+	int skfd;
+
+	if((skfd = socket( AF_INET, SOCK_DGRAM, 0)) == -1) {
+		AEIDEBUGERROR("socket create fail\n");
+		return -1;
+	}
+
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+	((struct sockaddr_in*)&ifr.ifr_addr)->sin_family = AF_INET;
+	((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr.s_addr = netmask;
+	if(ioctl(skfd, SIOCSIFNETMASK, &ifr) < 0) {
+		AEIDEBUGERROR("sock_netmask ioctl error\n");
+		close(skfd);
+		return -1;
+	}
+
+	close(skfd);
+	AEIDEBUGIMPORTANTINFO("Set local netmask: %08X-%s\n", netmask,
+		inet_ntoa(((struct sockaddr_in*)&ifr.ifr_addr)->sin_addr));
+
+	return 0;
+}
+
+/*!
+ * /proc/net/route
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+int setLocalGateway(const char *ifname, in_addr_t gateway, int sw)
+{
+	/*
+	struct rtentry {
+		unsigned long	rt_pad1;
+		struct sockaddr rt_dst; 	// target address
+		struct sockaddr rt_gateway; // gateway addr (RTF_GATEWAY)
+		struct sockaddr rt_genmask; // target network mask (IP)
+		unsigned short	rt_flags;
+		short			rt_pad2;
+		unsigned long	rt_pad3;
+		void		   *rt_pad4;
+		short			rt_metric;	// +1 for binary compatibility!
+		char		   *rt_dev; 	// forcing the device at add
+		unsigned long	rt_mtu; 	// per route MTU/Window
+		#define rt_mss  rt_mtu      // Compatibility :-(
+		unsigned long	rt_window;	// Window clamping
+		unsigned short	rt_irtt;	// Initial RTT
+	}
+	*/
+
+	struct rtentry route;
+	int skfd;
+
+	if((skfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+		AEIDEBUGERROR("socket create fail\n");
+		return -1;
+	}
+
+	memset(&route, 0, sizeof( route ));
+	route.rt_dev = (char*)ifname;
+	((struct sockaddr_in*)&route.rt_gateway)->sin_family = AF_INET;
+	((struct sockaddr_in*)&route.rt_gateway)->sin_addr.s_addr = gateway;
+	((struct sockaddr_in*)&route.rt_dst)->sin_family = AF_INET;
+	((struct sockaddr_in*)&route.rt_dst)->sin_addr.s_addr = INADDR_ANY;
+	((struct sockaddr_in*)&route.rt_genmask)->sin_family = AF_INET;
+	((struct sockaddr_in*)&route.rt_genmask)->sin_addr.s_addr = INADDR_ANY;
+	route.rt_flags = RTF_UP | RTF_GATEWAY;
+	route.rt_metric = 0;
+
+	if(ioctl(skfd, sw?SIOCADDRT:SIOCDELRT, &route) < 0) {
+		AEIDEBUGERROR("ioctl SIOCDELRT error\n");
+		close(skfd);
+		return -1;
+	}
+
+	close(skfd);
+	AEIDEBUGIMPORTANTINFO("%s default gateway: %08X-%s\n", sw?"Add":"Del", gateway,
+		inet_ntoa(((struct sockaddr_in*)&route.rt_gateway)->sin_addr));
+
+	return 0;
+}
+
+
+/*!
+ *
+ *
+ * Return:
+ *
+ * \author Ocean (12/01/2016)
+ */
+int wifi_addLocalGateway(const char *ifname, in_addr_t gateway)
+{
+	return setLocalGateway(ifname, gateway, 1);
+}
+
+int wifi_delLocalGateway(const char *ifname, in_addr_t gateway)
+{
+	return setLocalGateway(ifname, gateway, 0);
+}
+
+
+
+int main(int argc, char **argv)
+{
+	in_addr_t ipaddr;
+	in_addr_t netmask;
+	char mac[6];
+
+	//wifi_setLocalIpaddr("eth0", inet_addr("192.168.5.172"));
+	wifi_setLocalIpaddr(argv[1], inet_addr(argv[2]));
+	wifi_addLocalGateway(argv[1], inet_addr(argv[3]));
+
+	return 0;
+
+	wifi_getLocalIpaddr;g("eth0", &ipaddr);
+	wifi_setLocalIpaddr("eth0", inet_addr("192.168.5.172"));
+	wifi_getLocalIpaddr;g("eth0", &ipaddr);
+	wifi_setLocalIpaddr("eth0", inet_addr("192.168.5.173"));
+	wifi_getLocalIpaddr;g("eth0", &ipaddr);
+	printf("\n");
+
+	wifi_getLocalNetmask("eth0", &netmask);
+	//wifi_setLocalNetmask("eth0", inet_addr("255.255.0.0"));
+	wifi_getLocalNetmask("eth0", &netmask);
+	//wifi_setLocalNetmask("eth0", inet_addr("255.255.255.0"));
+	wifi_getLocalNetmask("eth0", &netmask);
+	wifi_getLocalMac("eth0", mac);
+
+	return 0;
+}

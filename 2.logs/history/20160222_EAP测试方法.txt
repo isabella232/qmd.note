@@ -1,0 +1,172 @@
+
+安装工具
+
+
+编译openssl
+
+
+Download: https://www.openssl.org/
+
+https://en.wikipedia.org/wiki/OpenSSL
+
+tar -xf openssl-1.0.2f.tar.gz
+
+cd openssl-1.0.2f
+
+./config --prefix=`pwd`/../install
+
+make
+
+make install
+
+
+
+编译freeradius
+
+
+Download: http://freeradius.org/
+
+tar -xf freeradius-server-3.0.11.tar.gz
+
+cd freeradius-server-3.0.11
+
+./configure --prefix=`pwd`/../install --with-openssl-include-dir=`pwd`/../install/include --with-openssl-lib-dir=`pwd`/../install/lib
+
+make 
+
+make install
+
+
+
+编译wpa_supplicant
+
+
+Download: http://w1.fi/wpa_supplicant/
+
+tar -xf wpa_supplicant-2.5.tar.gz
+
+cd wpa_supplicant-2.5/wpa_supplicant
+
+cp defconfig .config
+
+make
+
+make eapol_test
+
+
+
+配置与测试
+
+
+Server: freeradius配置
+1. 配置user：etc/raddb/users
+
+qmd     Cleartext-Password := "123456"
+
+2. 配置client：etc/raddb/clients.conf
+
+client 192.168.5.0/24 {
+        ipaddr          = 192.168.5.0/24
+        secret          = qmd123
+}
+
+3. 本地测试：
+
+qmd@u:bin$ ./radtest  qmd 123456 192.168.5.154:1812 1222 qmd123
+Sent Access-Request Id 139 from 0.0.0.0:39622 to 192.168.5.154:1812 length 73
+        User-Name = "qmd"
+        User-Password = "123456"
+        NAS-IP-Address = 127.0.1.1
+        NAS-Port = 1222
+        Message-Authenticator = 0x00
+        Cleartext-Password = "123456"
+Received Access-Accept Id 139 from 192.168.5.154:1812 to 0.0.0.0:0 length 20
+qmd@u:bin$ 
+
+
+
+Client: wpa_supplicant配置
+编辑配置文件：
+
+network={
+        eap=PEAP
+        eapol_flags=0
+        key_mgmt=IEEE8021X
+        identity="qmd"
+        password="123456"
+        #ca_cert="/etc/raddb/certs/ca.pem"
+        phase2="auth=MSCHAPV2"
+        anonymous_identity="anonymous"
+}
+
+
+
+./eapol_test -c test.conf -a 192.168.5.154 -p 1812 -s qmd123 -r 1
+
+
+
+Openssl生成EAP-TLS证书
+生成CA证书
+
+mkdir -p ./demoCA/{private,newcerts}
+
+touch ./demoCA/index.txt
+
+echo 01 > ./demoCA/serial
+
+openssl genrsa -des3 -out ./demoCA/private/cakey.pem 2048
+
+openssl req -new -days 365 -key./demoCA/private/cakey.pem -out careq.pem
+
+openssl ca -selfsign -in careq.pem -out cacert.pem
+
+
+
+1. 生成密钥对：openssl genrsa -des3 -out userkey.pem
+
+2. 生成证书请求：openssl req -new -days 365 -key userkey.pem -out userreq.pem
+
+3. 签发证书：openssl ca -in userreq.pem -out usercert.pem
+
+
+
+openssl req -new -x509 -days 365 -key./demoCA/private/cakey.pem -out ./demoCA/cacert.pem
+
+echo -e "\n\n\n\n\n\n\n" | openssl req -new -x509 -keyout $cert_file -out $cert_file -days 365000 -nodes -config /usr/sbin/sbin/openssl.cnf >/dev/null 2>&1
+
+[20190424]
+mkdir ca ca/newcerts server clients
+echo "1000" > ca/crlnumber
+echo "01" > ca/serial
+echo "unique_subject = no" > ca/index.txt.attr
+touch ca/index.txt
+1. Create CA pem
+   openssl req -new -x509 -days 36500 -keyout ca/cakey.pem -out ca/cacert.pem -config openssl.cnf
+   > PEM pass phrase = 111111
+2. Create Server pem
+   2.1 Root P12
+       openssl pkcs12 -export -in ca/cacert.pem -inkey ca/cakey.pem -out server/root.p12 -cacerts
+       > Export Password = 222222
+   2.2 Root pem
+       openssl pkcs12 -in server/root.p12 -out server/root.pem
+       > PEM pass phrase = 333333
+   2.3 For windows clients: xpextensions
+   2.4 Server key
+       openssl req -config openssl.cnf -newkey rsa:4096 -keyout server/serverkey.pem -out server/servercert.req
+       > PEM pass phrase = 444444
+       openssl ca -config openssl.cnf -out server/servercert.pem -extensions xpserver_ext -extfile xpextensions -keyfile ca/cakey.pem -infiles server/servercert.req
+       openssl pkcs12 -export -in server/servercert.pem -inkey server/serverkey.pem -out server/server.p12 -clcerts
+       > Export Password = 555555
+       openssl pkcs12 -in server/server.p12 -out server/server.pem
+       > PEM pass phrase = 666666
+   2.5 CRL
+       openssl ca -config openssl.cnf -gencrl -out server/crl.pem
+   2.6 DH
+       openssl dhparam -text -5 1024 -out server/dh
+   2.7 Random
+       dd if=/dev/random of=server/random bs=1M count=2
+3. Clients PEM
+   3.1 User Cert Req
+       openssl req -config openssl.cnf -new -nodes -newkey rsa:2048 -keyout clients/userkey.pem -out clients/usercert.req
+   3.2 User PEM
+       openssl ca -config openssl.cnf -days 36500 -keyfile ca/cakey.pem -out clients/usercert.pem -extensions xpclient_ext -extfile xpextensions -infiles clients/usercert.req

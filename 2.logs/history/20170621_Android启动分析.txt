@@ -1,0 +1,135 @@
+--------------------------------------
+
+启动脚本init.rc分析：
+
+
+
+system/core/init/init.cpp/main()
+    init_parse_config_file("/init.rc")
+    action_for_each_trigger("early-init", action_add_queue_tail)
+    action_for_each_trigger("init", action_add_queue_tail)
+    while (true) {
+        execute_one_command()
+        restart_processes()
+    }
+
+
+
+system/core/init/readme.txt
+
+
+
+import /init.environ.rc
+import /init.usb.rc
+import /init.${ro.hardware}.rc
+import /init.usb.configfs.rc
+import /init.${ro.zygote}.rc
+import /init.trace.rc
+
+
+
+getprop/setprop, getevent
+
+
+
+init.rc有两种语句块：Action语句块（on <trigger> + <commands>），service语句块（service <name> <path> [args] + <option>）
+
+trigger:
+
+boot = 当init程序执行并载入/init.conf时触发。
+
+
+
+command:
+
+write <path> <string> =向文件中写入字符串。
+
+trigger <event> =触发事件
+
+setkey =
+
+setprop <name> <value> =
+
+
+
+option:
+
+class <name> = 给服务指定一个类属，方便多个服务同时启动或停止。
+
+socket <name> <type> <perm> ... = 在/dev/socket/下创建一个unix domain socket。
+
+onrestart <cmd> = 当服务重启时执行cmd
+
+
+
+
+
+service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
+    class main
+    socket zygote stream 660 root system
+    onrestart write /sys/android_power/request_state wake
+    onrestart write /sys/power/state on
+    onrestart restart media
+    onrestart restart netd
+    writepid /dev/cpuset/foreground/tasks
+
+
+-------------------------------------------
+
+zygote分析
+
+frameworks/base/cmds/app_process/app_main.cpp
+
+
+
+main()
+    runtime.start("com.android.internal.os.ZygoteInit", args, zygote)
+    AndroidRuntime::start() // frameworks/base/core/jni/AndroidRuntime.cpp
+        startVm()
+        startReg()
+        env->CallStaticVoidMethod()  // 调用com.android.internal.os.ZygoteInit的main函数
+
+
+
+
+frameworks/base/core/java/com/android/internal/os/ZygoteInit.java
+
+
+
+main()
+    registerZygoteSocket(socketName)   // 创建unix套接字,监听ams发过来的fork请求
+    preload()
+    startSystemServer()
+        pid = Zygote.forkSystemServer()
+             nativeForkSystemServer（）
+                 // frameworks/base/core/jni/com_android_internal_os_Zygote.cpp
+                 com_android_internal_os_Zygote_nativeForkSystemServer()
+                     ForkAndSpecializeCommon()
+                         fork()
+        if (pid == 0) {
+            // 子进程上下文
+            if (hasSecondZygote(abiList)) {
+                waitForSecondaryZygote(socketName);
+            }
+            handleSystemServerProcess(parsedArgs);
+        }
+    runSelectLoopMode()  // 循环监听外来请求
+
+
+
+
+SystemServer子进程
+
+
+
+handleSystemServerProcess（）
+
+
+
+Native程序运行：
+
+Android bionic提供的加载器/system/bin/linker相当于glibc的/lib/ld-linux-xx.so。Shell运行native程序时，通过系统调用（bionic->kernel）fork和exec进入kernel，kernel加载二进制文件及一些系统动态库，启动加载器/system/bin/linker/__linker_init()，分析二进制ELF文件格式，加载依赖的动态库，然后转入二进制映像的入口函数__start。__start调用C库的初始化函数__libc_init()，__libc_init()调用映像的main函数及exit()退出进程。
+
+Java程序运行：
+
+Zygote程序以natvie程序形式启动之后，再通过fork启动新的进程运行java程序。java进程没有执行exec调用，目的是共享java的核心库。通过System.loadLibrary()方法加载so库即dlopen加载so库，linker会分析处理so库的ELF信息，加载其他依赖的so库。

@@ -1,0 +1,16 @@
+Ubuntu 16 development
+
+Build OpenWRT on older/32-bit Debian/Ubuntu:
+$ sudo apt-get install 
+gcc g++ binutils patch bzip2 flex make gettext pkg-config unzip zlib1g-dev libc6-dev subversion libncurses5-dev gawk sharutils curl ocaml-nox ocaml ocaml-findlib libpcre3-dev binutils-gold python-yaml libgl1-mesa-dri:i386 libxml-parser-perl 
+ia32-libs-multiarch:i386 ia32-libs-multiarch ia32-libs libgd2-xpm:i386 
+
+Build OpenWRT
+sudo apt-get install 
+gcc g++ binutils patch bzip2 flex make gettext pkg-config unzip zlib1g-dev libc6-dev subversion libncurses5-dev gawk sharutils curl ocaml-nox ocaml ocaml-findlib libpcre3-dev binutils-gold python-yaml libgl1-mesa-dri:i386 libxml-parser-perl 
+libgd-dev multiarch-support lib32ncurses5 lib32z1 libssl-dev device-tree-compiler u-boot-tools
+
+Build android 7.1
+sudo apt-get install ccache // ccache not found
+sudo apt-get install libxml2-utils // xmllint: command not found
+

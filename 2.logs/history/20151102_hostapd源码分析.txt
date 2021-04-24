@@ -1,0 +1,329 @@
+
+本实例中hostapd启动后，eloop监听了四个文件的可读性。
+
+1. fd=3 /dev/random  /* 监听 */
+
+2. fd=4 socket(PF_INET, SOCK_DGRAM, 0)  /* ioctl socket用于设置参数 */
+
+3. fd=5 socket(PF_PACKET, SOCK_RAW, htons(ETH_P_EAPOL))  /* 监听EAPOL帧 */
+
+4. fd=6 socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE)  /* 监听内核上报事件 */
+
+5. fd=7 socket(PF_UNIX, SOCK_DGRAM, 0)  /* 监听，hostapd_cli控制接口 */
+
+
+
+【数据结构】
+
+struct hostapd_iface
+
+struct hapd_interfaces *interfaces
+
+struct hostapd_config *conf /* 存放从配置文件获得的信息 */
+
+struct hostapd_bss_config *bss
+
+char iface[16+1] (=wlan0 ...)
+
+macaddr bssid
+
+struct wpa_driver_ops *driver (在hostapd_init中读取配置文件drvier时初始化，如wpa_driver_rtw_ops)
+
+struct hostapd_data **bss /* 每个bss代表一个BSS，一个AP */
+
+struct hostapd_iface *iface (=hostapd_iface)
+
+struct hostapd_config *iconf (=hostapd_iface->conf)
+
+struct hostapd_bss_config *conf (=hostapd_iface->conf->bss[i])
+
+struct wpa_driver_ops *driver(=hostapd_iface->conf->driver)
+
+void *drv_priv (=driver->hapd_init()=rtl871x_driver_init_ops())
+
+
+
+-------------------------
+
+【启动】
+
+hostapd -B /var/hostapd/hostapd.conf -P /var/hostapd/hostapd.pid
+
+main()
+
+hostapd_global_init(&interfaces)
+
+eap_server_register_methods()
+
+eap_server_wsc_register()
+
+eloop_init()
+
+os_memset(&eloop, 0, sizeof(eloop))
+
+dl_list_init(&eloop.timeout)
+
+random_init()
+
+eloop_register_read_sock()   /* 注册监听文件 */
+
+
+
+eloop_register_signal(SIGHUP, handle_reload, interfaces)
+
+
+
+eloop_register_signal(SIGUSR1, handle_dump_state, interfaces)
+
+
+
+eloop_register_signal_terminate(handle_term, interfaces)
+
+
+
+hostapd_interface_init(&interfaces, configfile, debug)
+
+/* 每一个interface对应一个配置文件，多个bss
+
+   1. 申请hostapd_iface内存
+
+   2. 设置hostapd_iface接口函数
+
+   3. 读取配置文件到hostapd_iface->conf
+
+设置struct wpa_driver_ops
+
+
+
+   4. 申请hostapd_iface->bss[i]内存
+
+   5. 关联hostapd_iface->bss[i]到conf和conf->bss[i]
+
+*/
+
+iface = hostapd_init(configfile)
+
+conf = hostapd_config_read(configfile)
+
+hostapd_alloc_bss_data()
+
+hapd = os_zalloc(sizeof(*hapd))
+
+hapd->new_assoc_sta_cb = hostapd_new_assoc_sta  /* 设置处理连接请求的callback函数 */
+
+/* 
+
+
+
+*/
+
+hostapd_driver_init(iface)
+
+hapd->drv_priv = hapd->driver->hapd_init(hapd, &params)  /* 即drv_priv=rtl871x_driver_init_ops() */
+
+rtl871x_driver_init_ops()
+
+/* 创建ioctl socket，用来设置驱动参数 */
+
+drv->ioctl_sock = socket(PF_INET, SOCK_DGRAM, 0)
+
+
+
+/* 创建RAW socket，用来监听EAPOL帧，并注册到eloop，callback函数rtl871x_handle_read */
+
+drv->l2_sock = l2_packet_init(drv->iface, NULL, ETH_P_EAPOL,rtl871x_handle_read, drv, 1)
+
+l2->fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_EAPOL))
+
+eloop_register_read_sock()
+
+
+rtl871x_wireless_event_init()
+
+ /* 创建netlink socket，用来监听内核事件，并注册到eloop */
+
+netlink_init() 
+
+netlink->sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE)
+
+eloop_register_read_sock() 
+
+
+
+hostapd_setup_interface(iface)
+
+setup_interface(iface)
+
+hostapd_set_country(hapd, country)
+
+driver->set_country()
+
+hostapd_get_hw_features(iface)
+
+driver->get_hw_feature_data()
+
+hostapd_setup_interface_complete(iface, 0)
+
+hostapd_set_freq() => driver->set_freq()
+
+hostapd_prepare_rates() => hostapd_set_rate_sets(...) => driver->set_rate_sets()
+
+hostapd_set_rts() => driver->set_rts(hapd->drv_priv, rts) => rtl871x_set_rts_threshold()
+
+hostapd_set_frag() => driver->set_frag() => rtl871x_set_frag_threshold()
+
+hostapd_setup_bss()
+
+hostapd_if_add() => driver->if_add()
+
+hostapd_flush_old_stations()
+
+hostapd_flush() => driver->flush() => rtl871x_sta_flush_ops()
+
+hostapd_drv_sta_deauth()
+
+hostapd_free_stas()
+
+hostapd_set_privacy()
+
+hostapd_broadcast_wep_clear()
+
+hostapd_setup_encryption()
+
+hostapd_get_ssid()
+
+hostapd_setup_wpa_psk()
+
+hostapd_derive_psk()
+
+hostapd_init_wps()
+
+ieee802_1x_init()
+
+hapd->iface->ctrl_iface_init()
+
+hostapd_ctrl_iface_init()
+
+eloop_register_read_sock()  /* 注册控制socket */
+
+ieee802_11_set_beacon()
+
+hostapd_drv_set_beacon()
+
+hapd->driver->set_beacon() => rtl871x_set_beacon_ops()
+
+rtl871x_hostapd_ioctl()
+
+hostapd_tx_queue_params()
+
+ap_list_init()
+
+hostapd_driver_commit()
+
+
+
+hostapd_global_run(&interfaces, ...)
+
+eloop_run()
+
+while(){
+
+res = select(eloop.max_sock + 1, rfds, wfds, efds, timeout ? &_tv : NULL)
+
+
+
+}
+
+
+
+-------------------------
+
+【处理连接请求】
+
+监听到l2_sock的EAPOL数据之后，调用rtl871x_handle_read函数。
+
+rtl871x_handle_read()
+
+
+
+drv_event_eapol_rx(...)
+
+
+
+
+
+wpa_supplicant_event(ctx, EVENT_EAPOL_RX, &event)
+
+
+
+
+
+hostapd_event_eapol_rx()
+
+
+
+
+
+ieee802_1x_receive()
+
+
+
+
+
+sta->eapol_sm = ieee802_1x_alloc_eapol_sm(hapd, sta)  /* 启动EAPOL状态机 */
+
+switch (hdr->type) {
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------hostapd.conf
+
+##### hostapd configuration file ##############################################
+interface=wlan0
+ctrl_interface=/var/run/hostapd
+wpa=2
+##### Wi-Fi Protected Setup (WPS) #############################################
+eap_server=1
+wps_state=2
+manufacturer=qmd
+model_name=abc
+model_number=123
+serial_number=12345
+device_type=6-0050F204-1
+os_version=01020300
+config_methods=label display push_button keypad
+##### default configuration #######################################
+driver=rtl871xdrv
+beacon_int=100
+ieee80211n=1
+wme_enabled=1
+uapsd_advertisement_enabled=0
+ht_capab=[SHORT-GI-20][SHORT-GI-40]
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP
+max_num_sta=32
+wpa_group_rekey=86400
+supported_rates=60 90 120 180 240 360 480 540
+basic_rates=60 120 240
+device_name=Lenovo B7D1
+ssid=DIRECT-xyFEB7D1
+uuid=109FA9FE-B7D1-0000-0000-000000000000
+wpa_passphrase=12345678
+channel=11
+hw_mode=g
+
+-------------------------

@@ -1,0 +1,250 @@
+--------------------------
+
+Android三种方式设置和获取属性：
+1. Native层使用property_get和property_set，头文件cutils/properties.h和libcutil库。
+2. Java层使用System.getProperty和System.setProperty方法。该系统属性与native层系统属性存储空间不同。
+3. Java层android.os.SystemProperties可以操作Android系统属性，该类通过JNI调用Native的property_get和property_set方法来获得和设置属性。
+4. Shell脚本可以使用setprop和getprop命令来设置和获取属性。
+
+
+
+/* property_get: returns the length of the value which will never be
+** greater than PROPERTY_VALUE_MAX - 1 and will always be zero terminated.
+** (the length does not include the terminating zero).
+**
+** If the property read fails or returns an empty value, the default
+** value is used (if nonnull).
+*/
+int property_get(const char *key, char *value, const char *default_value);
+
+/* property_set: returns 0 on success, < 0 on failure */
+int property_set(const char *key, const char *value);
+--------------------------
+Android组件和线程是不同的概念，体现MVC
+-------------------------
+frameworks/base/core/java/android/os/UEventObserver.java用来监听UEVENT。 例如
+device/xxx/frameworks/services/java/com/xxx/server/xxxHDMIRxService.java初始化时mHDMIRxObserver.startObserving(HdmiRxUeventKeyword)，然后
+
+private UEventObserver mHDMIRxObserver = new UEventObserver() {
+	@Override
+	public void onUEvent(UEventObserver.UEvent event) {
+            Slog.w(TAG, "mHDMIRxObserver:onUEvent");
+	    setHdmiRxPlugged("1".equals(event.get("SWITCH_STATE")));
+	}
+};
+
+device/xxx/frameworks/core/java/com/xxx/hardware/xxxHDMIManager.java中获取service
+
+通过AIDL IxxxHDMIRxService.aidl调用service功能。
+driver/media/platform/xxx_hdmirx/v4l2_hdmi_dev.c/update_hdmirx_switch_state()
+driver/switch/switch_class.c/switch_set_state()/kobject_uevent_env()
+------------------------------------
+Android启动hotspot的java代码可以配置的内容很少，如果需要高级配置功能需要到底层去控制。
+使用netd启动hostapd的文件：android/system/netd/server/SoftapController.cpp，相关类：
+
+WifiManager
+WifiConfiguration
+...
+位置：
+android/frameworks/base/wifi/java/android/net/wifi/*
+android/frameworks/opt/net/wifi/service/java/com/android/server/wifi/*
+-----------------------------
+JNI Sample
+1. CPP
+#include <JNIHelp.h>
+#define CLASS_NAME_UTILS            "com/example/Utils"
+#define CREATE_CRASH 0
+static JavaVM *g_VM;
+static jstring native_getWifiMac(JNIEnv * env, jobject obj, jstring ifname){const char *ifn = env->GetStringUTFChars(ifname, 0);char cap[128];ALOGE("jni, Call native_getWifiMac!\n");strcpy(cap, ifn);env->ReleaseStringUTFChars(ifname, ifn);FILE *fp = fopen("/sys/class/net/wlan0/address", "r");if(fp) {ALOGE("HDMIRxDemo: jni %d\n", __LINE__);fscanf(fp, "%s", cap);fclose(fp);} else {ALOGE("HDMIRxDemo: jni %d\n", __LINE__);}return env->NewStringUTF(cap);}static void native_prepare(JNIEnv * /*env*/ , jobject /*obj*/){ ALOGV("call [%s]",__FUNCTION__);}static void native_init(JNIEnv * /*env*/ , jobject /*obj*/){ ALOGV("call [%s]",__FUNCTION__);}static void abc(JNIEnv * /*env*/, jobject /*obj*/, jint bc, jlong startTime, jlong endTime)
+{
+
+    ALOGV("call [%s]",__FUNCTION__);
+}static JNINativeMethod gUtilsMethods[] = { {"init","()V",(void*)native_init}, {"prepare","()V",(void*)native_prepare},
+
+    {"abc","(IJJ)V",(void*)abc},
+{"getWifiMac","(Ljava/lang/String;)Ljava/lang/String;",(void*)native_getWifiMac},};static int register_jni(JNIEnv *env){ ALOGE("jni, Call register_jni!\n"); return jniRegisterNativeMethods(env,CLASS_NAME_UTILS,gUtilsMethods,NELEM(gUtilsMethods));}extern "C" JNIEXPORT void JNI_OnUnload(JavaVM* /*vm*/, void* /*reserved*/){ ALOGE("Call JNI_OnUnload!\n");}extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/){ JNIEnv* env = NULL; jint result = -1; g_VM=vm; ALOGE("jni, Call JNI_Onload!\n"); if (vm->GetEnv((void**) &env, JNI_VERSION_1_4) != JNI_OK) { ALOGE("GetEnv failed!\n"); return result; } if(register_jni(env)<0) return -1; return JNI_VERSION_1_4;}
+
+2. Java
+package com.example;
+public class Utils {
+    private static Utils sInstance = null;
+    static {
+        System.loadLibrary("utils");
+    }
+    public native void init();
+    public native void prepare();
+    public native String getWifiMac(String ifname);
+    public static Utils getInstance(){
+        if(sInstance == null){
+            sInstance = new Utils();
+        }
+        return sInstance;
+    }
+}
+
+// Usage
+try {
+    Log.d(TAG, "getWifiMac");
+    return Utils.getInstance().getWifiMac(ifname);
+}catch(Exception e) {    
+    e.printStackTrace();   
+}
+ 
+写文件
+String path = null;
+File file = null;
+OutputStream os = null;
+OutputStreamWriter osw = null;
+BufferedWriter bw = null;
+StringBuffer sb = null;
+try {
+    sb = new StringBuffer();
+    sb.append("abc\n");
+
+    path = context.getFilesDir() + "/abc.conf";
+    file = new File(path);
+    if(!file.exists())
+        file.createNewFile();
+    Runtime.getRuntime().exec("chmod 777 " + path);
+
+    os = new FileOutputStream(file, false);
+    osw = new OutputStreamWriter(os);
+    bw = new BufferedWriter(osw);
+    bw.write(sb.toString());
+    bw.flush();
+} catch (FileNotFoundException e) {
+    e.printStackTrace();
+} catch (IOException e) {
+    e.printStackTrace();
+} finally {
+    try {
+        bw.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+获取网卡MAC，android6之后只能获取eth0和lo，获取WiFi网卡地址失败：
+try {
+    Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+    NetworkInterface network = null;
+    StringBuilder buf = new StringBuilder();  
+    byte[] address = null;
+    byte b;
+    while (e.hasMoreElements()) {  
+        network = e.nextElement();
+        if (network != null) {
+            if (!network.getName().equals(ifname)) {
+                continue;
+            }
+
+            address = network.getHardwareAddress();
+            if (address == null || address.length <= 0) {  
+                return null;  
+            }  
+
+            buf.append(String.format("%02x:", address[0]));
+            buf.append(String.format("%02x:", address[1]));
+            buf.append(String.format("%02x:", address[2]));
+            buf.append(String.format("%02x:", address[3]));
+            buf.append(String.format("%02x:", address[4]));
+            buf.append(String.format("%02x",  address[5]));
+
+            return buf.toString();
+        } else {  
+            System.out.println("error");    
+        }  
+    }  
+}catch(Exception e) {   
+    e.printStackTrace();   
+}
+
+/* Methord */
+try {
+    List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
+    for (NetworkInterface nif : all) {
+        Log.d(TAG, "Name=" + nif.getName());
+        if (!nif.getName().equalsIgnoreCase("wlan0"))
+            continue;
+
+        byte[] macBytes = nif.getHardwareAddress();
+        Log.d(TAG, "macBytes=" + macBytes);
+        if (macBytes == null)
+            return "";
+
+        StringBuilder res1 = new StringBuilder();
+        for (byte b : macBytes) {
+            res1.append(Integer.toHexString(b & 0xFF) + ":");
+        }
+        Log.d(TAG, "res1=" + res1.toString());
+
+        if (res1.length() > 0) {
+            res1.deleteCharAt(res1.length() - 1);
+        }
+        Log.d(TAG, "res1=" + res1.toString());
+    }
+    return "abc";
+}catch(Exception e) {    
+    e.printStackTrace();   
+}
+
+/* Methord */
+String path = null;
+File file = null;
+FileInputStream fis = null;
+InputStreamReader isr = null;
+BufferedReader br = null;
+String mac = null;
+try {
+    path = "/sys/class/net/wlan0/address";
+    file = new File(path);
+    
+    if(!file.exists())
+        Log.d(TAG, "File " + path + " not exists");
+
+    fis = new FileInputStream(path);
+    isr = new InputStreamReader(fis, "UTF-8");  
+    br = new BufferedReader(isr);      
+    mac = br.readLine();
+    Log.d(TAG, "Read wlan0 addr [" + mac + "]");
+    return mac;  
+} catch (Exception e) {  
+    e.printStackTrace();  
+}
+
+/* Methord */
+try {
+    String mac = "";
+    Process pp = Runtime.getRuntime().exec("cat /sys/class/net/wlan0/address");
+    InputStreamReader ir = new InputStreamReader(pp.getInputStream());
+    LineNumberReader input = new LineNumberReader(ir);
+    mac = input.readLine();
+    Log.d(TAG, "Read MWTV3 wlan0 addr [" + mac + "]");
+} catch (Exception e) {  
+    e.printStackTrace();  
+}
+
+/* Methord */
+char[] mac = new char[128];try {    FileReader reader = new FileReader("/sys/class/net/wlan0/address");    int readLength = reader.read(mac);    Log.d(TAG, "Read wlan0 addr [" + mac.toString() + "]");    reader.close();} catch (Exception e) {      e.printStackTrace();  }return mac.toString();
+
+/* Methord */
+try {
+    String mac = "";
+    Process p = Runtime.getRuntime().exec("ifconfig wlan0");
+    InputStreamReader isr = new InputStreamReader(p.getInputStream());
+    LineNumberReader lnr = new LineNumberReader(isr);
+    String str = lnr.readLine();
+    Log.d(TAG, "MWTV3 ifconfig wlan0 [" + str + "]");
+    int i = str.indexOf("HWaddr");
+    
+    p.getInputStream().close();
+    isr.close();
+    lnr.close();
+    
+    mac = str.substring(i + 6);
+    mac = mac.trim().toLowerCase();
+    
+    Log.d(TAG, "MWTV3 wlan0 addr [" + mac + "]");
+} catch (Exception e) {  
+    e.printStackTrace();
+}

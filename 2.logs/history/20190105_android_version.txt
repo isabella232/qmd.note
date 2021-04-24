@@ -1,0 +1,88 @@
+Platform Version    API Level   VERSION_CODE    Notes
+Android 9           28          P               Platform Highlights
+Android 8.1         27          O_MR1 	        Platform Highlights
+Android 8.0         26          O               Platform Highlights
+Android 7.1.1       25          N_MR1           Platform Highlights
+Android 7.1         25          N_MR1           Platform Highlights
+Android 7.0         24          N               Platform Highlights
+Android 6.0         23          M               Platform Highlights
+Android 5.1 	22 	LOLLIPOP_MR1 	Platform Highlights
+Android 5.0 	21 	LOLLIPOP
+Android 4.4W 	20 	KITKAT_WATCH 	KitKat for Wearables Only
+Android 4.4 	19 	KITKAT 	Platform Highlights
+Android 4.3 	18 	JELLY_BEAN_MR2 	Platform Highlights
+Android 4.2, 4.2.2 	17 	JELLY_BEAN_MR1 	Platform Highlights
+Android 4.1, 4.1.1 	16 	JELLY_BEAN 	Platform Highlights
+Android 4.0.3, 4.0.4 	15 	ICE_CREAM_SANDWICH_MR1 	Platform Highlights
+Android 4.0, 4.0.1, 4.0.2 	14 	ICE_CREAM_SANDWICH
+Android 3.2 	13 	HONEYCOMB_MR2 	
+Android 3.1.x 	12 	HONEYCOMB_MR1 	Platform Highlights
+Android 3.0.x 	11 	HONEYCOMB 	Platform Highlights
+Android 2.3.4
+Android 2.3.3 	10 	GINGERBREAD_MR1 	Platform Highlights
+Android 2.3.2
+Android 2.3.1
+Android 2.3 	9 	GINGERBREAD
+Android 2.2.x 	8 	FROYO 	Platform Highlights
+Android 2.1.x 	7 	ECLAIR_MR1 	Platform Highlights
+Android 2.0.1 	6 	ECLAIR_0_1
+Android 2.0 	5 	ECLAIR
+Android 1.6 	4 	DONUT 	Platform Highlights
+Android 1.5 	3 	CUPCAKE 	Platform Highlights
+Android 1.1 	2 	BASE_1_1	
+Android 1.0 	1 	BASE
+
+
+=============================
+https://developer.android.google.cn/ndk/guides/standalone_toolchain
+
+Building Open Source Projects Using Standalone Toolchains
+
+Given this example toolchain:
+
+# Create an arm64 API 26 libc++ toolchain.
+$NDK/build/tools/make_standalone_toolchain.py \
+  --arch arm64 \
+  --api 26 \
+  --install-dir=my-toolchain
+
+Here's how you'd set up your environment to use it to build a traditional open source project:
+
+------------------------
+# Add the standalone toolchain to the search path.
+export PATH=$PATH:`pwd`/my-toolchain/bin
+# Tell configure what tools to use.
+target_host=aarch64-linux-android
+export AR=$target_host-ar
+export AS=$target_host-clang
+export CC=$target_host-clang
+export CXX=$target_host-clang++
+export LD=$target_host-ld
+export STRIP=$target_host-strip
+# Tell configure what flags Android requires.
+export CFLAGS="-fPIE -fPIC"
+export LDFLAGS="-pie"
+------------------------
+
+Projects with custom build systems
+
+As an example, here's how to build toybox after performing the previous steps:
+
+git clone https://github.com/landley/toybox.git
+cd toybox
+make defconfig && make
+
+Projects using autoconf
+
+Alternatively a autoconf-based project would look more like this:
+
+tar zxvf make-4.2.tar.gz
+cd make-4.2
+./configure --host=$target_host && make
+
+Note that autoconf-based projects vary wildly in their support for cross-compilation. Note also that if you git clone a autoconf-based project, it's unlikely to have a checked-in configure script, so you'll have to follow that project's documentation for how to bootstrap.
+
+
+=============================
+android-ndk-r18b/build/tools/make_standalone_toolchain.py --arch arm64 --api 27
+

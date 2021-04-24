@@ -1,0 +1,214 @@
+Android C/C++ Log
+
+system/core/include/cutils/log.h // ALOGV,ALOGD,ALOGI,ALOGW,ALOGE
+system/core/include/log/log.h // ALOGV ALOGD ...
+system/core/include/android/log.h // __android_log_print ...
+
+Android Java Log
+import android.util.Log // Log.v,Log.d,Log.i,Log.w,Log.e
+procrank命令
+dumpsys命令：dumpsys <wifi>|<window>|<activity>|<account>|<meminfo [name]>|<cpuinfo>
+
+Linux printk共有8个级别：
+KERN_EMERG  紧急情况，系统可能会崩溃
+KERN_ALERT  必须立即响应
+KERN_CRIT  临界情况
+KERN_ERR  错误信息
+KERN_WARNING  警告信息
+KERN_NOTICE  普通的但可能需要注意的信息
+KERN_INFO   提示性信息
+KERN_DEBUG   调试信息
+
+修改和查看kernel prink配置：/proc/sys/kernel/printk
+#if 1
+	if (_rtw_memcmp(GetAddr2Ptr(pframe), (unsigned char*)"\xCE\x3A\x61\x43\x5D\x8B", ETH_ALEN)   // samsung
+		|| _rtw_memcmp(GetAddr2Ptr(pframe), (unsigned char*)"\xCE\x3A\x61\x43\xDD\x8B", ETH_ALEN)  // samsung
+		|| _rtw_memcmp(GetAddr2Ptr(pframe), (unsigned char*)"\xCE\xA2\x23\x7D\xA9\xE3", ETH_ALEN)  // Huawei
+		|| _rtw_memcmp(GetAddr2Ptr(pframe), (unsigned char*)"\x94\x65\x9C\xC6\x29\x4C", ETH_ALEN)
+		|| _rtw_memcmp(GetAddr2Ptr(pframe), (unsigned char*)"\x94\x65\x9C\xC6\x29\x4D", ETH_ALEN)
+		|| _rtw_memcmp(GetAddr2Ptr(pframe), (unsigned char*)"\x96\x65\x9C\xC6\x29\x4C", ETH_ALEN))
+	{
+		printk(KERN_EMERG "[Kernel %d %s] Filter OK\n", __LINE__, __FUNCTION__);
+	}else{
+		//printk(KERN_EMERG "[Kernel %d %s] Filter Ignore\n", __LINE__, __FUNCTION__);
+		return;
+	}
+#endif
+
+wpa_supplicant共有6个debug级别：
+MSG_EXCESSIVE, 
+MSG_MSGDUMP, 
+MSG_DEBUG, 
+MSG_INFO, 
+MSG_WARNING, 
+MSG_ERROR
+
+static int get_debug_level()
+{
+/*
+wpa_supplicant debug level:
+enum {
+	MSG_EXCESSIVE,
+	MSG_MSGDUMP,
+	MSG_DEBUG,
+	MSG_INFO,
+	MSG_WARNING,
+	MSG_ERROR
+};
+*/
+	const char *filepath = "/usr/local/etc/wpa_debug_level";
+	FILE *fp = NULL;
+	int level = MSG_DEBUG;
+
+	if((fp = fopen(filepath, "r"))){
+		fscanf(fp, "%d", &level);
+		fclose(fp);
+	}else{
+		printf("[wpa %s %d %s] open %s failed\n", __FILE__, __LINE__, __FUNCTION__, filepath);
+	}
+
+	if(level < MSG_EXCESSIVE || level > MSG_ERROR)
+		level = MSG_DEBUG;
+
+	printf("[wpa %s %d %s] debug level = [%d]\n", __FILE__, __LINE__, __FUNCTION__, level);
+	return level;
+}
+
+const char * event_to_string(int event)
+{
+#define E2S(n) case n: return #n
+	switch (event) {
+	E2S(EXIT_EVT); //=-3
+	E2S(ENTRY_EVT); //=-2
+	E2S(START_EVT); //=-1
+	E2S(NULL_EVT); //=0
+	E2S(P2P_INVITE_REQ_EVT); //=1
+	E2S(P2P_PIN_TIMEOUT_EVT); //=2
+	E2S(P2P_PROV_DISC_RESP_EVT); //=3
+	E2S(EVT_FOR_DEBUG);
+	E2S(WFDHSM_MAX_EVT);
+	}
+
+	return "UNKNOWN";
+#undef E2S
+}
+
+简单的调试打印语句：
+#define dlog(format,...) printf("[%lu %ld %lu %s %d %s] "format, (unsigned long)time(NULL), (long)getpid(), pthread_self(), __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+复杂的调试打印语句：
+
+#define dlog(format,...) \
+        do{ \
+                if(debug) \
+                        printf("[%s %s %d] "format"", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+        }while(0)
+
+#define dlog(level,format,...) \
+	do { \
+		if(level & debug){ \
+			time_t t = time(NULL); \
+			struct timeval tv; \
+			char debug_buffer[4096]; \
+			char debug_tmp[256]; \
+			gettimeofday(&tv, NULL); \
+			strftime(debug_tmp, sizeof(debug_tmp), "%Y-%m-%d %H:%M:%S", localtime(&t)); \
+			snprintf(debug_buffer, sizeof(debug_buffer), "[%s %6ld][PID:%6d][%6d %s %s] "format"", \
+				debug_tmp, \
+				tv.tv_usec, \
+				(int)getpid()/*pthread_self()*/,\
+				__LINE__, __FILE__, __FUNCTION__, \
+				##__VA_ARGS__); \
+			printf("%s", debug_buffer); \
+		}\
+	}while(0)
+
+coredump调试技巧：
+# ulimit -c unlimited
+# echo “/tmp/core_%e”> /proc/sys/kernel/core_pattern
+
+2.6.12产生coredump文件的源码位置：fs/exec.c/do_coredump()
+2.6.12挂载文件系统的源码位置：fs/namespace.c/do_mount()
+内核有时出现Oops时调试技巧。
+ 
+[18775.861998] Internal error: Oops: 80f [#1] PREEMPT SMP ARM
+[18775.870370] Modules linked in: 8812au(O) mali(O) [last unloaded: 8812au]
+[18775.877319] CPU: 0 PID: 1399 Comm: wfd_dfb Tainted: G           O 3.10.24-svn665 #15
+[18775.885252] task: dd121800 ti: db2cc000 task.ti: db2cc000
+[18775.890784] PC is at my_copy_user+0x38/0xa8
+[18775.895064] LR is at 0xfc7fc68c
+[18775.898281] pc : [<c0120530>]    lr : [<fc7fc68c>]    psr: 200f0013
+[18775.898281] sp : db2cdee0  ip : b4200468  fp : 00000001
+[18775.910023] r10: c0ad0034  r9 : c0a65c08  r8 : fc7fd134
+[18775.915370] r7 : 00000020  r6 : 00000020  r5 : b4200468  r4 : ca000000
+[18775.922048] r3 : 0000001c  r2 : 00000020  r1 : fc7fc688  r0 : b4200468
+[18775.928727] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[18775.936027] Control: 10c53c7d  Table: 1df7406a  DAC: 00000015
+[18775.941905]
+[18775.941905] PC: 0xc01204b0:
+[18775.946274] 04b0  1afffff3 e2651f7d e30f054c e34c008d eb199da3 e3a00000 e28dd008 e8bd8070
+[18775.954755] 04d0  e3a01f7d eafffff7 e3a05f7d eaffffc8 e3a030d0 e34f3e07 e5930000 f57ff04f
+[18775.963235] 04f0  e6bf0f30 e12fff1e e1813000 e92d4030 e3130003 e24dd00c e1a05000 1a00001b
+
+# arm-linux-gnueabihf-addr2line -e vmlinux c01204b0
+
+/arch/arm/mach-abc/driver/RPCDriver.c:318 (discriminator 1)
+或者：
+ 
+# arm-linux-gnueabihf-gdb vmlinux
+(gdb) bt
+(gdb) list *(my_copy_user+0x38)
+
+GDB常用命令
+
+run [参数] // 运行目标程序
+kill // 终止目标程序运行
+break [行号] // 在指定行插入断点
+break [函数名] // 在指定函数入口处插入断点
+break [文件:行数] // 在指定文件指定行插入断点
+info breakpoints // 显示断点列表
+delete [n]// 删除第n个断点
+delete // 删除所有断点
+clear [N] // 删除N行上面的所有断点
+step [n] // 向前执行n步，遇到函数则进入函数
+next [n] // 向前执行n步，遇到函数则跳过
+
+si [n] // 向前执行n个汇编指令，遇到函数则进入函数
+ni [n] // 向前执行n个汇编指令，遇到函数则跳过
+continue // 一直执行到下一个断点处
+finish // 完成当前函数调用
+until [位置] // 一直执行到指定位置，或当前函数返回
+advance [位置] // 前面到指定位置
+bt full // 打印函数调用栈
+p $pc // 查看PC寄存器当前值
+
+info frame // 显示当前帧信息，当前souce文件
+info source // 打印当前source文件信息
+info target // 打印当前目标程序地址信息
+info share // 打印当前加载的共享库地址信息
+info registers // 打印当前寄存器的值
+info args // 显示帧参数
+info locals // 显示局部变量信息
+info signals // 打印所有信号的处理方式
+
+show env // 查看环境变量
+
+调试cycles举例
+gdb ./bin/cycles
+> set args --debug --samples 3 --output image.png ../examples/scene_sphere_bump.xml
+> list // 查看当前代码
+> break 507 //入口函数main处插入断点
+> run
+> break /home/.../cycles/src/device/device_cpu.cpp:746
+> continue
+> step // step into
+> finish // step out
+> next // step over
+> until // 跳出循环
+> kill
+GDB多线程调试：set scheduler-locking off|on|step
+GDB Layout调试方式（gdbtui）：ctrl+x和ctrl+a切换。
+GDB堆栈调试
+GDB内存断点设置
+ 
+CFLAGS add -g3 when build.
+

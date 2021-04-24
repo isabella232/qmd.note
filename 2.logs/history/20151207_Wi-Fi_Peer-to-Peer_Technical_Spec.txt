@@ -1,0 +1,76 @@
+
+RX(GC) <==>TX(GO)        RX(GO)<==>TX(GC)
+
+
+
+    <== PD Req ==                <== PD Req ==     
+
+    == PD Rsp ==>                == PD Rsp ==>     
+
+    <== GON Req ==            <== GON Req ==     
+
+    == GON Rsp ==>            == GON Rsp ==>     
+
+ <== GON Confirm ==      <== GON Confirm ==     
+
+
+
+     == Auth ==>                    <== Auth ==     
+
+    <== Auth ==                      == Auth ==>     
+
+    == Assoc Req ==>           <== Assoc Req ==    
+
+    <== Assoc Rsp ==           == AssocRsp ==>     
+
+     == Start ==>                  <== Start ==     
+
+     <== ID Req ==              == ID Req ==>     
+
+     == ID Rsp ==>              <== ID Rsp ==     
+
+  <== WSC Start ==           == WSC Start ==>     
+
+    == M1 Rsp ==>              <== M1 Rsp ==     
+
+    <== M2 Req ==              == M2 Req ==>     
+
+    == M3 Rsp ==>               <== M3 Rsp ==     
+
+    <== M4 Req ==              == M4 Req ==>     
+
+    == M5 Rsp ==>              <== M5 Rsp ==>     
+
+    <== M6 Req ==              == M6 Req ==>     
+
+    == M7 Rsp ==>              <== M7 Rsp ==     
+
+    <== M8 Req ==               == M8 Req ==>     
+
+    == WSC Done ==>        <== WSC Done ==     
+
+    <== Failure ==                == Failure ==>     
+
+    == Deauth ==>              <== Deauth ==   
+
+  
+
+      == Auth ==>               <== Auth ==     
+
+    <== Auth ==                  == Auth ==>     
+
+    == Assoc Req ==>    <== Assoc Req ==     
+
+    <== Assoc Rsp ==     == Assoc Rsq ==>     
+
+    <== 1/4 ==                   == 1/4 ==>   
+
+    == 2/4 ==>                   <== 2/4 ==     
+
+    <== 3/4 ==                    == 3/4 ==>     
+
+    == 4/4 ==>                   <== 4/4 ==
+
+     ....                                ....
+
+    <== Deauth ==           <== Deauth ==     

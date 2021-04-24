@@ -1,0 +1,30 @@
+
+下载 ls的源码包
+
+1. which ls  //得到 /bin/ls
+
+2. dpkg-query -S /bin/ls //会得到包名 ，e.g. coreutils:/bin/ls
+
+3. sudo apt-get source coreutils //下载
+
+
+
+apt-get install dpkg-dev
+
+apt-get source xxx  // 下载源码
+
+apt-get build-dep xxx //
+
+dpkg-source
+
+dpkg-buildpackage
+
+dpkg -i  xxx_i386.deb
+
+
+
+mount -t vboxsf host /home/host
+
+sudo apt-get install cifs-utils
+
+sudo mount -t cifs -o username=qmd,password=123 //192.168.1.10/Samba smb

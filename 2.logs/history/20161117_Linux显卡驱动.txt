@@ -1,0 +1,18 @@
+
+显示器的接口，早期的有D-SUB（即VGA），S-Video，近期的有DVI，HDMI和DP。
+
+D-SUB接口：即VGA接口，D型头三排15针，模拟信号。由于带宽限制，不能传输较大分辨率的图像。目前只有低端的显卡和显示器支持。
+
+S-Video接口：全称Separate Video，模拟信号，日本开发，将亮度和色度分离传输，避免了混合视频信号传输时亮度和色度的相互干扰。五芯接口，两路亮度，两路色度，一路地线。
+
+DVI接口：Silicon Image公司以PanalLink接口技术为基础，核心技术为TMDS（Transition Minimized Differential Signaling，最小化传输差分信号，串行连接）。有多种接口子类，DVI-D只接收数字信号，3排8列24针；DVI-I兼容模拟和数字信号。1.0最高带宽1.65Gbps，2.0采用2组通道，最高带宽为1.0的两倍。支持HDCP
+
+HDMI接口：数字化视频/音频接口，需授权费，基于DVI制定，同时传输音频和视频信号，支持HDCP，连接线可长达15米，1.2a带宽4.95Gbps，1.3带宽10.2Gbps。四种连接器，A到D，除Type B外，都是19针，Type C和D针对便携应用和小体积设备。
+
+DP接口：全称DisplayPort接口，高清数字显示接口，VESA（视频电子标准组织）制定，免费，面向液晶显示器而开发，支持HDCP，1.1带宽10.8Gbps，两种接头，20针。
+
+
+
+显卡的输入接口（总线接口）发展至今出现了ISA，PCI，AGP，PCI Express等几种接口，带宽依次增加，ISA已淘汰。
+
+显卡的输出接口（信号IO接口）与显示器的接口一致，从最初的D-SUB，S-Video接口到DVI，HDMI，DP接口。

@@ -1,0 +1,16 @@
+1. 链接顺序
+链接文件arch/arm/kernel/vmlinux.lds.S反应了内核在各单个源文件编译好之后（arm平台），在链接时各段的排列顺序，也就反应了向内存加载代码时的内存布局。
+
+
+
+2. 链接地址：
+
+
+3. 重要宏
+宏EXPORT_SYMBOL()、EXPORT_SYMBOL_GPL()、EXPORT_SYMBOL_GPL_FUTURE()将数据放到__ksymtab段。（include/linux/module.h）
+宏__init将代码存放到.init/.init.text段。（include/linux/init.h）
+宏__setup()将代码存放到.init/.init.setup段。（include/linux/init.h）
+宏module_init()将代码存放到.init/.init.setup段。（include/linux/init.h）
+
+
+注：个人学习，不妥望指正，持续改善中。

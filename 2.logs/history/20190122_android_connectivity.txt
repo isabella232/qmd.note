@@ -1,0 +1,104 @@
+
+[WiFi，Telephony，Ethernet链路]
+以WiFi为例，WifiStateMachine作为WiFi driver和用户层之间通信的桥梁，处理用户下发的指令（如连接/断开连接/更改配置信息等）以及driver返回到framework的消息。当WiFi链路状态发生改变时，它将及时地告知CS，以便系统能够及时的更新链路信息（如iface/ip/dns server等）到Netd。而对于Telephony，这些工作则由DcTracker这个状态机来实现。
+
+[ConnectivityService]
+CS是系统网络连接管理服务。处理APP网络监听和请求，通知网络变化；处理WiFi/Telephony各个链路的网络注册，更新链路信息；网络检测/评分与网络选择。
+
+[NetworkPolicyManagerService]
+NPMS是网络策略管理服务。收费网络（Metered Network）判定和处理策略；Power Save/Device Idle情况下对APP的网络限制策略，这些策略一般指对APP的网络和限制和放行，通过netfilter来实现。
+
+[NetworkManagementService]
+NMS是网络管理服务。NMS为NPMS和其他Framework中的服务建立了与Netd之间通信的渠道，NPMS对各个UID的策略最终都会通过 NMS向Netd发送；另外，NMS还会监听Netd服务的状态，处理Socket返回的消息，如 Bandwidth/Iface/Route/Address/Dns Server等的变化，同时将这些变化通知“感兴趣”的模块。
+
+[NetworkStatsService]
+主要收集网络数据，如各个Iface上下行网络流量的字节数等。APP或者其他服务可以通过该服务获取网络流量信息等。
+
+[Netd守护进程]
+Netd 负责Android网络的管理和控制。监听Kernel消息并通知NMPS；防火墙设置（Firewall）；处理网络地址转换（NAT）；进行网络共享配置（Tethering，如softap，usb网络共享）等。
+
+
+[EthernetService]
+https://blog.csdn.net/zhanghaoyangchao/article/details/81779322
+1、Android 开机后，启动系统服务EthernetService(frameworks/opt/net/ethernet/java/com/android/server/ethnet/EthernetService.java)，初始化一个EthernetServiceImpl(frameworks/opt/net/ethernet/java/com/android/server/ethnet/EthernetServiceImpl.java)对象，然后调用EthernetServiceImpl的start()方法；
+2、初始化EthernetServiceImpl对象，创建EthernetConfigStore对象并调用readIpAndProxyConfigurations()方法，获取Ethernet 配置信息得到IpConfiguration对象;
+
+
+NetworkManagementService
+          |
+   NativeDeamonConnect
+          |
+         Netd
+          |
+    ----------------------------------------------------------
+    |                   |               |                     |
+NetlinkManager  CommandListener   DnsProxyListener    MDnsSdListener
+    |
+NetlinkListener
+    |
+   Driver
+
+
+ConnectivityService由SystemServer启动．
+NetworkMonitor: 网络有效性检测
+NetworkFactory: 网络评分机制
+NetworkAgent: 获取路由配置信息
+Netd: 设置网络物理接口
+ConnectivityService通过wifi，mobile data，Tethering，VPN 等方式来获取路由配置信息。通过ping网络来检查网络的有效性，进而影响各个数据业务方式的评分值，ConnectivityService通过这些评分值来决定以哪个数据业务方式连接网络。决定好数据业务方式后，把这些路由配置信息设置到网络物理设备中。这样系统就可以上网了。
+NetworkFactory在register()之后通过AsyncChannel与ConnectivityService建立起了连接．
+AsyncChannel为两个不同的handler之间建立消息通道，考虑了同步异步操作，同进程或者不同进程间通信。主要用在ConnectivityService框架中，涉及了wifi，mobile data，bluetooth，Tethering等模块。
+
+
+setWifiEnabled(true)
+    |
+   AIDL
+    |
+WifiService |  WifiMonitor
+    |               |
+     ---------------
+            |
+        WifiNative
+            |
+           JNI
+            |
+           wifi.c
+            
+Android State: com.android.internal.util.State
+frameworks/base/core/java/com/android/internal/util/State.java
+frameworks/base/core/java/com/android/internal/util/IState.java
+frameworks/base/core/java/com/android/internal/util/StateMachine.java
+
+
+// CHECKSTYLE:OFF IndentationCheck
+addState(mDefaultState);
+    addState(mInitialState, mDefaultState);
+    addState(mSupplicantStartingState, mDefaultState);
+    addState(mSupplicantStartedState, mDefaultState);
+        addState(mDriverStartingState, mSupplicantStartedState);
+        addState(mDriverStartedState, mSupplicantStartedState);
+            addState(mScanModeState, mDriverStartedState);
+            addState(mConnectModeState, mDriverStartedState);
+                addState(mL2ConnectedState, mConnectModeState);
+                    addState(mObtainingIpState, mL2ConnectedState);
+                    addState(mConnectedState, mL2ConnectedState);
+                    addState(mRoamingState, mL2ConnectedState);
+                addState(mDisconnectingState, mConnectModeState);
+                addState(mDisconnectedState, mConnectModeState);
+                addState(mWpsRunningState, mConnectModeState);
+        addState(mWaitForP2pDisableState, mSupplicantStartedState);
+        addState(mDriverStoppingState, mSupplicantStartedState);
+        addState(mDriverStoppedState, mSupplicantStartedState);
+    addState(mSupplicantStoppingState, mDefaultState);
+    addState(mSoftApState, mDefaultState);
+// CHECKSTYLE:ON IndentationCheck
+
+setInitialState(mInitialState);
+
+
+frameworks/base/services/core/java/com/android/server/NetworkManagementService.java
+frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiMonitor.java
+frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiNative.java
+frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiServiceImpl.java
+frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
+hardware/libhardware_legacy/wifi/wifi.c
+

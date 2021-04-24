@@ -1,0 +1,514 @@
+启动命令：wpa_supplicant -Dwext -iwlan0 -c /var/wpa_supplicant/wpa_supplicant.conf
+
+
+
+创建了四个socket：
+
+1. src/drivers/driver_wext.c -> wpa_driver_wext_init() -> drv->ioctl_sock = socket(PF_INET, SOCK_DGRAM, 0)
+
+    用于ioctl下发命令。
+
+2. src/drivers/netlink.c -> netlink_init() -> netlink->sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE)
+
+    用于驱动上传事件。
+
+3. src/l2_packet/l2_packet_linux.c -> l2_packet_init() -> l2->fd = socket(PF_PACKET, l2_hdr ? SOCK_RAW : SOCK_DGRAM, htons(protocol))
+
+    用于接受数据包，如EAP包。
+
+4. ctrl_iface_unix.c -> wpa_supplicant_ctrl_iface_init() -> priv->sock = socket(PF_UNIX, SOCK_DGRAM, 0)
+
+    用于wpa_cli控制。
+
+
+
+
+
+【启动】
+
+
+
+main()
+
+
+
+global = wpa_supplicant_init(&params)
+
+eap_register_methods()
+
+eap_peer_wsc_register()  // 注册EAP-WSC方法
+
+struct eap_method *eap
+
+eap = eap_peer_method_alloc("WSC")
+
+eap->init = eap_wsc_init
+
+eap_wsc_init(struct eap_sm *sm) 完成EAP状态机的初始化
+
+eap->deinit = eap_wsc_deinit
+
+eap->process = eap_wsc_process
+
+eap_wsc_process() 处理接收到的WSC包
+
+eap_peer_method_register(eap)
+
+eloop_init()
+
+random_init()
+
+wpa_supplicant_global_ctrl_iface_init(global)
+
+wpas_notify_supplicant_initialized(global)
+
+global->drv_priv[i] = wpa_drivers[i]->global_init()
+
+for (i = 0; exitcode == 0 && i < iface_count; i++) 
+
+
+wpa_supplicant_add_iface(global, &ifaces[i])
+
+
+
+wpa_s = wpa_supplicant_alloc()
+
+wpa_supplicant_init_iface(wpa_s, &t_iface)
+
+wpa_s->conf = wpa_config_read(wpa_s->confname)  /* 读配置文件 */
+
+wpa_config_read_network()  /* 解析network配置 */
+
+wpa_config_process_global()  /* 解析全局变量配置 */
+
+wpa_supplicant_set_driver(wpa_s, driver)   /* 设置diver接口函数 */
+
+wpa_s->driver = wpa_drivers[i]
+
+wpa_drv_init(wpa_s, wpa_s->ifname)
+
+wpa_s->driver->init(wpa_s, ifname)
+
+wpa_driver_wext_init()
+
+ /* 创建ioctl socket，用来设置驱动参数 */
+
+drv->ioctl_sock = socket(PF_INET, SOCK_DGRAM, 0)  
+
+
+
+ /* 创建netlink socket，用来监听内核事件，并注册到eloop */
+
+drv->netlink = netlink_init(cfg)  
+
+netlink->sock = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE)
+
+eloop_register_read_sock()
+
+wpa_driver_wext_finish_drv_init()
+
+linux_set_iface_flags(drv->ioctl_sock, drv->ifname, 1)
+
+ioctl(sock,SIOCGIFFLAGS, &ifr)
+
+ioctl(sock,SIOCSIFFLAGS, &ifr)
+
+
+
+wpa_driver_wext_flush_pmkid(drv)
+
+wpa_driver_wext_pmksa(drv, IW_PMKSA_FLUSH, NULL, NULL)
+
+ioctl(drv->ioctl_sock,SIOCSIWPMKSA, &iwr)
+
+wpa_driver_wext_set_mode(drv, 0)
+
+ioctl(drv->ioctl_sock,SIOCSIWMODE, &iwr)
+
+wpa_driver_wext_get_range(drv)
+
+ioctl(drv->ioctl_sock,SIOCGIWRANGE, &iwr)
+
+wpa_driver_wext_disconnect(drv)
+
+ioctl(drv->ioctl_sock,SIOCGIWMODE, &iwr)
+
+wpa_driver_wext_set_bssid(drv, null_bssid)
+
+ioctl(drv->ioctl_sock,SIOCSIWAP, &iwr)
+
+netlink_send_oper_ifla(drv->netlink, drv->ifindex, 1, IF_OPER_DORMANT)
+
+ret = send(netlink->sock, &req, req.hdr.nlmsg_len, 0)
+
+wpa_driver_wext_set_auth_param(drv, IW_AUTH_WPA_ENABLED, 1)
+
+ioctl(drv->ioctl_sock,SIOCSIWAUTH, &iwr)
+
+wpa_drv_set_param(wpa_s, wpa_s->conf->driver_param)
+
+ifname = wpa_drv_get_ifname(wpa_s)
+
+wpa_supplicant_init_wpa(wpa_s)
+
+ctx = os_zalloc(sizeof(*ctx))
+
+wpa_s->wpa = wpa_sm_init(ctx)  // 申请WPA SM内存
+
+wpa_supplicant_driver_init(wpa_s)
+
+/* 创建RAW socket，用来监听EAPOL帧，并注册到eloop，callback函数rtl871x_handle_read */
+
+wpa_s->l2 = l2_packet_init(wpa_s->ifname, 
+
+wpa_drv_get_mac_addr(wpa_s), 
+
+ETH_P_EAPOL, 
+
+wpa_supplicant_rx_eapol, 
+
+wpa_s, 0)
+
+l2->fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_EAPOL))
+
+ioctl(l2->fd,SIOCGIFINDEX, &ifr)
+
+ioctl(l2->fd,SIOCGIFHWADDR, &ifr)
+
+eloop_register_read_sock()
+
+wpa_clear_keys(wpa_s, NULL)
+
+wpa_drv_set_key(wpa_s, WPA_ALG_NONE, NULL, 0, 0, NULL, 0, NULL, 0)
+
+wpa_s->driver->set_key() -> wpa_driver_wext_set_key()
+
+wpa_driver_wext_set_key_ext()
+
+ioctl(drv->ioctl_sock,SIOCSIWENCODEEXT, &iwr)
+
+wpa_drv_set_key(wpa_s, WPA_ALG_NONE, NULL, 1, 0, NULL, 0, NULL, 0)
+
+wpa_drv_set_key(wpa_s, WPA_ALG_NONE, NULL, 2, 0, NULL, 0, NULL, 0)
+
+wpa_drv_set_key(wpa_s, WPA_ALG_NONE, NULL, 3, 0, NULL, 0, NULL, 0)
+
+wpa_drv_set_key(wpa_s, WPA_ALG_NONE, NULL, 4, 0, NULL, 0, NULL, 0)
+
+wpa_drv_set_countermeasures(wpa_s, 0)
+
+wpa_s->driver->set_countermeasures() -> wpa_driver_wext_set_countermeasures()
+
+wpa_driver_wext_set_auth_param()
+
+ioctl(drv->ioctl_sock,SIOCSIWAUTH, &iwr)
+
+wpa_drv_flush_pmkid(wpa_s) 
+
+wpa_s->driver->flush_pmkid() -> wpa_driver_wext_flush_pmkid()
+
+wpa_driver_wext_pmksa()
+
+ioctl(drv->ioctl_sock,SIOCSIWPMKSA, &iwr)
+
+wpa_supplicant_req_scan(wpa_s, interface_count, 100000)  // 发起SSID的扫描
+
+eloop_is_timeout_registered(wpa_supplicant_scan, wpa_s, NULL)
+
+eloop_cancel_timeout(wpa_supplicant_scan, wpa_s, NULL)
+
+eloop_register_timeout(sec, usec, wpa_supplicant_scan, wpa_s, NULL)
+
+/* 初始化WPS */
+wpas_wps_init(wpa_s)
+
+wps = os_zalloc(sizeof(*wps))
+
+wps->cred_cb = wpa_supplicant_wps_cred  // cred_cb在EAP-WSC模块解析credential属性集时使用
+
+wps->event_cb = wpa_supplicant_wps_event  // event_cb用于通知WSC模块发生的一些事件
+
+wpas_wps_set_uuid(wpa_s, wps)
+
+uuid_gen_mac_addr(wpa_s->own_addr, wps->uuid)
+
+rcfg.pin_needed_cb = wpas_wps_pin_needed_cb
+
+wps->registrar = wps_registrar_init(wps, &rcfg)
+
+struct wps_registrar *reg = os_zalloc(sizeof(*reg))
+
+reg->pin_needed_cb = cfg->pin_needed_cb
+
+wps_set_ie(reg)
+
+wpa_supplicant_init_eapol(wpa_s)
+
+ctx = os_zalloc(sizeof(*ctx))
+
+ctx->eapol_send = wpa_supplicant_eapol_send
+
+ctx->port_cb = wpa_supplicant_port_cb
+
+ctx->cb = wpa_supplicant_eapol_cb
+
+wpa_s->eapol = eapol_sm_init(ctx)  // 申请EAPOL SM内存
+
+sm = os_zalloc(sizeof(*sm))
+
+sm->ctx = ctx
+
+sm->eap = eap_peer_sm_init(sm, &eapol_cb, sm->ctx->msg_ctx, &conf)   // 申请EAP SM内存
+
+sm = os_zalloc(sizeof(*sm))
+
+eloop_register_timeout(1, 0, eapol_port_timers_tick, NULL, sm)
+
+wpa_sm_set_eapol(wpa_s->wpa, wpa_s->eapol)
+
+wpa_supplicant_ctrl_iface_init(wpa_s)
+
+wpas_p2p_init(wpa_s->global, wpa_s)
+
+wpa_bss_init(wpa_s)
+
+wpas_notify_iface_added(wpa_s)
+
+wpas_notify_network_added(wpa_s, ssid)
+
+
+
+wpa_supplicant_run(global)
+
+
+
+eloop_register_signal_terminate(wpa_supplicant_terminate, global)
+
+eloop_register_signal_reconfig(wpa_supplicant_reconfig, global)
+
+eloop_run()
+
+
+
+
+
+WPS_PIN 36:13:E8:39:7C:32 12345670
+
+------------------------------------------------------------------
+
+wpa_supplicant_ctrl_iface_receive() // ctrl_iface_unix.c
+
+    wpa_supplicant_ctrl_iface_process()  // ctrl_iface.c
+
+        wpa_supplicant_ctrl_iface_wps_pin()
+
+            wpas_wps_start_pin(wpa_s, _bssid, pin, 0, DEV_PW_DEFAULT)  // wps_supplicant.c
+
+                ssid = wpas_wps_add_network(wpa_s, 0, bssid)
+
+                    ssid = wpa_config_add_network(wpa_s->conf)
+
+                wpas_wps_reassoc(wpa_s, ssid)
+
+                    wpa_supplicant_req_scan(wpa_s, 0, 0)
+
+
+
+// wpa_supplicant发起扫描
+
+wpa_supplicant_req_scan()  // scan.c
+
+    wpa_supplicant_scan()
+
+        wps_build_probe_req_ie()
+
+        wpa_supplicant_trigger_scan(wpa_s, ¶ms)
+
+            wpa_drv_scan(wpa_s, params)
+
+                wpa_s->driver->scan2()
+
+                    wpa_driver_wext_scan()  // driver_wext.c
+
+                        wpa_driver_wext_set_probe_req_ie(drv, params->extra_ies, params->extra_ies_len)
+
+                            ioctl(drv->ioctl_sock, SIOCSIWPRIV, &iwr)
+
+                        ioctl(drv->ioctl_sock, SIOCSIWSCAN, &iwr)
+
+                        // Scan requested (ret=0) - scan timeout 5 seconds
+
+                        eloop_register_timeout(5, 0, wpa_driver_wext_scan_timeout)
+
+
+
+// driver ioctl SIOCSIWSCAN
+
+rtw_wx_set_scan()
+
+    rtw_sitesurvey_cmd(padapter, ssid, 1, NULL, 0)
+
+
+
+// 接收scan结果
+
+netlink_receive（）  // netlink.c
+
+    netlink_receive_link(netlink, netlink->cfg->newlink_cb, h)
+
+        wpa_driver_wext_event_rtm_newlink()  // driver_wext.c
+
+            wpa_driver_wext_event_wireless()
+
+               // SIOCGIWSCAN
+
+                wpa_supplicant_event(drv->ctx, EVENT_SCAN_RESULTS, NULL)  // event.c
+
+                    wpa_supplicant_event_scan_results()
+
+                        _wpa_supplicant_event_scan_results()
+
+                            scan_res = wpa_supplicant_get_scan_results()
+
+                                scan_res = wpa_drv_get_scan_results2(wpa_s)
+
+                                    wpa_s->driver->get_scan_results2(wpa_s->drv_priv)
+
+                                        wpa_driver_wext_get_scan_results() // driver_wext.c
+
+                                            res_buf = wpa_driver_wext_giwscan()
+
+                                                ioctl(drv->ioctl_sock, SIOCGIWSCAN, &iwr)
+
+                                                    rtw_wx_get_scan() // Kernel 8812au ioctl_linux.c
+
+                                                        translate_scan()
+
+                                                            iwe_stream_essid_proess()
+
+                                                            iwe_stream_rate_proces()
+
+                                                            iwe_stream_wpa_wpa2_process()
+
+                                                            iwe_stream_wps_process()
+
+                                                            ...
+
+                            selected = wpa_supplicant_pick_network(wpa_s, scan_res, &ssid)
+
+                                selected = wpa_supplicant_select_bss()
+
+                                    *selected_ssid = wpa_scan_res_match()
+
+                                        wpa_supplicant_ssid_bss_match()
+
+                                            wpas_wps_ssid_bss_match()
+
+                                                eap_is_wps_pin_enrollee()
+
+                                                wps_is_addr_authorized()
+
+                                                is_selected_pin_registrar()
+
+                            wpa_supplicant_connect(wpa_s, selected, ssid)
+
+                                wpa_supplicant_associate(wpa_s, selected, ssid)
+
+
+// 开始连接
+
+wpa_supplicant_associate（）
+
+
+------------------------------------------------------------------
+
+
+
+wpa_suplicant配置文件
+------------------------------------------------------------------
+ctrl_interface=/var/run/wpa_supplicant
+update_config=1
+uuid=109fa92f-1b8b-0000-0000-000000000000
+device_name=1B8B
+manufacturer=ABC
+model_name=123
+model_number=456
+serial_number=12345
+device_type=8-00101101-5
+os_version=80000000
+config_methods=virtual_display virtual_push_button keypad
+
+network={
+        ssid=&quot;DIRECT-ITDESKTOP-5VBHCUA3151&quot;
+        bssid=0e:8b:fd:e5:1b:50
+        psk=b3e0502a0e27d0bbb4c1de0ac058aeb44914598e55ba7a795562f1ec783a7460
+        proto=RSN
+        key_mgmt=WPA-PSK
+        auth_alg=OPEN
+}
+------------------------------------------
+
+
+
+How to Compile WPA_SUPPLICANT wit Wi-Fi Direct Support on Ubuntu 12.04/13.04/13.10/14.04
+
+What is WPA_SUPPLICANT ?
+wpa_supplicant is a daemon for wireless connection management on Andorid/Linux OS. You can check your laptop running will be using wpa_supplicant in background.
+
+ps -aef | grep wpa_supplicant
+
+
+Download
+mkdir -p ~/work; cd ~/work;
+wget http://hostap.epitest.fi/releases/wpa_supplicant-2.1.tar.gz
+tar  zxvf wpa_supplicant-2.1.tar.gz
+cd wpa_supplicant-2.1/
+cd wpa_supplicant/
+
+Build Environment
+Install compilations utilities such as gcc, make etc.
+
+sudo apt-get update
+sudo apt-get -y build-dep gcc-4.6 build-essential
+
+P2P Configuration
+cp defconfig .config
+echo “” &gt;&gt; .config
+echo “#Arun Kumar: Enabling Modules for Wi-Fi Direct aka P2P” &gt;&gt; .config
+echo CONFIG_P2P=y &gt;&gt; .config
+echo CONFIG_AP=y &gt;&gt; .config
+echo CONFIG_WPS=y &gt;&gt; .config
+
+Compilation &amp; Installation
+make
+
+You may or may not get errors while compiling the source codes.I have faced following compilation errors and given corresponding solutions for the same as follows
+
+Error#1
+CC  ../src/drivers/driver_wired.c
+../src/drivers/driver_nl80211.c:25:31: fatal error: netlink/genl/genl.h: No such file or directory
+compilation terminated.
+make: *** [../src/drivers/driver_nl80211.o] Error 1
+Solution #1
+sudo apt-get -y install libssl-dev libnl-3-dev
+echo CFLAGS +=-I/usr/include/libnl3/ &gt;&gt; .config
+
+make
+
+Error#2
+../src/drivers/driver_nl80211.c:95:9: warning: passing argument 1 of ‘genl_ctrl_alloc_cache’ from incompatible pointer type [enabled by default]
+/usr/include/libnl3/netlink/genl/ctrl.h:25:14: note: expected ‘struct nl_sock *’ but argument is of type ‘struct nl_handle *’
+../src/drivers/driver_nl80211.c:95:9: error: too few arguments to function ‘genl_ctrl_alloc_cache’
+/usr/include/libnl3/netlink/genl/ctrl.h:25:14: note: declared here
+
+Solution #2
+sudo apt-get install libnl-genl-3-dev
+echo CONFIG_LIBNL32=y &gt;&gt; .config
+
+make
+
+Now compilation succeeded.
+
+wpa_supplicant is really compiled
+tulashi@arunx:~/work/wpa_supplicant-2.1/wpa_supplicant$ file wpa_supplicant
+wpa_supplicant: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=0xd69c0b4bbafd67e19dfc86a66bfffdd10c2e2de8, not stripped

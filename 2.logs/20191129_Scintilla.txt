@@ -1,0 +1,112 @@
+Scintilla
+
+============================================================
+SciTE         SciTE(1)
+------------------------------------------------------------
+SHARED        SHARED
+SciTEWin      SciTEWin(1)
+SciTERes      SciTERes(1)
+============================================================
+
+##############
+# SHARED
+##############
+src/Cookie.cxx
+src/Credits.cxx
+src/EditorConfig.cxx
+src/ExportHTML.cxx
+src/ExportPDF.cxx
+src/ExportRTF.cxx
+srcExportTEX.cxx
+src/ExportXML.cxx
+src/FilePath.cxx
+src/FileWorker.cxx
+src/IFaceTable.cxx
+src/JobQueue.cxx
+src/MatchMarker.cxx
+src/MultiplexExtension.cxx
+src/PropSetFile.cxx
+src/ScintillaCall.cxx
+src/ScintillaWindow.cxx
+src/SciTEBase.cxx
+src/SciTEBuffers.cxx
+src/SciTEIO.cxx
+src/SciTEProps.cxx
+src/StringHelpers.cxx
+src/StringList.cxx
+src/StyleDefinition.cxx
+src/StyleWriter.cxx
+src/Utf8_16.cxx
+win32/DirectorExtension.cxx
+win32/GUIWin.cxx
+win32/SciTEWinBar.cxx
+win32/SciTEWinDlg.cxx
+win32/Strips.cxx
+win32/UniqueInstance.cxx
+win32/WinMutex.cxx
+----------
+win32/SciTEWin.cxx
+win32/SciTERes.rc
+
+============================================================
+Scintilla         SciLexer           libscintilla
+------------------------------------------------------------
+BASE              BASE+LEXLIB+LEX    BASE+LEXLIB+LEX
+ScintillaBase     ScintillaBaseL     -
+ScintillaWin      ScintillaWinL      ScintillaWin
+ScintillaDLL      ScintillaDLL       -
+ScintRes          ScintRes           -
+============================================================
+
+win32/ScintillaDLL.cxx/DllMain()
+    Scintilla_RegisterClasses() -> win32/ScintillaWin.cxx
+        Platform_Initialise() -> win32/PlatWin.cxx
+        ScintillaWin::Register() -> win32/ScintillaWin.cxx
+            wndclass.lpfnWndProc = ScintillaWin::SWndProc
+            wndclass.lpszClassName = L"Scintilla"
+            ::RegisterClassExW()
+            wndclassc.lpfnWndProc = ScintillaWin::CTWndProc
+            wndclassc.lpszClassName = TEXT("CallTip")
+            ::RegisterClassEx()
+
+##############
+# BASE
+##############
+src/AutoComplete.cxx
+src/CallTip.cxx
+src/CaseConvert.cxx
+src/CaseFolder.cxx
+src/CellBuffer.cxx
+src/CharClassify.cxx
+src/ContractionState.cxx
+src/DBCS.cxx
+src/Decoration.cxx
+src/Document.cxx
+src/EditModel.cxx
+src/Editor.cxx
+src/EditView.cxx
+src/Indicator.cxx
+src/KeyMap.cxx
+src/LineMarker.cxx
+src/MarginView.cxx
+src/PerLine.cxx
+src/PositionCache.cxx
+src/RESearch.cxx
+src/RunStyles.cxx
+src/Selection.cxx
+src/Style.cxx
+src/UniConversion.cxx
+src/UniqueString.cxx
+src/ViewStyle.cxx
+src/XPM.cxx
+lexlib/CharacterCategory.cxx
+lexlib/CharacterSet.cxx
+lexlib/PropSetSimple.cxx
+win32/PlatWin.cxx
+win32/HanjaDic.cxx
+----------
+src/ScintillaBase.cxx
+win32/ScintillaWin.cxx
+win32/ScintillaDLL.cxx
+win32/ScintRes.rc
+----------

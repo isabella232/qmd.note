@@ -1,0 +1,213 @@
+Ubuntu配置动态库链接路径：
+
+1. 修改环境变量LD_LIBRARY_PATH；
+
+2. 修改/etc/ld.so.conf（绝对路径）后执行ldconfig；
+
+
+
+
+
+#include "openssl/evp.h"
+
+fatal error: openssl/evp.h: No such file or directory compilation terminated. make: * [obj/local/armeabi/objs/iedemo/anotherdemo.o] Error 1
+
+However, I am include stdio.h and string.h files.
+
+I am explore /usr/include/openssl directory, I am able find all openssl related .h files here. And, stdio.h and string.h files are present in /usr/include directory.
+
+I have installed libssl-dev package too. Command (sudo apt-get install libssl-dev)
+
+
+Ubuntu 13.10 amd64运行32bit编译器报错，解决方法：
+
+sudo apt-get install build-essential automake autoconf libtool
+
+sudo apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0
+
+旧系统尝试：sudo apt-get install ia32-lib
+
+
+
+64位Ubuntu系统交叉编译报错：arm-linux-gnueabihf-gcc: error while loading shared libraries: libstdc++.so.6: cannot open shared ob
+解决方法：sudo apt-get install lib32stdc++6
+
+
+
+"mkimage" command not found - U-Boot images will not be built
+
+解决方法：apt-get install u-boot-tools
+
+
+
+/bin/sh: 1: ccache: not found
+
+解决方法：sudo apt-get install ccache
+
+
+
+
+
+转：http://my.oschina.net/fishman/blog/110278
+
+刚安装的ubuntu系统, 安装的中文版12.04.2， apt-get会自动使用 sohu的（cn.archive.ubuntu.com、mirrors.sohu.com）。   电信线路真的受不了的。 sohu很有可能是用的网通的，    网易的（mirrors.163.com）就不知道了，总之非常的快。
+修改/etc/apt/sources.list
+    deb http://mirrors.163.com/ubuntu/ precise main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ precise-security main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ precise-updates main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ precise-proposed main restricted universe multiverse
+    deb http://mirrors.163.com/ubuntu/ precise-backports main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ precise main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ precise-security main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ precise-updates main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ precise-proposed main restricted universe multiverse
+    deb-src http://mirrors.163.com/ubuntu/ precise-backports main restricted universe multiverse
+参考：http://mirrors.163.com/.help/ubuntu.html
+修改之后， 执行
+sudo apt-get update
+sudo apt-get upgrade
+
+
+【CentOS】
+CentOS 是Community Enterprise Operating System的缩写。RHEL（Red Hat Enterprise Linux） 在发行的时候，有两种方式：一种是二进制的发行方式，另外一种是源代码的发行方式。CentOS 是 RHEL源代码再编译的产物。常用配置技术如下。CentOS5.6发布于2011年4月7日。
+
+基本操作
+
+开机关机：重启reboot或shutdown -r now；关机poweroff。
+
+普通用户拥有sudo能力：在/etc/sudoers中root ALL=(ALL) ALL下添加qmd ALL=(ALL) ALL。
+
+修改主机名：修改/etc/sysconfig/network，HOSTNAME=localhost.localdomain，localhost为主机名，localdomain为域名；
+
+                      修改/etc/hosts，127.0.0.1 localhost.localdomain localhost，第三项为主机别名；
+
+                      命令hostname xxx，为临时修改主机名。
+
+添加路径：修改~/.bash_profile，PATH = $PATH:/bin:/sbin。
+
+查看系统信息命令：uname -a；查看内核版本uname -r；查看主机名uname -n。
+
+查看环境变量：env。
+
+查看启动信息：dmesg。
+
+切换用户：su 用户名；切换到超级用户su -。
+
+打包压缩：tar -zcf qmd.tar.gz qmd/为鸽子压缩，tar -jcf qmd.tar.bz2为BJ压缩，c表示create，加v表示可见，c换成x表示解压缩如tar -zxf qmd.tar.gz。
+
+U盘挂载：mount /dev/sdb /mnt/usbdisk，卸载mount /mnt/usbdisk。
+
+nfs挂载：mount -t nfs 172.16.1.216:/home/fs-nfs /mnt/nfs。
+
+
+
+网络相关
+
+查看IP地址：/sbin/ifconfig。
+
+网络重启：/etc/init.d/network restart。
+
+关闭防火墙：/etc/init.d/iptables stop。
+
+
+
+ 软件安装与卸载
+
+rpm格式： * 包名 * 版本信息 * 发布版本号 * 运行平台（由"-"和"."分割），当出现noarch，代表的是软件可以平台兼容。
+
+(一)查询系统装已经安装的软件信息
+
+1）查询系统中已经安装的软件：rpm -qa 
+
+2）查询一个已经安装的属于哪个软件包：rpm -qf [文件名的绝对路径]
+
+3）查询一个已安装软件安装到了何处：rpm -ql [软件名]
+
+4）查询一个已安装软件的信息：rpm  -qi [软件名]
+
+5）查看一下已安装软件的配置文件：rpm -qc [软件名]
+
+6）查看一个已安装软件的文档安装位置：rpm -qd [软件名]
+
+7）查看一下已安装软件所依赖的软件包及文件：rpm -qR [软件名]
+
+(二)对于未安装的软件包信息查询
+
+1）查看一个软件包的用途、版本等信息：rpm -qpi [rpm文件]
+
+2）查看一件软件包所包含的文件：rpm -qpl [rpm文件]
+
+3）查看软件包的文档所在的位置：rpm -qpd [rpm文件]
+
+4）查看一个软件包的配置文件：rpm -qpc [rpm文件]
+
+5）查看一个软件包的依赖关系：rpm -qpR [rpm文件]
+
+(三)软件包的安装、升级、删除等
+
+1) 安装一个rpm包：rpm -ivh [rpm文件]
+
+2) 升级一个rpm包：rpm -Uvh [rpm文件]
+
+3) 删除一个rpm 包：rpm -e [软件名]
+
+如何需要不管依赖问题，强制删除软件，在如上命令其后加上 --nodeps
+
+(四)签名导入
+
+rpm --import 签名文件 
+
+rpm --import RPM-GPG-KEY
+
+yum install [包名]
+
+yum -y remove [包名]
+
+
+
+
+
+vim安装
+
+vim依赖于: Bash, Binutils, Coreutils, Diffutils, GCC, Glibc, Grep, Make, Ncurses, Sed.
+
+方式一：网络安装vim
+
+1.yum -y install vim*
+
+查找网络相关资源yum search vim
+
+方式二：本地rpm包安装
+
+1. rpm -ivh vim-common-7.0.109-6.el5.i386.rpm
+
+2. rpm -ivh vim-common-7.0.109-6.el5.i386.rpm
+
+3. rpm -ivh vim-common-7.0.109-6.el5.i386.rpm
+
+方式三：本地源码安装：
+
+vim源码下载：ftp://ftp.vim.org/pub/vim/unix/
+
+ ./configure --help查看编译参数
+
+1. ./configure .......生成编译参数
+
+2. make
+
+3. make install 
+
+
+
+【Ubuntu】
+修改主机名：/etc/hostname （注意/etc/hosts用来配置IP与域名的映射关系，域名与主机名无关）
+
+提示符中的绝对路径改当前目录：~/.bashrc中w改W
+
+
+
+if [ "$color_prompt" = yes ]; then
+     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\W\[\033[00m\]\$ '
+else
+     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\W\$ '
+fi

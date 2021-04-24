@@ -1,0 +1,263 @@
+Java知识点
+
+构造函数/析构函数 finalize() final Context Object Application finally
+
+final表示不能再派生出新子类，不能作为父类被继承。
+
+编译javac test.java，运行java test arg0 arg1 ...
+
+try...catch...finally执行逻辑：finally会最后执行，无论是否异常、是否执行return。
+
+
+
+Android app启动过程
+1. 点击桌面App图标，Launcher进程采用Binder IPC向system_server进程发起startActivity请求；
+
+2. system_server进程接收到请求后，向zygote进程发送创建进程的请求；
+
+3. Zygote进程fork出新的子进程，即App进程；
+
+4. App进程，通过Binder IPC向sytem_server进程发起attachApplication请求；
+
+5. system_server进程在收到请求后，进行一系列准备工作后，再通过binder IPC向App进程发送scheduleLaunchActivity请求；
+
+6. App进程的binder线程（ApplicationThread）在收到请求后，通过handler向主线程发送LAUNCH_ACTIVITY消息；
+
+7. 主线程在收到Message后，通过发射机制创建目标Activity，并回调Activity.onCreate()等方法。
+
+
+
+Java Enum
+int = enumType.value.ordinal() 
+
+enumType = enumType.values()[i]
+
+String = enumType.name()
+
+enum = enumType.valueOf(name)
+
+
+
+Java线程互斥
+java多线程并发，可以用synchronized或者锁机制来实现互斥。
+
+Synchronized: 方法或代码块。
+
+Lock: ReentrantLock / ReadWriteLock / ReentrantReadWriteLock (java.util.concurrent.locks)
+
+Condition: wait、notify notifyAll
+
+
+
+Android Binder线程池
+Android系统启动完成后，ActivityManager, PackageManager等各大服务都运行在system_server进程，app应用需要使用系统服务都是通过binder来完成进程之间的通信。无论是system_server进程，还是app进程，都是在进程fork完成后，在新进程中执行onZygoteInit()中，启动binder线程池。
+
+frameworks/base/cmds/app_process/app_main.cpp
+frameworks/native/libs/binder/ProcessState.cpp
+framework/native/libs/binder/IPCThreadState.cpp
+kernel/drivers/staging/android/binder.c
+Java层通过Process.start()方法创建进程，该方法向Zygote进程发出创建进程的socket消息，Zygote收到消息后会调用Zygote.forkAndSpecialize()来fork出新进程，在新进程中调用RuntimeInit.nativeZygoteInit方法，该方法经过jni映射，最终会调用到app_main.cpp中的onZygoteInit。Binder设计架构中，只有第一个Binder主线程(也就是Binder_1线程)是由应用程序主动创建，Binder线程池的普通线程都是由Binder驱动根据IPC通信需求创建。每次由Zygote fork出新进程的过程中，伴随着创建binder线程池，调用spawnPooledThread来创建binder主线程。当线程执行binder_thread_read的过程中，发现当前没有空闲线程，没有请求创建线程，且没有达到上限，则创建新的binder线程。Binder的transaction有3种类型：
+
+call: 发起进程的线程不一定是在Binder线程，大多數情況下，接收者只指向进程，并不确定会有哪个线程来处理，所以不指定线程。
+reply: 发起者一定是binder线程，并且接收者线程便是上次call时的发起线程(该线程不一定是binder线程，可以是任意线程)。
+async: 与call类型差不多，唯一不同的是async是oneway方式不需要回复，发起进程的线程不一定是在Binder线程， 接收者只指向进程，并不确定会有哪个线程来处理，所以不指定线程。
+Binder系统中可分为3类binder线程：
+
+Binder主线程：进程创建过程会调用startThreadPool()过程中再进入spawnPooledThread(true)，来创建Binder主线程。编号从1开始，也就是意味着binder主线程名为binder_1，并且主线程是不会退出的。
+Binder普通线程：是由Binder Driver来根据是否有空闲的binder线程来决定是否创建binder线程，回调spawnPooledThread(false) ，isMain=false，该线程名格式为binder_x。
+Binder其他线程：其他线程是指并没有调用spawnPooledThread方法，而是直接调用IPC.joinThreadPool()，将当前线程直接加入binder线程队列。例如：mediaserver和servicemanager的主线程都是binder线程，但system_server的主线程并非binder线程。
+
+
+Java文件IO
+关闭了处理流后不用再关闭节点流，否则IO异常，处理流会调用节点流的close。
+
+常用节点流：文件（FileInputStream/FileReader/...），字符串（StringReader/...），数组（ByteArrayInputStream/...），管道（PipedInputStream/...）。
+
+常用处理流：缓存流（BufferedInputStream/BufferedReader/...)，转换流（InputStreamReader），数据流（DataInputStream）。
+
+影响文件IO效率的因素主要是一次读写内容的多少，一个字节一个字节的读写最慢。BufferedInputStream的默认缓冲区大小是8192字节，当每次读取数据量接近或远超这个值时，和FileInputStream就没有明显差别了。
+
+字符流：
+
+Reader->InputStreamReader->FileReader
+
+Reader->BufferedReader/StringReader/PipeReader/...
+
+Writer->OutputStreamWriter->FileWriter
+
+Writer->BufferdeWriter/StringWriter/PipedWriter/...
+
+字节流：
+
+InputStream->FileInputStream
+
+InputStream->FilterInputStream->BufferedInputStream
+
+InputStream->ObjectInputStream/PipedInputStream/...
+
+OutputStream->FileOutputStream
+
+OutputStream->FilterOutputStream->BufferedOutputStream
+
+OutputStream->ObjectInputStream/PipedInputStream/...
+
+读文件：1024Byte x 80000 （80MB）?
+
+FileInputStream.read ---->105ms
+
+FileInputStream+BufferInputStream.read ----> 42ms
+
+FileReader+BufferedReader.read ---->216ms
+
+写文件：20Byte x 10000 ?
+
+FileOutputStream.write ----> 188ms
+
+FileOutputStream+BufferedOutputStream.write ----> 32ms
+
+FileWriter.writer ----> 16ms
+
+写文件：16Byte x 1000000000 （160MB）?
+
+FileWriter.write ----> 5.2s
+
+FileOutputStream.write ----> 127s
+
+FileOutputStream+BufferedOutputStream.write ----> 5.9s
+
+FileOutputStream+OutputStreamWriter.write ----> 3.4s
+
+FileWriter+BufferedWriter.write ----> 5.9s
+
+FileOutputStream+BufferedOutputStream+BufferedWriter.write ----> 5.3s
+
+Java中多种写文件方式的效率对比实验https://www.cnblogs.com/daoqidelv/p/6864403.html
+
+文件大小 - FileWriter - BufferedWriter - FileOutputStream - BufferedOutputStream - FileChannel
+
+1MB - 48 - 15 - 7 - 4 - 9
+
+10MB - 134 - 72 - 65 - 23 - 13
+
+100MB - 887 - 697 - 730 - 248 - 77
+
+1024MB - 10331 - 9501 - 9777 - 7826 - 877
+
+2048MB - 35900 - 33664 - 36284 - 49560 - 155073
+
+1、五种写入方式时延从小到大排序：FileChannel<BufferedOutputStream<FileOutputStream<BufferedWriter<FileWriter；
+2、在同样文件大小写入的场景中，通常意义上带buffer的字节流输入/字符流输入比不带buffer的对应流效率要高；
+3、各个写入方式的jvm cpu和内存使用情况大致相当；
+4、文件达到一定大小后(fileSize>=1.5G)，FileChannel的时延变得很大且不稳定，物理内存的使用量基本和写入文件大小相当，原因在于FileChannel使用MappedByteBuffer写入，这个buffer是direct buffer，直接操作物理内存写入，造成物理内存消耗严重。
+5、小文件写入的场景下（1M左右），FileChannel有些大材小用了，效率上反而没有字节流效率高。
+6、小文件（几M的文件）写入时，使用常规的io输入就行，最优选择是BufferedInportStream，没有必要使用nio的FileChannel；
+7、大文件（fileSize > 1G，这是个经验值，需要根据具体环境具体分析）写入时，使用FileChannel需要小心物理内存的瓶颈带来的写入效率低下，可以考虑使用分段写入的方式；
+8、其他场景下，如果效率优先的考虑，则优先选择FileChannel写入文件。
+
+
+
+Java Retrofit okhttp
+    //retrofit
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    //Gson converter
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+    //RxJava2 Adapter
+    compile 'com.jakewharton.retrofit:retrofit2-rxjava2-adapter:1.0.0'
+    //okhttp
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.4.1'
+
+
+
+
+
+java FileLock
+lock() / tryLock()
+
+共享锁与独占锁
+
+Linux在创建文件锁的时候，内核会实例化一个struct file_lock对象，记录锁标识（POSIX锁、FLOCK锁、祖玲锁、阻塞锁）、锁类型（共享锁、独占锁）、拥有锁的进程号等，然后将file_lock对象插入到被锁文件的inode.i_flock链表中。
+
+POSIX锁和FLOCK锁分别通过fcntl()和flock()系统调用实现，lockf()是封装fcntl的库函数。
+
+Android java 加锁是POSIX锁，可以通过cat /proc/locks查看。
+
+
+
+
+
+Android APP
+每个apk有唯一一个application实例，主线程通常也是UI线程，UI线程尽量不执行耗时操作，activity负责UI，service提供后台服务，activity和service与线程无关，区别在于是否需要与用户交互。
+
+
+AIDL / CallbackAIDL
+用Service提供AIDL远程调用服务。每次调用时，AIDL Binder线程处理AIDL调用请求。
+
+服务端：声明接口的AIDL文件+实现接口的service java文件+parcelable AIDL文件+实现
+
+Callback需用RemoteCallbackList提供注册AIDL。
+
+
+
+
+
+ReactiveX / RxJava
+https://mcxiaoke.gitbooks.io/rxdocs/content/
+
+观察者模式，异步消息处理机制，使用不同线程收发事件。
+
+Consumer是简化版的Observer，Disposable是...
+
+编程三部曲：初始化Observable -> 初始化Observer -> 建立订阅关系observable.subscribe(observer)
+
+subscribeOn指定消息发送的线程。
+
+observeOn指定消息接收的线程，即observer回调发生的线程。
+
+Schedulers调度器。
+
+Flowable/SingleObserver/CompleteableObserver/Subject/Processor/...
+
+
+
+Java JSON
+http://www.json.org/
+
+net.sf.json.JSONObject
+
+http://json-lib.sourceforge.net/apidocs/jdk15/net/sf/json/JSONObject.html
+JSONObject obj = JSONObject.fromObject(str);
+org.json.JSONObject
+
+JSONObject obj = new JSONObject(str)
+
+https://www.dd-wrt.com/wiki/index.php/Category:Linking_Routers
+
+
+
+Java Thread
+Thread / Runnable / Callable / ThreadLocal / AtomicInteger / AtomicBoolean / ReentrantLock
+
+synchronized / wait() / notify() / volatile /
+
+Thread thread = new Thread(){
+
+    public void run(){
+        System.out.println("Thread Running");
+    }
+};
+thread.start();
+
+
+
+Java WebView
+http://www.android-doc.com/reference/android/webkit/WebView.html
+
+
+
+Java socketio
+http://socketio.github.io/socket.io-client-java/apidocs/
+
+https://github.com/socketio/socket.io-client-java
+
+javascript socketio https://socket.io/docs/#

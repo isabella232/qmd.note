@@ -1,0 +1,24 @@
+
+20171113 京东
+
+Intel i5 7500    - 1399元 - LGA1151 - 3.4GHz_3.8GHz 4核4线 14nm 65W HD_Graphics_630 DDR4
+
+Intel i7 7700K - 2499元 - LGA1151 - 4.2GHz_4.5GHz 4核8线 14nm 91W HD_Graphics_630 DDR4
+
+Intel i7 7700    - 2199元 - LGA1151 - 3.6GHz_4.2GHz 4核8线 14nm 65W HD_Graphics_630 DDR4
+
+Intel i7 8700K - 3999元 - LGA1151 - 3.7GHz_4.7GHz, 6核12线 95W UHD_Graphics_630 DDR4 X300
+
+Intel i5 8400   - 1699元 - LGA1151 - 2.8GHz_4.0GHz  6核6线  65W UHD_Graphics_630 DDR4 X300
+
+Intel i3 7100    - 799元   - LGA1151 - 3.9GHz     2核4线 14nm 51W 14nm 65W HD_Graphics_630 DDR4
+
+Intel i3 7359K   - 799元  - LGA1151 - 4.2GHz      2核4线 14nm 35W HD_Graphics_630 DDR4
+
+Intel i3 7100T  - 849元  - LGA1151 - 3.4GHz     2核4线 14nm 35W HD_Graphics_630 DDR4
+
+Intel i3 8100      - 969元  - LGA1151 - 3.6GHz      4核4线 14nm 65W
+
+Intel i3 8350K  -  1359元  - LGA1151 - 4.0GHz    4核4线 14nm 91W
+
+Intel i3 4170     - 999元  - LGA1150 - 3.7GHz      2核4线 22nm 54W HD_Graphics_4400 DDR3

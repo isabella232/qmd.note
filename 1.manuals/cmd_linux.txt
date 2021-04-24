@@ -1,0 +1,1061 @@
+/*************************
+ * Top commands
+ *************************
+
+svn st | awk '{ print $2 }' | xargs -i cp --parents {} /home/work/dir/
+svn st | grep ^? | awk '{ print $2 }' | xargs -i svn add {}
+svn st | grep ^! | awk '{ print $2 }' | xargs -i svn del {}
+find -type f -exec chmod 664 {} \;
+find -type d -exec chmod 775 {} \;
+
+find . name .svn -exec du -dh1 {} \;
+
+/*************************
+ * Daily commands
+ *************************
+
+https://docs.espressif.com/projects/esp-adf/en/latest/design-guide/audio-samples.html
+ffplay -rtsp_transport tcp rtsp://10.0.0.234:9554/audiodevice
+ffprobe -show_streams -rtsp_transport tcp rtsp://10.0.0.234:9554/audiodevice
+
+sed -i "s/com.realtek.launcher/com.screenbeam.launcher/g"  `grep com.realtek.launcher -rl .`
+
+am start com.screenbeam.launcher/com.android.launcher2.Launcher
+am start com.realtek.launcher/com.android.launcher2.Launcher
+am start com.realtek.launcher/com.android.launcher2.WallpaperChooser
+
+[   67.994996] PC is at function+0x14/0x6c
+[   67.995056] LR is at XXXXXXX+0x38/0x44
+$ gdb xxx.o
+gdb)list *(function+0x14)
+
+
+
+https://github.com/JaneaSystems/nodejs-mobile
+
+
+X64 Ubuntu18 NDK24 compile android node-v12.16.1 
+1. Build x64 node and keep.
+2. Prepare arm node.
+    vi android-configure, android-24, --prefix=$PWD/install, --partly-static, --without-intl, --debug
+    vi node.gyp, mkcodecache_exec node_mksnapshot use X64 path
+    vi deps/cares/config/android/ares_config.h, //#define HAVE_GETSERVBYPORT_R 1. 
+3. source android-configure /home/work/codes/android/cmd/sdk/ndk-bundle arm
+    vi out/deps/openssl/openssl.target.mk, m64 -> m32.
+    vi out/deps/openssl/openssl-cli.target.mk, m64 -> m32.
+    vi out/tools/v8_gypfiles/v8_libbase.target.mk, add platform-linux.o to OBJS.
+4. time make -j8
+5. Copy X64_node/out/Release/xxx to arm_node/out/Release/ when compile error.
+    bytecode_builtins_list_generator
+    genccode icupkg iculslocs torque
+    genrb gen-regexp-special-case
+    mkcodecache
+    [or]
+    vi tools/v8_gypfiles/v8.gyp,
+      <(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)bytecode_builtins_list_generator<(EXECUTABLE_SUFFIX)
+      <(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen-regexp-special-case<(EXECUTABLE_SUFFIX)
+    vi tools/icu/icu-generic.gyp,
+      <(PRODUCT_DIR)/genccode
+      <(PRODUCT_DIR)/icupkg      
+    ...
+https://www.sisik.eu/blog/android/other/build-node-js-for-android
+
+cp bytecode_builtins_list_generator genccode icupkg iculslocs torque genrb gen-regexp-special-case  mkcodecache mksnapshot node_mksnapshot cctest openssl-cli ../../../node-v12.16.1-arm/out/Release/
+   
+########################################################
+# Creating self-signed certificates on Android
+########################################################
+Step 1 Create private keys
+> openssl genrsa -des3 -out client_key.pem 2048
+> openssl genrsa -des3 -out server_key.pem 2048
+Step 2. Create self-signed certificates
+> openssl req -new -x509 -key client_key.pem -out client.pem -days 3650
+> openssl req -new -x509 -key server_key.pem -out server.pem -days 3650
+Step 3. Create trust stores
+> keytool -importcert -trustcacerts -keystore clienttruststore.bks -storetype bks -storepass 123456 -file server.pem -provider org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath /home/work/codes/android/cmd/sdk/tools/lib/bcprov-jdk15on-1.56.jar 
+> keytool -importcert -trustcacerts -keystore  servertruststore.bks -storetype bks -storepass 123456 -file client.pem -provider org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath /home/work/codes/android/cmd/sdk/tools/lib/bcprov-jdk15on-1.56.jar 
+> keytool -importcert -trustcacerts -keystore  servertruststore.jks -storetype jks -storepass 123456 -file client.pem
+Step 4. Combine keys and certificates
+> openssl pkcs12 -export -inkey client_key.pem -in client.pem -out client.p12
+> openssl pkcs12 -export -inkey server_key.pem -in server.pem -out server.p12
+Step 5. Convert from pkcs12
+> keytool -importkeystore -srckeystore client.p12 -srcstoretype pkcs12 -destkeystore client.bks -deststoretype bks -provider org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath /home/work/codes/android/cmd/sdk/tools/lib/bcprov-jdk15on-1.56.jar 
+> keytool -importkeystore -srckeystore server.p12 -srcstoretype pkcs12 -destkeystore server.bks -deststoretype bks -provider org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath /home/work/codes/android/cmd/sdk/tools/lib/bcprov-jdk15on-1.56.jar
+> keytool -importkeystore -srckeystore server.p12 -srcstoretype pkcs12 -destkeystore server.jks -deststoretype jks
+
+
+
+avahi-publish-service SERVICE-NAME _APPLICATION-PROTOCOL._TRANPOSRT-PROTOCOL PORT "DESCRIPTION" --sub SUBPROTOCOL
+eg.
+avahi-publish-service light _coap._udp 5683 "/mylight" --sub _floor1._sub._coap._udp
+avahi-browse -artp
+
+nanohttpd-2.3.1 compile
+mvn compile
+mvn package
+
+android
+setttings put system show_mousecursor 1
+am start -a android.settings.BLUETOOTH_SETTINGS
+svc bluetooth enable
+svc bluetooth disable
+
+terminator: ctrl+shift+x 最大化/最小化
+
+svn st
+svn: E000022: Error converting entry in directory '/home/work/build1/v0_1395/software_Phoenix_RTK/system/src/Application/WEB/VOD/0902_play_movie' to UTF-8
+svn: E000022: Can't convert string from native encoding to 'UTF-8':
+svn: E000022: web_movie{U+5EA7}{U+6A19}.png
+Fix:
+export LC_ALL=en_US.UTF-8
+
+Index: /home/work/build2/1195/software_phoenix/software_Phoenix_RTK/system/src/Tools/bmp2felics/bmp2felics.c
+===================================================================
+--- /home/work/build2/1195/software_phoenix/software_Phoenix_RTK/system/src/Tools/bmp2felics/bmp2felics.c	(revision 5854)
++++ /home/work/build2/1195/software_phoenix/software_Phoenix_RTK/system/src/Tools/bmp2felics/bmp2felics.c	(working copy)
+@@ -31,7 +31,7 @@
+  * compute image line size and bytes per pixel
+  * from bits per pixel and width
+  */
+-inline void
++void
+ ComputePitch(int bpp, int width, int *pitch, int *bytesperpixel)
+ {
+ 	if(bpp >= 8)
+
+
+/home/work/build2/1195/output/build/host-automake-1.14.1/Makefile +3707
+--no-discard-stderr
+
+sqlite3 admin.db ".headers on" ".mode column" "select * from config_tb"
+sqlite3 admin.db ".headers on" ".mode column" "select * from config_tb where id=1 "
+sqlite3 admin.db ".databases" 
+sqlite3 admin.db ".tables"
+sqlite3 admin.db ".schema"
+insert into CONFIG_TB (PARAMETER_NAME,PARAMETER_VALUE) values ('a','1');
+
+
+am start us.zoom.videomeetings/com.zipow.videobox.LauncherActivity
+am start us.zoom.zrc/.EntranceActivity
+
+
+Digital Signage
+http://137.135.63.13:18080/static/signage/WebGLSamples.github.io-master/blob/blob.html
+http://137.135.63.13:18080/static/signage/videowebm.html
+http://137.135.63.13:18080/static/signage/videoh264.html
+http://137.135.63.13:18080/static/signage/video.html
+http://137.135.63.13:18080/static/signage/gif.html
+
+infracast enable=1 ip_enable=0 stream_sec_enable=0 pin_enable=0 dev_name='ScreenBeam 1B87' host_name='ScreenBeam 1B87' ip_addr='192.168.2.10'
+aei_ipc_client 27 '{"configure":{"infracast_init":{"p2p_iface":"wlan1_0","infra_iface":"br0"}}}'
+aei_ipc_client 23 '{"update":{"action":"update_pin"}}'
+
+
+
+https://chromium.googlesource.com/chromium/src/+/master/docs/android_build_instructions.md
+https://www.chromium.org/developers/how-tos/build-instructions-android-webview
+https://android.googlesource.com/platform/external/chromium-webview/
+
+mkdir chrome
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH="$PATH:/path/to/depot_tools"
+mkdir chromium && cd chromium
+fetch --nohooks android
+cd src
+build/install-build-deps-android.sh
+gclient runhooks
+gn gen out/Default --args='target_os="android" target_cpu="arm"'
+autoninja -C out/Default chrome_public_apk
+
+gn gen out/WebView --args='target_os="android" target_cpu="arm"'
+autoninja -C out/WebView system_webview_apk
+adb shell rm -rf /system/app/webview 
+adb install -r -d out/Default/apks/SystemWebView.apk
+
+> chrome_public_apk
+> chrome_modern_public_apk
+> monochrome_public_apk
+> trichrome_chrome_bundle
+> trichrome_library_apk
+
+npm install http-server -g
+http-server [path] [options]
+
+npm root -g
+npm config ls
+npm config ls -l
+npm config get prefix
+
+svn st | awk '{if ($1 == "?") {print $2} }' | xargs svn add
+
+Set up ssh key pair for authentication: ssh-agent -s ; ssh-keygen ; ssh-copy-id USERNAME@<ip> -p <port>
+Change the default ssh port for svn: ~/.subversion/config/[tunnels]/ssh = ssh -p <port>
+Add key to ssh agent: ssh-add
+
+ffplay -autoexit -f s16be -ar 48000 -ac 2 file.pcm
+
+
+Improve win10 upload speed:
+netsh interface tcp set global autotuning=disabled
+Note: Use default tcp window
+
+sudo apt-get install apache2
+vi /var/www/html/index.html
+sudo /etc/init.d/apache2 restart
+
+sudo apt-get install bind9
+cp /etc/bind/db.root /etc/bind/db.root.org
+cp /etc/bind/db.local /etc/bind/db.root
+vi /etc/bind/named.conf.default-zones
+-------------------
++ zone "ocean.com" {
++     type master;
++     file "/etc/bind/db.ocean";
++ };
++ zone "myabc.com" {
++     type master;
++     file "/etc/bind/db.myabc";
++ };
+-------------------
+vi /etc/bind/db.ocean
+-------------------
+$TTL    604800
+@   IN  SOA n1.ocean.com. test.ocean.com. (
+                  2     ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            2419200     ; Expire
+             604800 )   ; Negative Cache TTL
+;
+@ IN NS n1.ocean.com.
+n1.ocean.com. IN A 127.0.0.1
+test.ocean.com. IN  A   192.168.1.115
+-------------------
+vi /etc/bind/db.myabc
+-------------------
+$TTL    604800
+@   IN  SOA localhost. test.myabc.com. (
+                  2     ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            2419200     ; Expire
+             604800 )   ; Negative Cache TTL
+;
+@   IN  NS  localhost.
+@   IN  A   192.168.1.115
+test.myabc.com. IN  A   192.168.1.115
+-------------------
+vi /etc/bind/named.conf.options
+-------------------
++     forwarders {
++       8.8.8.8;
++     };
+-------------------
+named-checkzone myabc.com /etc/bind/db.myabc
+named-checkconf
+/etc/init.d/bind9 restart
+
+
+vim ^M=ctrl+v and ctrl+m (or ctrl+enter)
+char  digraph  hex   dec   official name
+^@      NU     0x00   0    NULL   (NUL)
+^A      SH     0x01   1    START OF HEADING (SOH)
+^B      SX     0x02   2    START OF TEXT (STX)
+^C      EX     0x03   3    END OF TEXT (ETX)
+^D      ET     0x04   4    END OF TRANSMISSION (EOT)
+^E      EQ     0x05   5    ENQUIRY (ENQ)
+^F      AK     0x06   6    ACKNOWLEDGE (ACK)
+^G      BL     0x07   7    BELL (BEL)
+^H      BS     0x08   8    BACKSPACE (BS)
+^I      HT     0x09   9    CHARACTER TABULATION (HT)
+^@      LF     0x0a   10   LINE FEED (LF)
+^K      VT     0x0b   11   LINE TABULATION (VT)
+^L      FF     0x0c   12   FORM FEED (FF)
+^M      CR     0x0d   13   CARRIAGE RETURN (CR)
+set list/nolist
+
+U18 rabbitvcs meld error patch:
+vi /usr/lib/python2.7/dist-packages/rabbitvcs/vcs/svn/__init__.py +1237
+----------------------------------------
+ rabbitvcs/vcs/svn/__init__.py
+@@ -1237,9 +1237,6 @@ def export(self, src_url_or_path, dest_path, revision=Revision("head"),
+        @param  recurse: Whether or not to run a recursive checkout.
+        """
+-       revision=Revision("head")
+-
+-
+        return self.client.export(src_url_or_path, dest_path, force,
+            revision.primitive(), native_eol, ignore_externals, recurse)
+----------------------------------------
+
+
+svn st | awk '{ print $2 }' | xargs -i cp --parents {} /home/work/dir/
+find -type f -exec chmod 644 {} \;
+find -type d -exec chmod 755 {} \;
+
+Change format (Youtube VP9 -> H264)
+ffmpeg -i input.mkv -vcodec h264 -strict experimental output.mp4
+
+for %%i in (*.mkv) do ffmpeg.exe -i "%%i" -vcodec copy -acodec copy "%%~ni.mp4"
+
+Add frame number:
+ffmpeg.exe -i [input video] -vf "drawtext=fontfile=Arial.ttf: text='%{frame_num}': start_number=1: x=(w-tw)/2: y=h-(2*lh): fontcolor=black: fontsize=400: box=1: boxcolor=white: boxborderw=5" -c:a copy [output]
+    [input video]: Enter the location of your source video
+    [output video]: Enter the location where you want the video saved
+https://4kmedia.org/
+https://kodi.wiki/view/Samples/
+
+BIOS --> security boot --> off
+Admin cmd --> bcdedit -set testsigning on/off
+
+diff -uprN a b > xxx.patch
+cd a && patch -p1 < xxx.patch
+
+git diff . > xxx.patch
+git diff [branch1] [branch2] > xxx.patch
+git diff [id1] [id2] > xxx.patch
+git apply xxx.patch
+
+svn diff > xxx.patch
+patch -p1 < xxx.patch
+
+out/host/linux-x86/bin/simg2img target/product/abc/system.img system.img.ext4
+sudo mount -t ext4 -o loop system.img.ext4 system
+
+######################################################################
+sudo apt-get intall git git-gui
+ssh-keygen
+ssh-add
+
+git clone [url]
+git pull origin master
+git remote -v
+git branch -a
+git checkout master
+git checkout [path]
+git branch -d myrepo
+
+git pull origin master
+git status [path]
+git diff [path]
+git log -3
+git add .
+git commit -m "log"
+git remote add ..
+git push [repo] [branch]
+
+git clean -df
+git reset --hard
+git rebase
+
+git config --list
+git config --global user.email "..."
+git config --global user.name "..."
+git config --local user.email "..."
+git config --local user.name "..."
+
+# pull part code
+git init
+git remote add -f origin https://github.com/xxx/xxx.git
+git remote add origin https://github.com/xxx/xxx.git
+git config core.sparsecheckout true
+echo "/aaa/bbb" >> .git/info/sparse-checkout
+echo "!/aaa/ccc" >> .git/info/sparse-checkout
+echo "/aaa/*.sh" >> .git/info/sparse-checkout
+git pull origin master
+######################################################################
+RabbitVCS
+Refer: http://wiki.rabbitvcs.org/wiki/install/ubuntu
+sudo add-apt-repository ppa:rabbitvcs/ppa
+sudo apt-get install rabbitvcs-nautilus3 rabbitvcs-thunar rabbitvcs-gedit rabbitvcs-cli
+
+Ubuntu18+rabbitvcs:
+That's because a bug was introduced in rabbitvcs-core version 0.16-1.1, 
+which is the version in the ubuntu repo for 16.10/yakkety. 
+The bug causes the "compare to previous revision" action to always export 
+the head revision instead of the desired revisions. 
+Someone wrote a fix that hasn't been accepted yet: here. 
+One easy solution is just to downgrade rabbitvcs-core to 0.16-1 which works fine 
+and is available in the ubuntu repo for 16.04/xenial. 
+Don't forget to mark the package as held afterwards so software updater doesn't upgrade over it.
+sudo apt-add-repository "deb http://us.archive.ubuntu.com/ubuntu xenial universe"
+sudo apt install rabbitvcs-core=0.16-1
+sudo apt-mark hold rabbitvcs-core
+
+svn co ..
+svn up ..
+svn st ..
+svn diff ..
+svn log ..
+svn ci -m "log"
+svn up --set-depth empty/imm../infinity
+svn revert --depth infinity .
+
+常用的SVN命令
+svn co -depth <mod> url # 复制svn库到本地
+svn export # 复制svn库到本地，纯数据，不带管理信息
+svn import # 导入文件到新的库
+svn up --set-depth <mode> # 更新本地库，与服务器同步
+svn diff -r<v1>:<v2> # 查看版本内容差异
+svn st <file> # 查看本地修改
+svn log -l<limit> # 查看log
+svn add <file> # 在本地添加文件
+svn del <file> # 在本地删除文件
+svn move <src> <dst> 在本地移动或者重命名文件
+svn ci -m "log." # 提交修改
+svn revert <file> # 还原指定文件到最新版本
+
+
+
+
+1. vi bmp2felics.c, remove "inline"
+2. Try `--no-discard-stderr' if option outputs to stderr
+   Fix: output/build/host-automake-1.14.1/Makefile +704, add "--no-discard-stderr"
+3. Unescaped left brace in regex is illegal here in regex
+   #Fix: vi output/host/usr/bin/automake +3930, perl-5.26 {} -> \{\}
+   Fix: vi output/host/usr/bin/automake, use perl-5.22, #!/home/ocean/perl/bin/perl
+4. _56841.c:835:15: error: expected ‘)’ before ‘int’
+   Fix: vi output/build/host-ncurses-5.9/include/curses.h +1584, remove "/* generated */"
+5. gdate.c:2497:7: error: format not a string literal, format string not checked [-Werror=format-nonliteral]
+   Fix: vi output/build/host-libglib2-2.38.2/glib/gdate.c +2442, 
+        add #pragma GCC diagnostic push
+        add #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+6. checking for intltool >= 0.35.0... Unescaped left brace in regex is illegal here in regex; marked by <-- HERE in m/^(.*)\${ <-- HERE ?([A-Z_]+)}?(.*)$/ at /home/work/build2/mini4k/output/host/usr/bin/intltool-update line 1064.
+   Fix: vi /home/work/build2/mini4k/output/host/usr/bin/intltool-update, use perl-5.22, #!/home/ocean/perl/bin/perl
+7. configure: Your compiler failed the ACC conformance test
+   Fix: vi toolchain/buildroot-2014.05/package/lzo/lzo.mk, add HOST_LZO_CONF_ENV += CPPFLAGS="$(HOST_CPPFLAGS) -std=c90"
+8. hashtable_iterator_key and hashtable_iterator_value redefine
+   Fix: output/build/host-mtd-1.5.1/mkfs.ubifs/hashtable/hashtable_itr.h, change define to declaration and remove all *.o
+
+ping -b -f 192.168.2.255
+
+echo Disable > /sys/devices/platform/9800d000.hdmitx/hdmitx_tdms_power
+echo Eisable > /sys/devices/platform/9800d000.hdmitx/hdmitx_tdms_power
+
+enable usb:/dev/rtk_btusb
+
+aei_ipc_client 27 '{"notify":{"infracast_available":"1"}}'
+aei_ipc_client 27 '{"notify":{"session_available":"1"}}'
+
+Microsoft Teams
+am start com.microsoft.teams/com.microsoft.skype.teams.Launcher
+am start com.google.android.gms/
+
+am broadcast -n screenbeam.chromesbcc.receiver/.MyReceiver -a screenbeam.chromesbcc.receiver.ACTION --es 'command' '{"show":""}'
+am force-stop screenbeam.chromesbcc.receiver
+
+am broadcast -n screenbeam.chromesbcc.receiver/.MyReceiver -a screenbeam.chromesbcc.receiver.ACTION --es 'command' '{"show":""}'
+aei_ipc_client 3 '{"update_ui":{"window_state":"WINDOW_HIDE_SCREEN"}}'
+am force-stop screenbeam.chromesbcc.receiver && am startservice screenbeam.chromesbcc.receiver
+gradle clean && gradle build && adb uninstall screenbeam.chromesbcc.receiver && adb install app/build/outputs/apk/debug/app-debug.apk
+
+
+am start us.zoom.sdkexample/us.zoom.sdksample.ui.InitAuthSDKActivity
+am start us.zoom.videomeetings/com.zipow.videobox.LauncherActivity
+input text 5329579422
+input text 123456
+
+am start screenbeam.zoomclient/.inmeetingfunction.customizedmeetingui.MyMeetingActivity
+
+am broadcast -n screenbeam.zoomclient/.receiver.MyReceiver -a screenbeam.zoomclient.receiver.ACTION --es 'command' '{"show":""}'
+am broadcast -n screenbeam.zoomclient/.receiver.MyReceiver -a screenbeam.zoomclient.receiver.ACTION --es 'command' '{"join_meeting":{"meeting_number":"286759915","meeting_password":"782194","display_name":"screenbeam"}}'
+am broadcast -n screenbeam.zoomclient/.receiver.MyReceiver -a screenbeam.zoomclient.receiver.ACTION --es 'command' '{"share_screen":""}'
+am broadcast -n screenbeam.zoomclient/.receiver.MyReceiver -a screenbeam.zoomclient.receiver.ACTION --es 'command' '{"stop_share":""}'
+am broadcast -n screenbeam.zoomclient/.receiver.MyReceiver -a screenbeam.zoomclient.receiver.ACTION --es 'command' '{"hide":""}'
+am broadcast -n screenbeam.zoomclient/.receiver.MyReceiver -a screenbeam.zoomclient.receiver.ACTION --es 'command' '{"leave_meeting":""}'
+
+
+SB1100 show cursor
+touch /tmp/show_cursor.txt 
+setttings put system show_mousecursor 1
+
+1060 modify wifi chip pid vid
+rtwpriv wlan1 efuse_get realmap
+rtwpriv wlan1 efuse_get rmap,d6,4
+rtwpriv wlan0 efuse_set wmap,d6,68160b81
+
+
+
+
+01-24 07:52:22.913  5236  8045 I DisplayManagerService: Display device added: DisplayDeviceInfo{"ScreenSharing": uniqueId="virtual:screenbeam.zoomclient,10069,ScreenSharing,0", 1920 x 1080, modeId 9, defaultModeId 9, supportedModes [{id=9, width=1920, height=1080, fps=60.0}], colorTransformId 0, defaultColorTransformId 0, supportedColorTransforms [], density 240, 240.0 x 240.0 dpi, appVsyncOff 0, presDeadline 16666666, touch NONE, rotation 0, type VIRTUAL, state ON, owner screenbeam.zoomclient (uid 10069), FLAG_PRIVATE, FLAG_PRESENTATION}
+
+
+aei_ipc_client 111 '{"update":{"action":"connect","ipaddr":"1.1.1.1","port":"2222"}}'
+aei_ipc_client 111 '{"status":""}'
+
+echo "#MultiviewIdrRequest24050" > /tmp/aeicmdpipe
+
+echo mode0 > /sys/devices/platform/9800d000.hdmitx/hdmitx_tdms_power
+echo mode4 > /sys/devices/platform/9800d000.hdmitx/hdmitx_tdms_power
+echo Disable > /sys/devices/platform/9800d000.hdmitx/hdmitx_tdms_power
+echo Enable > /sys/devices/platform/9800d000.hdmitx/hdmitx_tdms_power
+cat /sys/devices/platform/9800d000.hdmitx/hdmitx_info
+
+echo "wfd_video_formats: 00 01 02 10 0001ffff 0000000f 00000fff 02 0000 00ff 11 0780 0438, 01 10 0001ffff 0000000f 00000fff 02 0000 00ff 11 0780 0438" > /tmp/wfd_video_formats.txt
+echo "wfd2_video_formats: 00 01 02 0010 00000001ffff 00000000000f 000000000fff 02 0000 00ff 11, 01 01 0010 00000001ffff 00000000000f 000000000fff 02 0000 00ff 11, 02 01 0008 00000001ffff 00000000000f 000000000fff 02 0000 00ff 11 00" > /tmp/wfd2_video_formats.txt
+
+1080P30
+echo "wfd2_video_formats: 00 01 02 0010 0000000000ff 00000000000f 000000000fff 02 0000 00ff 11, 01 01 0010 0000000000ff 00000000000f 000000000fff 02 0000 00ff 11 00" > /tmp/wfd2_video_formats.txt
+
+aei_ipc_client 22 '{"update":{"action":"add_source","ipaddr":"192.168.16.129","port":"24051"}}'
+aei_ipc_client 22 '{"update":{"action":"add_source","ipaddr":"192.168.16.121","port":"0"}}'
+aei_ipc_client 22 '{"status":""}'
+aei_ipc_client 1 '{"debug":{"level":"4"}}'
+
+adb install 1295_docking_android_sdk/android/device/realtek/kylin/common/prebuilt/sbcc/MultiView.apk
+adb shell am start screenbeam.multiview/.ReceiverActivity
+adb shell touch /tmp/Multiview
+echo "#DECODER_EVT" > /tmp/aeicmdpipe
+aei_tools set_database DTLSSupport 0 
+
+cp /home/work/build/1100audio/cvbs/audio/src/Integrated/project/dvr_audio/bluecore.audio.zip /home/work/build/1100/image_file_creator/dailybuild/trunk-7.0/package5/bluecore.audio.zip
+
+am start -a android.intent.action.VIEW -d "file:///mnt/media_rw/1C73-FD8C/01.Video/FHD30_XMAN_2019.mkv"
+am start -a "android.intent.action.VIEW" -t "audio/mp3" -d "file:///mnt/media_rw/1C73-FD8C/yilian.mp3"
+am start -a "android.intent.action.VIEW" -t "audio/mp3" -d "file:///data/test.mp3"
+
+RTD1619 AEI Android8
+usb start;fatload usb 0:1 0x03000000 emmc.uImage;fatload usb 0:1 0x02100000 rescue.emmc.dtb;fatload usb 0:1 0x02200000 rescue.root.emmc.cpio.gz_pad.img;fatload usb 0:1 0x0f900000 bluecore.audio;boot a;boot k
+
+IPQ8074 uboot tftp FW upgrade
+set ipaddr 192.168.1.100
+set serverip 192.168.1.40
+ping $(serverip)
+tftpboot 0x44000000 nand-ipq807x-single.img
+imgaddr=0x44000000 && source $imgaddr:script
+
+
+======================
+=
+=  SVN server
+=
+======================
+
+ubuntu-14.04 x86_64
+svn-1.8.8
+
+svn服务器默认端口号是3690。如果想在同一台PC上启动多个svn服务器，需要为每个svn服务器指定不同端口号。
+svnadmin create /home/svn/doc
+svnserve -d -r /home/svn/doc --listen-port 3691
+svnadmin create /home/svn/server
+svnserve -d -r /home/svn/server --listen-port 3692
+
+doc/conf/svnserve.conf
+--------------------
+[general]
+anon-access = none
+auth-access = write
+password-db = passwd
+authz-db = authz
+---------------------
+
+doc/conf/passwd
+---------------------
+[users]
+kkk=123456
+---------------------
+
+doc/conf/authz
+
+---------------------
+[groups]
+admin=kkk
+[/]
+@admin=rw
+---------------------
+
+svnadmin create doc
+svnserve -d -r doc --listen-port 3691
+svn import -m "New import." files svn://192.168.1.1:3691
+
+镜像
+svnadmin create /home/svn/server
+svnsync init file:///home//svn/server svn://192.168.1.10/server
+svnsync sync file:///home/svn/server
+svnserve -d -r /home/svn/server
+注意需要hooks/pre-revprop-change返回0
+svn propget svn:sync-from-url –-revprop -r 0 file:///home/svn/server
+svn propset svn:sync-from-url –-revprop -r 0 http://10.0.0.9/svn/project file:///home/svn/server
+
+
+am start --activity-no-animation com.a.b/.activity
+
+input text "192.168.1.1"
+input keyevent 19|20|21|22|23 (up|down|left|right|ok)
+input keyevent 61|62 (tab|space)
+am start -S com.android.settings/.Settings
+am start -a android.intent.action.VIEW -d http://www.baidu.com
+
+am broadcast -n com.abc/.MyReceiver -a com.abc.DEBUG --es 'command' '{"command":{"ping":"abc"}}'
+am broadcast -n com.abc/.MyReceiver -a com.abc.DEBUG --es 'command' '{"event_test":{"src":"MODULE1","dst":"MODULE2", "content":{"update":{"display":"true"}}}}'
+am broadcast -n com.abc/.MyReceiver -a com.abc.DEBUG --es 'notify' '{"event_log":{"a":"1","b":"2", "c":"3"}}'
+
+iw dev wlan1_0 info
+cat /tmp/hostapd-wlan1_0.conf | grep channel
+
+-----------
+TOP=$PWD
+export ANDROID_HOME=$TOP/sdk
+export STUDIO_HOME=$TOP/studio
+export JAVA_HOME=$TOP/studio/jre
+export JRE_HOME=$TOP/studio/jre/jre
+export GRADLE_HOME=$TOP/studio/gradle/gradle-4.1
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH=$ANDROID_HOME/platform-tools:$PATH
+export PATH=$ANDROID_HOME/tools/bin:$PATH
+export PATH=$STUDIO_HOME/bin:$PATH
+export PATH=$GRADLE_HOME/bin:$PATH
+export PATH=$JAVA_HOME/bin:$PATH
+#export PATH=$JRE_HOME/bin:$PATH
+#export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib
+-----------
+
+adb push nat.sh /data/misc/wifi/ && adb shell chmod 755 /data/misc/wifi/nat.sh
+
+iperf -u -s -i 10
+iperf -u -c 192.168.5.102 -i 10 -t 1000 -b 1000M
+
+-----------------------------
+
+wpa_supplicant -B -Dnl80211 -iwlan2 -c /data/misc/wifi/wpa_supplicant2.conf
+wpa_cli -iwlan2 -p /data/misc/wifi/wpa_supplicant select_network 2
+> add_network 
+> set_network 0 ssid "Ocean6"
+> set_network 0 psk "12345678"
+> save_config
+> select_network 0
+> quit
+ifconfig wlan2 192.168.12.101
+dhcptool wlan2
+ndc netd network interface add local wlan2
+ndc netd network route add local wlan2 192.168.5.0/24
+
+/data/misc/wifi/wpa_supplicant2.conf
+------------------
+ctrl_interface=/data/misc/wifi/wpa_supplicant
+ap_scan=1
+update_config=1
+
+network={
+        ssid="abc"
+        psk="12345678"
+        disabled=1
+}
+------------------
+
+
+ndc netd softap startap
+ndc netd interface setcfg wlan0 192.168.43.1 24 up multicast running broadcast
+ndc netd tether interface add wlan0
+ndc netd network interface add local wlan0
+ndc netd network route add local wlan0 192.168.43.0/24
+ndc netd ipfwd enable wlan2
+ndc netd tether start 192.168.43.100 192.168.43.200
+ndc netd tether dns set 501 8.8.8.8 8.8.4.4
+ndc netd nat enable wlan0 wlan2 1 192.168.43.0/24
+
+------------------
+interface=wlan0
+driver=nl80211
+ctrl_interface=/data/misc/wifi/hostapd
+ssid=OceanHotspot
+channel=6
+ieee80211n=1
+hw_mode=g
+ignore_broadcast_ssid=0
+wowlan_triggers=any
+wpa=2
+rsn_pairwise=CCMP
+wpa_passphrase=12345678
+------------------
+
+-----------------------------
+insmod /vendor/modules/8192ee.ko
+ndc netd softap set wlan0 OceanHotspot broadcast 6 wpa2-psk 12345678
+ndc netd softap startap
+ndc netd interface setcfg wlan0 192.168.43.1 24 up multicast running broadcast
+ndc netd tether interface add wlan0
+ndc netd network interface add local wlan0
+ndc netd network route add local wlan0 192.168.43.0/24
+ndc netd ipfwd enable actiontec
+ndc netd tether start 192.168.43.100 192.168.43.200
+ndc netd tether dns set 501 8.8.8.8 8.8.4.4
+ndc netd nat enable wlan0 eth0 1 192.168.43.0/24
+
+-----------------------------
+/data/user/dnsmasq -i wlan0 -a 192.168.43.1 --bind-interfaces --dhcp-option-force=1,255.255.255.0 --dhcp-option-force=3,192.168.43.1 --dhcp-option-force=6,8.8.8.8 --no-daemon --no-resolv --no-poll --no-hosts --dhcp-authoritative --dhcp-range=192.168.43.100,192.168.43.200,24h < /dev/null &
+-----------------------------
+
+iptables -t nat -F
+iptables -t nat -X
+iptables -t raw -F
+iptables -t raw -X
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -t filter -F
+iptables -t filter -X
+-----------------------------
+
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+
+
+iptables -t filter -A INPUT -i wlan0 -j ACCEPT
+iptables -t filter -A FORWARD -i wlan0 -o wlan0 -j ACCEPT
+iptables -t filter -A OUTPUT -o wlan0 -j ACCEPT
+
+----------------------------
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -A FORWARD -i wlan0 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT 
+iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT 
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+
+cp /mnt/media_rw/02FA-8CB7/dnsmasq /data/user/dnsmasq -f && chmod 755 /data/user/dnsmasq
+killall dnsmasq
+/data/user/dnsmasq -i wlan0 -a 192.168.43.1 --bind-interfaces --dhcp-option-force=1,255.255.255.0 --dhcp-option-force=3,192.168.43.1 --dhcp-option-force=6,8.8.8.8 --no-daemon --no-resolv --no-poll --no-hosts --dhcp-authoritative --dhcp-range=192.168.43.100,192.168.43.200,24h < /dev/null &
+hostapd -B -e /data/misc/wifi/entropy.bin /data/misc/wifi/hostapd.conf
+
+iptables -w -t nat -I POSTROUTING -s 192.168.43.0/24 -o eth0 -j SNAT --to-source 192.168.5.126
+
+iptables -w -t nat -I POSTROUTING -s 192.168.43.0/24 -o eth0 -j MASQUERADE
+iptables -w -t filter -I FORWARD -i wlan0 -s 192.168.43.0/24 -j ACCEPT
+iptables -w -t filter -I FORWARD -i eth0 -d 192.168.43.0/24 -j ACCEPT
+
+-----------------
+iptables -w -t nat -I POSTROUTING -s 192.168.12.0/24 ! -o wlan0 -j MASQUERADE
+iptables -w -I FORWARD -i wlan0 -s 192.168.12.0/24 -j ACCEPT
+iptables -w -I FORWARD -i eth0 -d 192.168.12.0/24 -j ACCEPT
+
+-----------------
+
+iptables -w -t nat -A natctrl_nat_POSTROUTING -o eth0 -j MASQUERADE
+iptables -w -A natctrl_FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -g natctrl_tether_counters
+iptables -w -A natctrl_FORWARD -i wlan0 -o eth0 -m state --state INVALID -j DROP
+iptables -w -A natctrl_FORWARD -i wlan0 -o eth0 -g natctrl_tether_counters
+iptables -w -D natctrl_FORWARD -j DROP
+iptables -w -A natctrl_FORWARD -j DROP
+
+
+iptables -w -A FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -w -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+iptables -w -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+-----------------
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -A FORWARD -i wlan0 -o eth0 -m state --state ESTABLISHED,RELATED -j ACCEPT 
+iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT 
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+-----------------
+
+-----------------
+echo 1 >/proc/sys/net/ipv4/conf/eth0/forwarding
+echo 1 >/proc/sys/net/ipv4/ip_forward
+iptables -w -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -w -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -w -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+-----------------
+
+dhcpcd-6.8.2 -f /data/misc/wifi/dhcpcd.conf wlan0
+
+echo 1 > /proc/sys/kernel/printk
+ifconfig wlan0 192.168.1.1 netmask 255.255.255.0
+hostapd -B -e /data/misc/wifi/entropy.bin /data/misc/wifi/hostapd.conf
+
+echo 0 > /proc/sys/net/ipv4/ip_forward
+echo 1 > /proc/sys/net/ipv4/conf/eth0/forwarding
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+iptables -w -D natctrl_FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -g natctrl_tether_counters
+iptables -w -D natctrl_FORWARD -i wlan0 -o eth0 -m state --state INVALID -j DROP
+iptables -w -D natctrl_FORWARD -i wlan0 -o eth0 -g natctrl_tether_counters
+iptables -w -F natctrl_FORWARD
+iptables -w -A natctrl_FORWARD -j DROP
+iptables -w -t nat -F natctrl_nat_POSTROUTING
+
+iptables -w -t nat -A natctrl_nat_POSTROUTING -o eth0 -j MASQUERADE
+iptables -w -A natctrl_FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -g natctrl_tether_counters
+iptables -w -A natctrl_FORWARD -i wlan0 -o eth0 -m state --state INVALID -j DROP
+iptables -w -A natctrl_FORWARD -i wlan0 -o eth0 -g natctrl_tether_counters
+iptables -w -D natctrl_FORWARD -j DROP
+iptables -w -A natctrl_FORWARD -j DROP
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+-----------------------
+
+echo 0 > /proc/sys/net/ipv4/ip_forward
+/system/bin/iptables -t nat -A natctrl_nat_POSTROUTING -o eth0 -j MASQUERADE
+/system/bin/iptables -A natctrl_FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -g natctrl_tether_counters
+/system/bin/iptables -A natctrl_FORWARD -i wlan0 -o eth0 -m state --state INVALID -j DROP
+/system/bin/iptables -A natctrl_FORWARD -i wlan0 -o eth0 -g natctrl_tether_counters
+/system/bin/iptables -A natctrl_tether_counters -i wlan0 -o eth0 -j RETURN
+/system/bin/iptables -A natctrl_tether_counters -i eth0 -o wlan0 -j RETURN
+/system/bin/iptables -D natctrl_FORWARD -j DROP
+/system/bin/iptables -A natctrl_FORWARD -j DROP
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+-----------------------
+iptables -w -F natctrl_FORWARD
+iptables -w -A natctrl_FORWARD -j DROP
+iptables -w -t nat -F natctrl_nat_POSTROUTING
+iptables -w -F natctrl_tether_counters
+iptables -w -X natctrl_tether_counters
+iptables -w -N natctrl_tether_counters
+iptables -w -t mangle -A natctrl_mangle_FORWARD -p tcp --tcp-flags SYN SYN -j TCPMSS --clamp-mss-to-pmtu
+
+
+iptables -w -t nat -A natctrl_nat_POSTROUTING -o eth0 -j MASQUERADE
+iptables -w -A natctrl_FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -g natctrl_tether_counters
+iptables -w -A natctrl_FORWARD -i wlan0 -o eth0 -m state --state INVALID -j DROP
+iptables -w -A natctrl_FORWARD -i wlan0 -o eth0 -g natctrl_tether_counters
+iptables -w -D natctrl_FORWARD -j DROP
+iptables -w -A natctrl_FORWARD -j DROP
+
+
+iptables -w -D natctrl_FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -g natctrl_tether_counters
+iptables -w -D natctrl_FORWARD -i wlan0 -o eth0 -m state --state INVALID -j DROP
+iptables -w -D natctrl_FORWARD -i wlan0 -o eth0 -g natctrl_tether_counters
+iptables -w -F natctrl_FORWARD
+iptables -w -A natctrl_FORWARD -j DROP
+iptables -w -t nat -F natctrl_nat_POSTROUTING
+
+-----------------------
+printf("[qmd %s %s %d] \n", __FILE__, __FUNCTION__, __LINE__);
+
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -A FORWARD -i eth0 -o wlan0 -m state --state ESTABLISHED,RELATED -j ACCEPT 
+iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT 
+
+iptables -t nat --flush
+iptables -t nat -w -I POSTROUTING -s 192.168.43.0/24 ! -o wlan0 -j MASQUERADE
+iptables -t nat -L POSTROUTING -n -v
+
+iptables -t filter --flush
+iptables -t filter -w -I FORWARD -i wlan0 -s 192.168.43.0/24 -j ACCEPT
+iptables -t filter -w -I FORWARD -i eth0 -d 192.168.43.0/24 -j ACCEPT
+iptables -t filter -L FORWARD -n -v
+
+
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 ! -o wlan0 -j MASQUERADE
+iptables -t nat -L POSTROUTING -n -v
+
+dnsmasq -i wlan0 -a 192.168.1.1 --bind-interfaces --dhcp-option-force=1,255.255.255.0 --dhcp-option-force=3,192.168.1.1 --dhcp-option-force=6,8.8.8.8 --no-daemon --no-resolv --no-poll --no-hosts --dhcp-authoritative --dhcp-range=192.168.1.100,192.168.1.200,24h < /dev/null &
+hostapd -B /data/misc/wifi/hostapd.conf
+
+dnsmasq -i wlan0 -a 192.168.1.1 --keep-in-foreground --no-resolv --no-poll --dhcp-authoritative --dhcp-option-force=43,ANDROID_METERED --dhcp-option=3,192.168.1.1 --dhcp-option=6,8.8.8.8 --pid-file --dhcp-range=192.168.1.2,192.168.1.254,24h < /dev/null &
+
+
+iptables --flush
+iptables --delete-chain
+
+iptables --table nat --flush
+iptables --table nat --delete-chain
+
+dnsmasq--keep-in-foreground--no-resolv--no-poll--dhcp-authoritative--dhcp-option-force=43,ANDROID_METERED--pid-file--dhcp-range=192.168.42.2,192.168.42.254,24h--dhcp-range=192.168.43.2,192.168.43.254,24h--dhcp-range=192.168.44.2,192.168.44.254,24h--dhcp-range=192.168.45.2,192.168.45.254,24h--dhcp-range=192.168.46.2,192.168.46.254,24h--dhcp-range=192.168.47.2,192.168.47.254,24h--dhcp-range=192.168.48.2,192.168.48.254,24h--dhcp-range=192.168.49.2,192.168.49.254,24h
+
+dnsmasq --keep-in-foreground --no-resolv --no-poll --dhcp-authoritative --dhcp-option-force=43,ANDROID_METERED --pid-file --dhcp-range=192.168.43.2,192.168.43.254,24h
+dnsmasq --keep-in-foreground --no-resolv --no-poll --dhcp-authoritative --pid-file --dhcp-range=192.168.43.2,192.168.43.254,24h
+
+hostapd3.conf
+------------------------
+interface=wlan0
+driver=nl80211
+ctrl_interface=/data/misc/wifi/hostapd
+ssid=Ocean3
+channel=6
+ieee80211n=1
+hw_mode=g
+ignore_broadcast_ssid=0
+wowlan_triggers=any
+wpa=2
+rsn_pairwise=CCMP
+wpa_passphrase=12345678
+------------------------
+
+dnsmasq -C /tmp/dnsmasq.conf -x /tmp/dnsmasq.pid -l /tmp/dnsmasq.leases -p 5353
+
+ifconfig wlan0 192.168.1.1 netmask 255.255.255.0
+dnsmasq -R -C /data/misc/wifi/dnsmasq.conf -p 5353 -x /tmp/dnsmasq.pid -l /tmp/dnsmasq.leases < /dev/null
+dnsmasq -u root -C /data/misc/wifi/dnsmasq.conf -x /tmp/dnsmasq.pid -l /tmp/dnsmasq.leases < /dev/null
+dnsmasq -u root -C /data/misc/wifi/dnsmasq.conf -x /tmp/dnsmasq.pid 
+hostapd -B /data/misc/wifi/hostapd3.conf
+hostapd_cli -p /data/misc/wifi/hostapd
+
+dnsmasq.conf 
+-------------------
+listen-address=192.168.1.1
+bind-interfaces
+dhcp-range=192.168.1.1,192.168.1.254,255.255.255.0,24h
+dhcp-option-force=option:router,192.168.1.1
+dhcp-option-force=option:dns-server,192.168.1.1
+dhcp-option-force=option:mtu,1500
+no-hosts
+-------------------
+
+ifconfig wlan2 192.168.43.101 netmask 255.255.255.0
+ifconfig wlan0 192.168.1.1 netmask 255.255.255.0
+route add -net 192.168.1.0 netmask 255.255.255.0 dev wlan0
+route add default gw 192.168.43.1
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -F
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -t nat -A POSTROUTING -o wlan2 -j MASQUERADE
+
+ip link set down dev wlan0
+ip addr flush wlan0
+ip link set up dev wlan0
+ip addr add 192.168.1.1/24 broadcast 192.168.1.255 dev wlan0
+
+iptables -w -t nat -I POSTROUTING -s 192.168.1.0/24 -o wlan0 -j MASQUERADE
+
+iptables -w -t nat -I POSTROUTING -s 192.168.1.0/24 ! -o wlan0 -j MASQUERADE
+iptables -w -I FORWARD -i wlan0 -s 192.168.1.0/24 -j ACCEPT
+iptables -w -I FORWARD -i wlan2 -d 192.168.1.0/24 -j ACCEPT
+echo 1 > /proc/sys/net/ipv4/conf/wlan2/forwarding
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+
+iptables -w -I INPUT -p tcp -m tcp --dport 5353 -j ACCEPT
+iptables -w -I INPUT -p udp -m udp --dport 5353 -j ACCEPT
+iptables -w -t nat -I PREROUTING -s 192.168.1.0/24 -d 192.168.1.1 -p tcp -m tcp --dport 53 -j REDIRECT --to-ports 5353
+iptables -w -t nat -I PREROUTING -s 192.168.1.0/24 -d 192.168.1.1 -p udp -m udp --dport 53 -j REDIRECT --to-ports 5353
+
+
+ifconfig wlan2 192.168.40.158
+ifconfig wlan0 192.168.40.159
+
+ip link add name br0 type bridge
+ip link set br0 up
+
+wpa_supplicant -B -Dnl80211 -iwlan2 -c /data/misc/wifi/wpa_supplicant.conf
+wpa_cli -iwlan2 -p /data/misc/wifi/wpa_supplicant
+ip link set dev wlan2 master br0
+
+ip link set dev eth0 master br0
+ip link set dev wlan0 master br0
+
+echo 48000 > /data/user/arate.txt
+
+iperf -u -s -i 1
+iperf -u -c 192.168.43.1 -i 1 -t 1000 -b 1000M
+
+wpa_cli -i wlan0 bss 0 && wpa_cli -i wlan0 signal_poll && iwconfig wlan0
+
+sudo mount -t cifs -o username=abc,password=123 //192.168.1.1/Samba /home/a/samba
+
+echo 3 > /proc/sys/vm/drop_caches
+
+ulimit -c unlimited
+echo "/tmp/coredump.%e" > /proc/sys/kernel/core_pattern
+
+ocean@ocean:qmd$ du -hd1
+1016M	./2.doc
+28G	./sd
+2.6T	./4.samba
+578M	./svn
+2.6G	./download
+2.0G	./lfs
+11G	./sb
+45G	./backups
+7.4G	./sc
+6.8G	./tools
+122G	./git
+142G	./1.work
+7.4G	./sa
+81G	./3.project
+7.3G	./src
+3.0T	.
+ocean@ocean:qmd$ 
+
+vi busybox-1.23.2/libbb/correct_password.c
+int FAST_FUNC check_password()
+vi busybox-1.3.2/libbb/correct_password.c
+vi busybox-1.1.3/libbb/correct_password.c 
+int correct_password ( const struct passwd *pw )
+return 1;
+
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host 50:1A:C5:E7:CD:07) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 50:1A:C5:E7:CD:07) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 52:1A:C5:E7:CC:06) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 52:1A:C5:E7:CC:06) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 52:1A:C5:E7:C9:06) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 52:1A:C5:E7:C9:06) 
+
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host 2A:18:78:C9:33:E6) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 2A:18:78:C9:33:E6) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 2A:18:78:C9:32:E6) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 2A:18:78:C9:32:E6) 
+
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host E0:94:67:70:EF:CD) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host E0:94:67:70:EF:CD) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host E2:94:67:70:EF:CC) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host E2:94:67:70:EF:CC) 
+
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host 0C:8B:FD:E5:1B:50) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 0C:8B:FD:E5:1B:50) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 0E:8B:FD:E5:1B:4F) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 0E:8B:FD:E5:1B:4F) 
+
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host AC:FD:CE:57:0A:4F) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host AC:FD:CE:57:0A:4F) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host AE:FD:CE:57:0A:4E) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host AE:FD:CE:57:0A:4E) 
+
+(ether src host 10:9F:A9:2F:1B:8B and ether dst host 50:1A:C5:E7:CD:07) or (ether dst host 10:9F:A9:2F:1B:8B and ether src host 50:1A:C5:E7:CD:07) or (ether src host 10:9F:A9:2F:1B:8B and ether dst host 52:1A:C5:E7:CC:06) or (ether dst host 10:9F:A9:2F:1B:8B and ether src host 52:1A:C5:E7:CC:06) or (ether src host 10:9F:A9:2F:1B:8B and ether dst host 52:1A:C5:E7:C9:06) or (ether dst host 10:9F:A9:2F:1B:8B and ether src host 52:1A:C5:E7:C9:06) 
+
+RX FD39-------------12:9F:A9:FE:FD:39
+Surface3 WiFi-------50:1A:C5:E7:CD:07
+Surface3 P2P2--------52:1A:C5:E7:CC:06
+Surface3 P2P4--------52:1A:C5:E7:C9:06
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host 50:1A:C5:E7:CD:07) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 50:1A:C5:E7:CD:07) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 52:1A:C5:E7:CC:06) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 52:1A:C5:E7:CC:06) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 52:1A:C5:E7:C9:06) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 52:1A:C5:E7:C9:06) 
+
+RX FD39--------------12:9F:A9:FE:FD:39
+Surface2 WiFi--------
+Surface2 P2P3--------2A:18:78:C9:32:E6
+Surface2 P2P5--------28:18:78:C9:32:E7
+Surface2 P2P15-------2A:18:78:C9:33:E6
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host 2A:18:78:C9:33:E6) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 2A:18:78:C9:33:E6) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 2A:18:78:C9:32:E6) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 2A:18:78:C9:32:E6) 
+
+RX FD39-------------12:9F:A9:FE:FD:39
+HP WiFi-------------E0:94:67:70:EF:CC
+HP P2P2-------------E0:94:67:70:EF:CD
+HP P2P5-------------E2:94:67:70:EF:CC
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host E0:94:67:70:EF:CD) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host E0:94:67:70:EF:CD) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host E2:94:67:70:EF:CC) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host E2:94:67:70:EF:CC) 
+
+RX FD39-------------12:9F:A9:FE:FD:39
+PC WiFi-------------
+PC P2P5-------------0C:8B:FD:E5:1B:50
+PC P2P6-------------0E:8B:FD:E5:1B:4F
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host 0C:8B:FD:E5:1B:50) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 0C:8B:FD:E5:1B:50) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host 0E:8B:FD:E5:1B:4F) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host 0E:8B:FD:E5:1B:4F) 
+
+RX FD39-------------12:9F:A9:FE:FD:39
+PC WiFi-------------
+PC P2P5-------------AC:FD:CE:57:0A:4F
+PC P2P6-------------AE:FD:CE:57:0A:4E
+(ether src host 12:9F:A9:FE:FD:39 and ether dst host AC:FD:CE:57:0A:4F) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host AC:FD:CE:57:0A:4F) or (ether src host 12:9F:A9:FE:FD:39 and ether dst host AE:FD:CE:57:0A:4E) or (ether dst host 12:9F:A9:FE:FD:39 and ether src host AE:FD:CE:57:0A:4E) 
+
+10:9F:A9:2F:1B:8B
+(ether src host 10:9F:A9:2F:1B:8B and ether dst host 50:1A:C5:E7:CD:07) or (ether dst host 10:9F:A9:2F:1B:8B and ether src host 50:1A:C5:E7:CD:07) or (ether src host 10:9F:A9:2F:1B:8B and ether dst host 52:1A:C5:E7:CC:06) or (ether dst host 10:9F:A9:2F:1B:8B and ether src host 52:1A:C5:E7:CC:06) or (ether src host 10:9F:A9:2F:1B:8B and ether dst host 52:1A:C5:E7:C9:06) or (ether dst host 10:9F:A9:2F:1B:8B and ether src host 52:1A:C5:E7:C9:06) 
+
+
+
+
+D:\01.work\slog\%Y%M%D_%h%m%s_%S.txt
+[%Y%M%D_%h:%m:%s.%t]
+
+Share Memory Layout
+----------------------------- <--rtp_mem_ptr
+4096 (header)
+----------------------------- <--nav_mem_ptr
+4096*3      4096 (header)
+(nav_size)  ----------------- <--nav_ptr
+            4096 
+            -------
+            4096
+----------------------------- <--data_mem_ptr
+4096 (header)
+----------------------------- <--data_ptr
+2048        tsu
+            -----------
+            payload
+-----------------------------
+2048        tsu
+            -----------
+            payload
+-----------------------------
+2048        tsu
+            -----------
+            payload
+-----------------------------
+2048        tsu
+            -----------
+            payload
+-----------------------------
+

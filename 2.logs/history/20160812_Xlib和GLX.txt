@@ -1,0 +1,59 @@
+Linux广泛使用X Windows系统作为GUI系统。X11是1987年提出的X Windows版本。
+
+X11基于CS模型，位图显示。Server管理硬件的输入输出，即提供显示服务，捕获用户输入。所有使用该服务的应用程序被视作Client。
+
+X11没有规范Client的视窗样式，这些由用户软件自己定义。
+
+
+
+Linux <----> X Server <----> XLib <----> X Application
+
+
+
+Xfree和Xorg实现了X Server。XLib为Client提供了与Server通信的通用接口
+
+
+
+X Application: GTK+ <----> Gnome
+
+X Application: QT <----> KDE
+
+X Application: X APP
+
+
+
+Gnome和KDE实现了Window Manager。
+
+GTK+是Gnome的默认图形库，基于XLib；
+
+QT是KDE的默认图形库，基于XLib；
+
+wxWidgets图形库；
+
+Swing/AWT是Java使用的图形库；
+
+MFC是windows的图形库；
+
+
+
+XFree86是 X Window系统的一个实现。自1992年至2004年，它一直循著自由发放的开放源代码模式发展，成为X Window系统最被广泛使用的基建平台。2004年，XFree86的开发因软件许可证出现分岐，而衍生出另一个发展自XFree86 4.4 RC2 版本源代码，名叫X.Org 服务器的XWindow系统。XFree86不再以GPL软件许可证的形式出现，而是使用XFree86®Project 公司所拥有的XFree86 License version 1.1软件许可证模式发放。现时 XFree86仍由 XFree86®Project公司负责开发，该公司的主要负责人是 DavidDawes。
+
+Xorg服务器的第一个版本X11R6.7.0，从XFree86 4.4 RC2派生出来。大部分的XFree86开发者也由于不满许可的更改转而从事X.org这个比XFree86更开放的项目。XOrg服务器逐渐在开源Unix风格操作系统中流行。它被以下发行版本采用以代替XFree86:Gentoo Linux， Fedora Core， Slackware， SUSE， Mandrake Linux， Cygwin/X， Debian GNU/Linux， Ubuntu Linux， OpenBSD 和 FreeBSD 5.x。
+
+
+
+启动X server：startx
+
+关闭X server：sudo /etc/init.d/lightdm stop
+
+
+
+Xlib常用编程路线图
+
+1. 连接X Server: Display = XOpenDisplay()
+
+2. 创建窗口：win = XCreateSimpleWindow(Display, ...)
+
+3. 显示窗口：XMapWindow(win)
+
+4. 事件循环。

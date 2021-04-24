@@ -1,0 +1,335 @@
+
+Ubuntu18+Mem8GB+Android Build:
+vi ~/.bashrc
+---------------------
+export LC_ALL=C.UTF-8
+export JACK_SERVER_VM_ARGUMENTS=-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4096m
+---------------------
+vi ~/.jack-server/config.properties
+---------------------
+jack.server.max-jars-size=104857600
+#jack.server.max-service=4
+jack.server.max-service=1
+jack.server.service.port=8076
+#jack.server.max-service.by-mem=1\=2147483648\:2\=3221225472\:3\=4294967296
+jack.server.admin.port=8077
+jack.server.config.version=2
+jack.server.time-out=7200
+---------------------
+android/prebuilts/sdk/tools
+./jack-admin uninstall-server
+./jack-admin install-server jack-launcher.jar jack-server-4.8.ALPHA.jar
+./jack-admin stop-server
+./jack-admin start-server
+./jack-admin list-server
+
+
+在win10控制台运行utf8中文： 1. 设置系统区域为中国； 2. 文本文件保存为utf8格式； 3. chcp 65001。
+
+
+ubuntu14.04解压zip乱码解法：
+1. unzip -O cp936 abc.zip
+2. sudo apt install unar && unar abc.zip
+3. unzip -O GBK abc.zip or unzip -O GB18030 abc.zip
+
+
+1. 制作启动U盘dd bs=4M if=ubuntu-14.04.4-desktop-amd64.iso of=/dev/sdc
+2. U盘启动，手动分区：
+     主分区 - / - 128GB - ext4
+     逻辑分区 - 4096MB - swap
+     逻辑分区 - /home - 300GB - ext4
+
+MBR型硬盘
+MBR是主引导记录，512bit，64个字节，每16个字节描述一个分区，所以最多4个主分区，或者3个主分区+1个扩展分区。
+扩展分区可以划分无数个逻辑分区，每个逻辑分区有个和MBR类似的扩展引导记录。
+MBR中的分区，最大容量为2TB
+
+GPT型硬盘
+GPT是全局唯一标识分区表，是EFI(可扩展固件接口标准)的一部分，用来代替BIOS中的MBR。GPT硬盘分区表的位置信息存储在GPT头中。
+出于兼容性考虑，硬盘的第一个扇区仍然用作MBR，之后才是GPT头。GPT支持最大18EB，且分区数没有上限。
+
+EFI与UEFI
+parted工具转换MBR与GPT命令：(parted) mklebel gpt 或 （parted） mklabel msdos
+
+
+sudo mount -t cifs -o username=ocean,password=123 //192.168.1.1/Samba /home/work/samba/
+sudo mount -t vboxsf host /home/host/
+
+
+解决ubuntu14+双屏幕开机看不见鼠标的问题：
+vi /etc/rc.local 增加/etc/rc.local.qmd > /dev/null 2>&1 &
+vi /etc/rc.local.qmd 增加sleep 5 && service lightdm restart > /dev/null 2>&1 &
+
+
+/etc/samba/smb.conf
+-----------------------
+[abc]
+comment = abc
+path = /home/user/share
+available = yes
+browseable = yes
+public = yes
+writeable = yes
+guest ok = yes
+force user = abc
+-----------------------
+
+
+/etc/vsftpd.conf
+-----------------------
+write_enable=YES
+-----------------------
+
+
+sudo apt-get update
+sudo apt-get install vim openssh-server vsftpd samba dos2unix subversion putty
+sudo apt-get install autoconf
+sudo rm /bin/sh && sudo ln -s /bin/bash /bin/sh
+sudo apt-get install bash-completion
+
+sudo vi /etc/bash.bashrc
+-----------------------
+if [ -f /etc/bash_completion ]; then
+. /etc/bash_completion
+fi
+alias ls="ls --color=auto"
+-----------------------
+
+sudo vi /etc/vim/vimrc
+-----------------------
+syntax on
+set history=100
+set encoding=utf-8
+set nocompatible
+set number
+set hlsearch
+set cindent
+set showmatch
+set cursorline
+set ruler
+set laststatus=2
+set cmdheight=1
+set statusline=\ %<%F[%1*%M%*%n%R%H]%=\ %y\ %0(%{&fileformat}\ %{&encoding}\ %c:%l/%L%)\
+set fileencodings=utf-8,ucs-bom,gb18030,gbk,gb2312,cp936
+set termencoding=utf-8
+set encoding=utf-8
+-----------------------
+
+sudo apt-get install ctags //For vim tarlist
+
+vi ~/.vimrc
+-----------------------
+":%s/^abc$/123/g
+":2,5s/^abc$/123/g
+"v: visual mode
+"shift+v: line visual mode
+"ctrl+v: block visual mode
+"Use shift+mouse in vim when mouse=a
+"gg: file start
+"
+set mouse=a
+""""""
+set rtp+=~/.vim/nerdtree
+set rtp+=~/.vim/tagbar
+set rtp+=~/.vim/taglist
+""""""
+let NERDTreeShowHidden=1
+let NERDTreeIgnore=[]
+""""""
+"let g:tagbar_autoclose=1
+let g:tagbar_sort = 0
+let g:tagbar_show_linenumbers = 1
+""""""
+let Tlist_Auto_Open=1
+let Tlist_File_Fold_Auto_Close=1
+let Tlist_Use_Right_Window=1
+let Tlist_Exit_OnlyWindow=1
+"let Tlist_Show_One_File=1
+"let Tlist_Enable_Fold_Column=0
+""""""
+let g:bufExplorerFindActive=0
+""""""
+set shiftwidth=4 "Set indent length
+set tabstop=4 "Set tab length
+set softtabstop=4 "Set backspace length
+set expandtab "Use space indent
+"set noexpandtab "Use tab indent
+""""""
+map <F2> :NERDTreeToggle<CR>
+map <F3> :TagbarToggle<CR>
+map <F4> :Tlist<CR>
+"map <F4> :ToggleBufExplorer<CR>
+-----------------
+
+
+sudo vi /etc/sudors   增加abc    ALL=(ALL) NOPASSWD: ALL
+sudo vi /etc/rc.local  增加sudo mount /dev/sdb1 /home/abc/sdb
+sudo chmod +x /etc/rc.local 
+sudo fdisk /dev/sdb    --> n / w
+sudo mkfs.ext4 /dev/sdb1
+sudo vi /etc/hostname
+vi ~/.bashrc   PS1中的w改成W
+vi ~/.profile 增加PATH=/usr/local/xxx/bin:$PATH
+
+1. Install Ubuntu 14.04.02 LTS 64-bit
+2. sudo vi sudo
+    Add this line at the end of the file:
+    abc ALL=(ALL) NOPASSWD: ALL
+tar xvfz mips_toolschain.tgz
+tar xvfz arm_toolschain.tgz
+sudo mv mips_toolschain /usr/local
+sudo mv arm_toolschain /usr/local
+
+sudo apt-get update --fix-missing
+sudo apt-get install libc6-i386 lib32z1 lib32stdc++6
+sudo dpkg --add-architecture i386
+sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386
+sudo apt-get install build-essential libncurses5-dev texinfo libpcre3-dev
+sudo apt-get install ccache autoconf
+sudo apt-get install u-boot-tools lzop
+sudo apt-get install device-tree-compiler
+sudo apt-get install git
+sudo apt-get install dos2unix
+sudo apt-get install zip
+sudo apt-get install subversion meld
+sudo apt-get install nautilus-open-terminal
+sudo apt-get install freetype*
+sudo rm /bin/sh
+sudo ln -s /bin/bash /bin/sh
+sudo apt-get install flex
+
+Android编译环境：
+sudo apt-get install openjdk-7-jdk  // Java命令
+sudo apt-get install libxml2-utils // xmllint: command not found
+sudo apt-get install lzma  // lzma: Command not found
+
+Add GNU tools path to $PATH:
+Open ~/.profile in editor, and add the following lines at the end of the file:
+
+if [ -d "/usr/local/mips_toolschain/bin/" ] ; then
+    PATH="/usr/local/mips_toolschain/bin/:$PATH"
+fi
+if [ -d "/usr/local/arm_toolschain/bin/" ] ; then
+    PATH="/usr/local/arm_toolschain/bin/:$PATH"
+fi
+
+SougouPinYin
+Download: https://pinyin.sogou.com/linux/?r=pinyin
+在官网https://pinyin.sogou.com/linux/下载64bit deb，
+sudo dpkg -i xxx.deb安装搜狗，sudo apt-get -f install安装依赖包，
+执行im-config选择fcitx，执行fcitx-config-gtk3，搜索并添加sogou输入法。
+
+virtualbox
+在/etc/apt/sources.list中增加deb http://download.virtualbox.org/virtualbox/debian trusty contrib
+sudo apt-get update
+sudo apt-get install virtualbox-5.2
+sudo apt-get install dkms
+注意5.2的增强工具有问题，要专门下载另外的增强工具安装，才能调分辨率。
+
+
+firefox
+升级sudo apt-get install firefox
+安装下载加速插件DownThemAll - firefox版本太久或太新都不支持，49是支持的。
+手动下载：http://ftp.mozilla.org/pub/firefox/releases/
+
+
+skype
+Ubuntu18: https://www.skype.com/en/get-skype/
+在ubuntu14上面安装最新skype： https://answers.microsoft.com/en-us/skype/forum/skype_linux-skype_startms-skype_installms/skype-preview-the-most-expressive-skype-ever-is/fc717d17-03ad-4946-bb24-08b131da1840
+
+
+wine
+sudo apt-get install wine
+
+
+RabbitVCS
+Refer: http://wiki.rabbitvcs.org/wiki/install/ubuntu
+sudo add-apt-repository ppa:rabbitvcs/ppa
+sudo apt-get install rabbitvcs-nautilus3 rabbitvcs-thunar rabbitvcs-gedit rabbitvcs-cli
+
+
+Ubuntu WPS
+Downlaod: http://linux.wps.cn
+
+
+Ubuntu Wireshark
+Wireshark源码： http://linux.softpedia.com/get/Internet/HTTP-WWW-/Ethereal-1961.shtml
+libpcap源码： http://www.tcpdump.org/#latest-release
+sudo apt-get install build-essential flex bison checkinstall libpcap-dev libglib2.0-dev libgtk2.0-dev libgtk3.0-cil libgtk3.0-cil-dev
+
+
+gedit中文乱码
+gsettings set org.gnome.gedit.preferences.encodings auto-detected "['GB18030', 'GB2312', 'GBK', 'UTF-8', 'BIG5', 'CURRENT', 'UTF-16']"
+gsettings set org.gnome.gedit.preferences.encodings shown-in-menu "['GB18030', 'GB2312', 'GBK', 'UTF-8', 'BIG5', 'CURRENT', 'UTF-16']"
+
+
+ubuntu wifi抓包方法
+sudo apt-get install aircrack-ng
+sudo airmon-ng start wlan0 11
+sudo iwconfig mon0 channel 6
+sudo airmon-ng stop mon0
+参考：http://www.humbug.in/2012/wireless-sniffer-on-ubuntu-linux-capture-analyze-network-traffic/
+
+
+安装chrome
+方法一
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i xxx.deb
+sudo apt-get -f install
+sudo apt-get install libnss3 #For ubuntu14+chrome62
+方法二
+sudo wget https://repo.fdzh.org/chrome/google-chrome.list -P /etc/apt/sources.list.d/
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub  | sudo apt-key add -
+
+
+配置busybox编译选项：
+--- busybox-1.22.x.config 
++++ busybox-1.22.x.config   
+@@ -758,12 +758,12 @@
+ CONFIG_DNSD=y
+ CONFIG_ETHER_WAKE=y
+ # CONFIG_FAKEIDENTD is not set
+-# CONFIG_FTPD is not set
+-# CONFIG_FEATURE_FTP_WRITE is not set
+-# CONFIG_FEATURE_FTPD_ACCEPT_BROKEN_LIST is not set
+-# CONFIG_FTPGET is not set
+-# CONFIG_FTPPUT is not set
+-# CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS is not set
++CONFIG_FTPD=y
++CONFIG_FEATURE_FTP_WRITE=y
++CONFIG_FEATURE_FTPD_ACCEPT_BROKEN_LIST=y
++CONFIG_FTPGET=y
++CONFIG_FTPPUT=y
++CONFIG_FEATURE_FTPGETPUT_LONG_OPTIONS=y
+ CONFIG_HOSTNAME=y
+ # CONFIG_HTTPD is not set
+ # CONFIG_FEATURE_HTTPD_RANGES is not set
+
+
+配置/etc/inetd.conf
+ftp     stream  tcp     nowait  root    ftpd  ftpd -w
+/system/rootfs/shell.develop.avhdd/etc/inetd.conf
+ftp     stream  tcp     nowait  root    /usr/sbin/ftpd  ftpd -w
+
+使用adb
+sudo apt-get install android-tools-adb
+adb connect 192.168.5.152:5555
+adb kill-server
+adb disconnect 192.168.1.5:5555
+adb install [-l] [-r] <file>  // 安装应用
+adb uninstall [-k] <package> // 卸载应用， 手动卸载： adb shell ， cd /data/app ， rm app.apk
+adb pull <remote> <local> // 下载文件
+adb push <local> <remote> // 上传文件
+adb devices
+adb bugreport
+adb shell
+adb get-product
+
+
+开发注意事项
+1. 用增加进程的方式实现异步模块，彼此独立，用IPC通信。
+2. 用增加线程的方式实现并发扩展。
+3. 优秀的debug系统，包括log信息，模拟系统，系统读写，coredump等等。
+4. 优秀的库，协议分层，功能模块化。
+
+win10 preview: http://www.linuxidc.com/Linux/2014-11/109712.htm

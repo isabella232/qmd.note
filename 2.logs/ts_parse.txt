@@ -1,0 +1,37 @@
+TS Stream Format
+
+Layer 1: TS layer (Transport Stream)
+Layer 2: PES layer (Packet Elemental Stream, include timestamp)
+Layer 3: ES layer (Elementary Stream, include audio and video data)
+
+
+[TS layer]
+TS package 188 Bytes = TS Header (4 Bytes) + Payload (184 Bytes)
+8  bit: sync_byte, 0x47
+1  bit: transport_error_indicator
+1  bit: payload_unit_start_indicator, 1=start
+1  bit: transport_priority, 0=low, 1=high
+13 bit: Packet ID
+2  bit: transport_scrambling_control, 00=no encryption.
+2  bit: adaptation_field_control, 00=reserved, 01=only payload, 10=only adaptation field, 11=adaptation field and payload.
+4  bit: continuity_counter
+184 Bytes: payload
+
+The payload is identified by PID, including PAT table, PMT table, audio stream, video stream.
+If PAT table is found, then PMT will be found, and then audio and video will be found.
+PAT PID is 0. 
+PAT table is used to indicate PMT table PID. 
+PMT table is used to indicate audio and video stream PID.
+
+[PES layer]
+3 Bytes: PES start code, 0x000001
+1 Bytes: stream ID, audio=0xC0~0xDF, video=0xE0~0xEF
+2 Bytes: PES package length
+1 Bytes: Flag, 0x80=no encryption no priority on backup data
+1 Bytes: Flag, 0x80=only PTS, 0xC0=PTS and DTS
+1 Bytes: PES data length, 5 or 10
+5 Bytes: 33 bit value
+5 Bytes: 33 bit value
+
+[ES layer]
+NAL header 4 Bytes.

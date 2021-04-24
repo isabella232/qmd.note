@@ -1,0 +1,19 @@
+
+Asterisk 是免费、开源的将普通计算机变为一个功能丰富的语音通信服务器的软件，使得生成和布局一个大范围的电话应用和服务变得简单起来。
+
+Asterisk 是一个开放源代码的软件VoIP PBX 系统，它是一个运行在Linux 环境下的纯软件实施方案。Asterisk 是一种功能非常齐全的应用程序，提供了许多电信功能，能够把x86 机器变成用户交换机，还能够当作一台企业级的商用交换机。Asterisk 的优势还在于它为小企业在预算可承受的范围内提供了商业交换机的功能，并且具有很强的可扩展性。
+
+Asterisk 支持一个广泛的协议。支持丰富的在传统的电话传输媒介上处理和传输语音，诸如模拟线路、ISDN-BRI 线路和 数字 T1/E1 链路等。
+
+Asterisk 包含广泛的 VoIP 协议诸如：SIP, IAX 和 H.323 等等和其它。支持在 U.S. 和欧洲的企业的标准的电话信号类型，也可以桥接现存系统同未来的语音-数据系统。
+
+DAHDI是 Digium Asterisk Hardware Device Interface 的缩写, 其原名为Zaptel（Zapata Telephony的简称），后来由于商标有人注册改为DAHDI。它是一种开源设备接口技术，它被用来控制 Digium 和其它传统电话接口卡。
+
+GNU Gatekeeper（简称GnuGK）是一个基于OpenH323来发展的开放源码H.323 gatekeeper计划。所谓的H.323 gatekeeper，定义于H.323标准中，负责对H.323的系统提供位址转换、通话控制、路由决定、认证计费等服务。
+
+
+Gatekeeper是一种采用软交换方式的交换服务器，负责VoIP网路上的讯号交换及控制功能。其功能类似传统电话网络PSTN上的程控交换机。
+
+
+
+sip电话3cxphone下载地址http://www.3cx.com/voip/softphone/

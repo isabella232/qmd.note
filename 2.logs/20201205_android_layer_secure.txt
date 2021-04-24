@@ -1,0 +1,36 @@
+
+
+ocean@ubuntu:frameworks$ svn diff -r 7370:7371 native/services/surfaceflinger/Layer.cpp
+Index: native/services/surfaceflinger/Layer.cpp
+===================================================================
+--- native/services/surfaceflinger/Layer.cpp	(revision 7370)
++++ native/services/surfaceflinger/Layer.cpp	(revision 7371)
+@@ -125,11 +125,15 @@
+     mName = name;
+ 
+     // ScreenBeam start
+-    // Set all screenbeam.zoom layer secure.
++    // Set screenbeam.zoom layer secure.
+     if (mName.find("screenbeam.zoom") >= 0) {
+         ALOGD("SBUCZ layer: %ux%u[%s]", w, h, name.string());
+         if (w == h) {
+-            layerFlags |= layer_state_t::eLayerSecure;
++            if (access("/tmp/zoom_secure_layer_off.txt", F_OK) == 0) {
++                // Do nothing
++            } else {
++                layerFlags |= layer_state_t::eLayerSecure;
++            }
+         }
+     }
+     // ScreenBeam end
+[1]+  Done                    rabbitvcs log . > /dev/null 2>&1
+ocean@ubuntu:frameworks$ 
+
+
+frameworks/native/services/surfaceflinger/Layer.cpp
+
+# SystemUI mediaprojection
+frameworks/base/packages/SystemUI/src/com/android/systemui/ScreenBeamReceiver.java
+
+#Dump activity status
+frameworks/base/services/core/java/com/android/server/am/ActivityManagerService.java

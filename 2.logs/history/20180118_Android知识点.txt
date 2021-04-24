@@ -1,0 +1,32 @@
+
+Android注入input事件方法
+
+1. 通过获得WindowManager实例，调用injectKeyEvent和injectPointerEvent方法。只能在当前应用中使用，不能往其他窗口注入事件。
+
+2. 使用instrumentation实例，sendKeyDownUpSync方法。使用的注入方式和方法1一样，只能在当前应用中使用。
+
+3. 直接注入事件到设备/dev/input/eventX。需要root权限。
+
+
+
+
+
+Java创建操作系统进程
+
+1. ProcessBuilder在java1.5加入，Runtime从1.0加入。
+
+2. 从JDK源码看，Runtime.exec()最终通过调用ProcessBuilder来执行。
+
+3. ProcessBuilder.start() 和 Runtime.exec() 方法都被用来创建一个操作系统进程（执行命令行操作），并返回 Process 子类的一个实例。
+
+
+
+Android消息框
+
+1. Toast
+
+2. Builder
+
+3. AlertDialog
+
+4. ProgressDialog

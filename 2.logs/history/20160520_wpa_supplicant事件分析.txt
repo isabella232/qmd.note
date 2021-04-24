@@ -1,0 +1,193 @@
+
+WPA Client Persistent Connect Event
+
+
+
+
+
+[Thu May 19 11:50:52.031 2016] <3>P2P-INVITATION-RECEIVED sa=f6:5c:89:91:82:1b persistent=1
+[Thu May 19 11:50:53.062 2016] <3>CTRL-EVENT-SCAN-STARTED
+[Thu May 19 11:50:53.203 2016] <3>CTRL-EVENT-SCAN-RESULTS
+[Thu May 19 11:50:53.218 2016] <3>WPS-AP-AVAILABLE
+[Thu May 19 11:50:53.218 2016] <3>Trying to associate with f6:5c:89:91:8a:1b (SSID='DIRECT-EDDESKTOP-R4UMDB5FLQL' freq=2412 MHz)
+[Thu May 19 11:50:53.281 2016] <3>Associated with f6:5c:89:91:8a:1b
+[Thu May 19 11:50:53.312 2016] <3>CTRL-EVENT-EAP-SUCCESS EAP authentication completed successfully (based on lower layer success)
+[Thu May 19 11:50:53.328 2016] <3>WPA: Key negotiation completed with f6:5c:89:91:8a:1b [PTK=CCMP GTK=CCMP]
+[Thu May 19 11:50:53.359 2016] <3>CTRL-EVENT-CONNECTED - Connection to f6:5c:89:91:8a:1b completed [id=2 id_str=]
+[Thu May 19 11:50:53.390 2016] <3>P2P-GROUP-STARTED p2p0 client ssid="DIRECT-EDDESKTOP-R4UMDB5FLQL" freq=2412 psk=e420d09d92128e835e5f30e86ef37d15bd6cb2f2a0a1f3a165072a7ef69672c2 go_dev_addr=f6:5c:89:91:82:1b [PERSISTENT]
+[Thu May 19 11:51:20.718 2016] <3>CTRL-EVENT-DISCONNECTED bssid=f6:5c:89:91:8a:1b reason=3 locally_generated=1
+[Thu May 19 11:51:20.812 2016] <3>P2P-GROUP-REMOVED p2p0 client reason=REQUESTED
+[Thu May 19 11:51:20.984 2016] <3>P2P-DEVICE-LOST p2p_dev_addr=f6:5c:89:91:82:1b
+[Thu May 19 11:51:21.078 2016] <3>CTRL-EVENT-SCAN-STARTED
+[Thu May 19 11:51:21.093 2016] <3>CTRL-EVENT-SCAN-RESULTS
+[Thu May 19 11:51:45.875 2016] <3>P2P-DEVICE-FOUND f6:5c:89:91:82:1b p2p_dev_addr=f6:5c:89:91:82:1b pri_dev_type=1-0050F200-0 name='DESKTOP-R4UMDB5' config_methods=0x11e8 dev_capab=0x24 group_capab=0x28 wfd_dev_info=0x01101c440006 new=1
+
+
+
+
+p2papp normal pair pin event
+
+P2P-SERV-DISC-REQ 2462 60:57:18:cd:b5:9b 22 0 0c000b00085f7773626465762a00
+P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=1
+P2PS-PROV-DONE 60:57:18:cd:b5:9b status=0 conncap=1 adv_id=1 adv_mac=12:9f:a9:e9:e9:2b session=7 mac=60:57:18:cd:b5:9b dev_passwd_id=1
+P2P-PROV-DISC-SHOW-PIN 60:57:18:cd:b5:9b 12345670 p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=0
+P2P-GO-NEG-REQUEST 60:57:18:cd:b5:9b dev_passwd_id=1
+P2P-GO-NEG-SUCCESS role=client freq=2462 ht40=0 peer_dev=60:57:18:cd:b5:9b peer_iface=62:57:18:cd:b5:9a wps_method=Display
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE-PIN 
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE-PIN 
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE-PIN 
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-OoDESKTOP-M7ALB23DODB' freq=2462 MHz)
+Associated with 62:57:18:cd:b5:9a
+CTRL-EVENT-EAP-STARTED EAP authentication started
+CTRL-EVENT-EAP-STATUS status='started' parameter=''
+CTRL-EVENT-EAP-PROPOSED-METHOD vendor=14122 method=1
+CTRL-EVENT-EAP-STATUS status='accept proposed method' parameter='WSC'
+CTRL-EVENT-EAP-METHOD EAP vendor 14122 method 1 (WSC) selected
+WPS-CRED-RECEIVED 
+WPS-SUCCESS 
+P2P-GROUP-FORMATION-SUCCESS 
+CTRL-EVENT-EAP-STATUS status='completion' parameter='failure'
+CTRL-EVENT-EAP-FAILURE EAP authentication failed
+CTRL-EVENT-DISCONNECTED bssid=62:57:18:cd:b5:9a reason=3 locally_generated=1
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-OoDESKTOP-M7ALB23DODB' freq=2462 MHz)
+Associated with 62:57:18:cd:b5:9a
+WPA: Key negotiation completed with 62:57:18:cd:b5:9a [PTK=CCMP GTK=CCMP]
+CTRL-EVENT-CONNECTED - Connection to 62:57:18:cd:b5:9a completed [id=0 id_str=]
+P2P-GROUP-STARTED p2p0 client ssid="DIRECT-OoDESKTOP-M7ALB23DODB" freq=2462 psk=53231c654fd98bfd544b110454f6a9e3baf256d1d27c68dbf320f6d406c9f4b8 go_dev_addr=60:57:18:cd:b5:9b [PERSISTENT] ip_addr=192.168.137.247 ip_mask=255.255.255.0 go_ip_addr=192.168.137.1
+
+
+
+p2papp normal persistent event
+
+
+
+P2P-SERV-DISC-REQ 2462 60:57:18:cd:b5:9b 25 0 0c000b00085f7773626465762a00
+P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=1
+P2PS-PROV-DONE 60:57:18:cd:b5:9b status=0 adv_id=1 adv_mac=12:9f:a9:e9:e9:2b session=8 mac=60:57:18:cd:b5:9b persist=1 role=client
+P2P-PROV-DISC-SHOW-PIN 60:57:18:cd:b5:9b 12345670 p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE 
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-OoDESKTOP-M7ALB23DODB' freq=2462 MHz)
+Associated with 62:57:18:cd:b5:9a
+CTRL-EVENT-EAP-SUCCESS EAP authentication completed successfully (based on lower layer success)
+WPA: Key negotiation completed with 62:57:18:cd:b5:9a [PTK=CCMP GTK=CCMP]
+CTRL-EVENT-CONNECTED - Connection to 62:57:18:cd:b5:9a completed [id=2 id_str=]
+P2P-GROUP-STARTED p2p0 client ssid="DIRECT-OoDESKTOP-M7ALB23DODB" freq=2462 psk=53231c654fd98bfd544b110454f6a9e3baf256d1d27c68dbf320f6d406c9f4b8 go_dev_addr=60:57:18:cd:b5:9b [PERSISTENT] ip_addr=192.168.137.247 ip_mask=255.255.255.0 go_ip_addr=192.168.137.1
+
+
+
+
+
+p2papp agStart pair pin event
+
+P2P-SERV-DISC-REQ 2462 60:57:18:cd:b5:9b 5 0 0c000b00085f7773626465762a00
+P2P-SERV-DISC-REQ 2462 60:57:18:cd:b5:9b 5 0 0c000b00085f7773626465762a00
+P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=1
+P2PS-PROV-DONE 60:57:18:cd:b5:9b status=0 conncap=2 adv_id=1 adv_mac=12:9f:a9:e9:e9:2b session=3 mac=60:57:18:cd:b5:9b dev_passwd_id=1 join=62:57:18:cd:b5:9a
+P2P-PROV-DISC-SHOW-PIN 60:57:18:cd:b5:9b 12345670 p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-STARTED 
+P2P-DEVICE-FOUND 62:57:18:cd:b5:9a p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='' config_methods=0x11e8 dev_capab=0x25 group_capab=0x8b wfd_dev_info=0x01101c440006 vendor_elems=1 new=0
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE-PIN 
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE-PIN 
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE-PIN 
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-JRDESKTOP-M7ALB23msRU' freq=2462 MHz)
+Associated with 62:57:18:cd:b5:9a
+CTRL-EVENT-EAP-STARTED EAP authentication started
+CTRL-EVENT-EAP-STATUS status='started' parameter=''
+CTRL-EVENT-EAP-PROPOSED-METHOD vendor=14122 method=1
+CTRL-EVENT-EAP-STATUS status='accept proposed method' parameter='WSC'
+CTRL-EVENT-EAP-METHOD EAP vendor 14122 method 1 (WSC) selected
+WPS-CRED-RECEIVED 
+WPS-SUCCESS 
+P2P-GROUP-FORMATION-SUCCESS 
+CTRL-EVENT-EAP-STATUS status='completion' parameter='failure'
+CTRL-EVENT-EAP-FAILURE EAP authentication failed
+CTRL-EVENT-DISCONNECTED bssid=62:57:18:cd:b5:9a reason=3 locally_generated=1
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-JRDESKTOP-M7ALB23msRU' freq=2462 MHz)
+CTRL-EVENT-ASSOC-REJECT status_code=1
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE 
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-JRDESKTOP-M7ALB23msRU' freq=2462 MHz)
+Associated with 62:57:18:cd:b5:9a
+WPA: Key negotiation completed with 62:57:18:cd:b5:9a [PTK=CCMP GTK=CCMP]
+CTRL-EVENT-CONNECTED - Connection to 62:57:18:cd:b5:9a completed [id=0 id_str=]
+P2P-GROUP-STARTED p2p0 client ssid="DIRECT-JRDESKTOP-M7ALB23msRU" freq=2462 psk=8ac46586d8bdab40947e329959f93f92504e9f7c1e92493f6afe7a587d09414d go_dev_addr=60:57:18:cd:b5:9b [PERSISTENT] ip_addr=192.168.137.247 ip_mask=255.255.255.0 go_ip_addr=192.168.137.1
+
+
+
+p2papp agStart persistent event
+
+P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 new=1
+P2PS-PROV-DONE 60:57:18:cd:b5:9b status=0 adv_id=1 adv_mac=12:9f:a9:e9:e9:2b session=9 mac=60:57:18:cd:b5:9b persist=0 role=client
+P2P-PROV-DISC-SHOW-PIN 60:57:18:cd:b5:9b 12345670 p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+CTRL-EVENT-SCAN-STARTED 
+CTRL-EVENT-SCAN-RESULTS 
+WPS-AP-AVAILABLE 
+Trying to associate with 62:57:18:cd:b5:9a (SSID='DIRECT-JRDESKTOP-M7ALB23msRU' freq=2462 MHz)
+Associated with 62:57:18:cd:b5:9a
+WPA: Key negotiation completed with 62:57:18:cd:b5:9a [PTK=CCMP GTK=CCMP]
+CTRL-EVENT-CONNECTED - Connection to 62:57:18:cd:b5:9a completed [id=1 id_str=]
+P2P-GROUP-STARTED p2p0 client ssid="DIRECT-JRDESKTOP-M7ALB23msRU" freq=2462 psk=8ac46586d8bdab40947e329959f93f92504e9f7c1e92493f6afe7a587d09414d go_dev_addr=60:57:18:cd:b5:9b [PERSISTENT] ip_addr=192.168.137.247 ip_mask=255.255.255.0 go_ip_addr=192.168.137.1
+
+
+
+p2ps pair pin gc event
+
+1. P2P-SERV-DISC-REQ 2462 60:57:18:cd:b5:9b 26 0 0c000b00085f7773626465762a00
+
+2. P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=1
+
+3. P2PS-PROV-DONE 60:57:18:cd:b5:9b status=0 conncap=2 adv_id=1 adv_mac=12:9f:a9:e9:e9:2b session=1d mac=60:57:18:cd:b5:9b dev_passwd_id=1 join=62:57:18:cd:b5:9a
+
+4. P2P-PROV-DISC-SHOW-PIN 60:57:18:cd:b5:9b 12345670 p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+
+
+p2ps persistent events
+
+
+
+1. P2P-SERV-DISC-REQ 2462 60:57:18:cd:b5:9b 12 0 0c000b00085f7773626465762a00
+
+2. P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=1
+
+3. P2PS-PROV-DONE 60:57:18:cd:b5:9b status=0 adv_id=1 adv_mac=12:9f:a9:e9:e9:2b session=5 mac=60:57:18:cd:b5:9b persist=1 role=GO
+
+4. P2P-PROV-DISC-SHOW-PIN 60:57:18:cd:b5:9b 12345670 p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+
+
+
+p2p pair pbc event
+
+1. P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=1
+
+2. P2P-PROV-DISC-PBC-REQ 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82
+
+3. P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x25 group_capab=0x82 wfd_dev_info=0x01101c440006 new=0
+
+4. P2P-GO-NEG-REQUEST 60:57:18:cd:b5:9b dev_passwd_id=4
+
+5. P2P-GO-NEG-SUCCESS role=client freq=2462 ht40=0 peer_dev=60:57:18:cd:b5:9b peer_iface=62:57:18:cd:b5:9a wps_method=PBC
+
+
+
+p2p persistent pbc event
+
+P2P-DEVICE-FOUND 60:57:18:cd:b5:9b p2p_dev_addr=60:57:18:cd:b5:9b pri_dev_type=1-0050F200-0 name='DESKTOP-M7ALB23' config_methods=0x11e8 dev_capab=0x0 group_capab=0x0 wfd_dev_info=0x01101c440006 new=1
+
+P2P-INVITATION-RECEIVED sa=60:57:18:cd:b5:9b persistent=1

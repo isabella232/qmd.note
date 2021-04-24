@@ -1,0 +1,117 @@
+Linux启动分析
+
+
+
+Linux根文件系统挂载过程
+
+2.6.12: start_kernel()  ->  rest_init()  ->  init()  ->  do_basic_setup()  ->  do_initcalls()  ->   prepare_namespace()  ->  mount_root() 
+
+
+
+Linux Device tree
+
+可以用dtc命令将dts编译成dtb，也可以将include了dtsi的dts预编译成单个文件的dts。这里发现一个技巧：将scripts/Makefile.lib里面的cmd_dtc变量中的-O dtb改成-O dts即可。
+
+eg. Kernel DTB 5-d-2.dts
+
+5.dtsi
+    5-pinctrl.dtsi
+    5-irT377.dtsi
+    5-usb.dtsi
+        x-usb.dtsi
+    x-clk.dtsi
+    x-reset.dtsi
+    5-hdmirxEDID.dtsi
+    x-powerctrl.dtsi
+x-dvfs.dtsi
+5-giraffe-common.dtsi
+    5.dtsi
+    x-dvfs.dtsi
+Rescue DTB 5-qa-rescue.dts
+
+
+
+Device Tree加载
+
+
+
+start_kernel()  // init/main.c
+    setup_arch(&command_line)  // arch/arm64/kernel/setup.c
+        setup_machine_fdt(__fdt_pointer)
+            early_init_dt_scan(phys_to_virt(dt_phys))
+                early_init_dt_scan_nodes()
+                    /* Retrieve various information from the /chosen node */
+                    of_scan_flat_dt(early_init_dt_scan_chosen, boot_command_line)
+                    /* Initialize {size,address}-cells info */
+                    of_scan_flat_dt(early_init_dt_scan_root, NULL)
+                    /* Setup memory, calling early_init_dt_add_memory_arch */
+                    of_scan_flat_dt(early_init_dt_scan_memory, NULL)
+        unflatten_device_tree()
+            __unflatten_device_tree(initial_boot_params, &of_root, early_init_dt_alloc_memory_arch)  // unflatten整个device tree到of_root（全局变量）
+                unflatten_dt_node(...)  // 递归函数
+    rest_init()
+        kernel_thread(kernel_init, NULL, CLONE_FS)  ->  kernel_init()
+            kernel_init_freeable()
+                do_basic_setup()
+                    driver_init()
+                        devtmpfs_init()
+                        devices_init()
+                        buses_init()
+                        platform_bus_init()   // 注册platform总线
+                            device_register(&platform_bus)
+                            bus_register(&platform_bus_type)
+                                priv = kzalloc()
+                                priv->bus = bus
+                                bus->p = priv
+                                priv->drivers_autoprobe = 1
+                        of_core_init()
+                    do_initcalls()
+                        do_initcall_level(0~7)
+                try_to_run_init_process("/sbin/init")
+
+
+
+
+
+在System.map里面可以找到不同level的initcall函数。在include/linux/init.h中定义了module_init()宏，属于level6：
+
+module_init(x)  -  __initcall(x)  -  device_initcall(fn)  -  __define_initcall(fn, 6)
+
+所以大部分驱动程序都在level6时被加载。
+
+
+module_init(hdmi_init)
+    platform_driver_register(&hdmi_driver)  -> __platform_driver_register(drv, THIS_MODULE)
+        drv->driver.bus = &platform_bus_type
+        drv->driver.probe = platform_drv_probe
+        driver_register(&drv->driver)
+            bus_add_driver(drv)
+                priv = kzalloc()
+                priv->driver = drv
+                drv->p = priv
+                driver_attach(drv)
+                    bus_for_each_dev(drv->bus, NULL, drv, __driver_attach)
+                        __driver_attach()
+                            driver_match_device()
+                                drv->bus->match(dev, drv)
+                                    platform_bus_type->platform_match(d ev, drv)
+                                        of_driver_match_device(dev, drv)
+                            driver_probe_device()
+                                really_probe(dev, drv)
+                                    dev->bus->probe(dev)
+                                    drv->probe(dev)
+                                        hdmi_probe(struct platform_device *pdev)
+hdmi_probe(struct platform_device *pdev)
+
+Framebuffer
+
+module_platform_driver_probe(fb_of_driver, fb_probe)
+    platform_driver_probe(&fb_of_driver, fb_probe)
+        __platform_driver_probe(&fb_of_driver, fb_probe)
+            drv->probe = probe
+            __platform_driver_register(drv, module)
+                driver_register(&drv->driver)
+                    // 同上
+                    fb_probe(struct platform_device *pdev)
+fb_probe(struct platform_device *pdev)
+    register_framebuffer(fb->fb)

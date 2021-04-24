@@ -1,0 +1,453 @@
+参考：https://en.wikipedia.org/wiki/Transport_Layer_Security
+
+
+
+
+Authentication and key exchange/agreement
+Algorithm	SSL 2.0	SSL 3.0	TLS 1.0	TLS 1.1	TLS 1.2	TLS 1.3
+(Draft)	Status
+RSA	Yes	Yes	Yes	Yes	Yes	No	Defined for TLS 1.2 in RFCs
+DH-RSA	No	Yes	Yes	Yes	Yes	No
+DHE-RSA (forward secrecy)	No	Yes	Yes	Yes	Yes	Yes
+ECDH-RSA	No	No	Yes	Yes	Yes	No
+ECDHE-RSA (forward secrecy)	No	No	Yes	Yes	Yes	Yes
+DH-DSS	No	Yes	Yes	Yes	Yes	No
+DHE-DSS (forward secrecy)	No	Yes	Yes	Yes	Yes	No[22]
+ECDH-ECDSA	No	No	Yes	Yes	Yes	No
+ECDHE-ECDSA (forward secrecy)	No	No	Yes	Yes	Yes	Yes
+PSK	No	No	Yes	Yes	Yes
+PSK-RSA	No	No	Yes	Yes	Yes
+DHE-PSK (forward secrecy)	No	No	Yes	Yes	Yes
+ECDHE-PSK (forward secrecy)	No	No	Yes	Yes	Yes
+SRP	No	No	Yes	Yes	Yes
+SRP-DSS	No	No	Yes	Yes	Yes
+SRP-RSA	No	No	Yes	Yes	Yes
+Kerberos	No	No	Yes	Yes	Yes
+DH-ANON (insecure)	No	Yes	Yes	Yes	Yes
+ECDH-ANON (insecure)	No	No	Yes	Yes	Yes
+GOST R 34.10-94 / 34.10-2001[23]	No	No	Yes	Yes	Yes
+Proposed in RFC drafts
+
+
+Cipher security against publicly known feasible attacks
+Cipher	Protocol version	Status
+Type	Algorithm	Strength (bits)	SSL 2.0	SSL 3.0
+[n 1][n 2][n 3][n 4]	TLS 1.0
+[n 1][n 3]	TLS 1.1
+[n 1]	TLS 1.2
+[n 1]	TLS 1.3
+(Draft)
+Block cipher
+with
+mode of operation	AES GCM[24][n 5]	256, 128	N/A	N/A	N/A	N/A	Secure	Secure	Defined for TLS 1.2 in RFCs
+AES CCM[25][n 5]	N/A	N/A	N/A	N/A	Secure	Secure
+AES CBC[n 6]	N/A	N/A	Depends on mitigations	Secure	Secure	N/A
+Camellia GCM[26][n 5]	256, 128	N/A	N/A	N/A	N/A	Secure	Secure
+Camellia CBC[27][n 6]	N/A	N/A	Depends on mitigations	Secure	Secure	N/A
+ARIA GCM[28][n 5]	256, 128	N/A	N/A	N/A	N/A	Secure	Secure
+ARIA CBC[28][n 6]	N/A	N/A	Depends on mitigations	Secure	Secure	N/A
+SEED CBC[29][n 6]	128	N/A	N/A	Depends on mitigations	Secure	Secure	N/A
+3DES EDE CBC[n 6]	112[n 7]	Insecure	Insecure	Low strength, Depends on mitigations	Low strength	Low strength	N/A
+GOST 28147-89 CNT[23]	256	N/A	N/A	Secure	Secure	Secure
+Proposed in RFC drafts
+IDEA CBC[n 6][n 8]	128	Insecure	Insecure	Depends on mitigations	Secure	N/A	N/A	Removed from TLS 1.2
+DES CBC[n 6][n 8]	56	Insecure	Insecure	Insecure	Insecure	N/A	N/A
+40[n 9]	Insecure	Insecure	Insecure	N/A	N/A	N/A	Forbidden in TLS 1.1 and later
+RC2 CBC[n 6]	40[n 9]	Insecure	Insecure	Insecure	N/A	N/A	N/A
+Stream cipher	ChaCha20-Poly1305[33][n 5]	256	N/A	N/A	N/A	N/A	Secure	Secure	Proposed in RFC drafts
+RC4[n 10]	128	Insecure	Insecure	Insecure	Insecure	Insecure	N/A	Prohibited in all versions of TLS
+40[n 9]	Insecure	Insecure	Insecure	N/A	N/A	N/A
+None	Null[n 11]	-	N/A	Insecure	Insecure	Insecure	Insecure	Insecure	Defined for TLS 1.2 in RFCs
+
+
+Data integrity
+Algorithm	SSL 2.0	SSL 3.0	TLS 1.0	TLS 1.1	TLS 1.2	TLS 1.3
+(Draft)	Status
+HMAC-MD5	Yes	Yes	Yes	Yes	Yes
+Defined for TLS 1.2 in RFCs
+HMAC-SHA1	No	Yes	Yes	Yes	Yes
+HMAC-SHA256/384	No	No	No	No	Yes
+AEAD	No	No	No	No	Yes
+GOST 28147-89 IMIT[23]	No	No	Yes	Yes	Yes
+Proposed in RFC drafts
+GOST R 34.11-94[23]	No	No	Yes	Yes	Yes
+
+
+
+
+
+Library support for TLS/SSL
+Implementation	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	TLS 1.3
+(Draft)
+Botan	No	No[155]	Yes	Yes	Yes
+cryptlib	No	Enabled by default	Yes	Yes	Yes
+GnuTLS	No[a]	Disabled by default[156]	Yes	Yes	Yes
+Java Secure Socket Extension	No[a]	Disabled by default[b]	Yes	Yes	Yes
+LibreSSL	No[157]	No[158]	Yes	Yes	Yes
+MatrixSSL	No[a]	Disabled by default at compile time[159]	Yes	Yes	Yes
+mbed TLS (previously PolarSSL)	No	Enabled by default	Yes	Yes	Yes
+Network Security Services	Disabled by default[a]	Disabled by default[160]	Yes	Yes[161]	Yes[162]
+OpenSSL	Enabled by default	Enabled by default	Yes	Yes[163]	Yes[163]
+RSA BSAFE[164]	No	Yes	Yes	Yes	Yes
+SChannel XP / 2003[165]	Disabled by default by MSIE 7	Enabled by default	Enabled by default by MSIE 7	No	No
+SChannel Vista / 2008[166]	Disabled by default	Enabled by default	Yes	No	No
+SChannel 7 / 2008 R2[167]	Disabled by default	Disabled by default in MSIE 11	Yes	Enabled by default by MSIE 11	Enabled by default by MSIE 11
+SChannel 8 / 2012[167]	Disabled by default	Enabled by default	Yes	Disabled by default	Disabled by default
+SChannel 8.1 / 2012 R2, 10[167]	Disabled by default	Disabled by default in MSIE 11	Yes	Yes	Yes
+Secure Transport OS X 10.2-10.7 / iOS 1-4	Yes	Yes	Yes	No	No
+Secure Transport OS X 10.8-10.10 / iOS 5-8	No[c]	Yes	Yes	Yes[c]	Yes[c]
+Secure Transport OS X 10.11 / iOS 9	No	No[c]	Yes	Yes	Yes
+SharkSSL	No	Enabled by default	Yes	Yes	Yes
+wolfSSL (previously CyaSSL)	No	Disabled by default[168]	Yes	Yes	Yes
+Implementation	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	TLS 1.3
+(Draft)
+
+
+
+
+Website protocol support
+Protocol
+version	Website
+support[35]	Security[35][36]
+SSL 2.0	10.8% (−0.4%)	Insecure
+SSL 3.0	33.8% (−1.2%)	Insecure[37]
+TLS 1.0	99.2% (−0.1%)	Depends on cipher[n 1] and client mitigations[n 2]
+TLS 1.1	64.3% (+1.4%)	Depends on cipher[n 1] and client mitigations[n 2]
+TLS 1.2	66.5% (+1.4%)	Depends on cipher[n 1] and client mitigations[n 2]
+TLS 1.3
+(Draft)	N/A
+
+
+TLS/SSL support history of web browsers
+Browser	Version	Platforms	SSL protocols	TLS protocols	Certificate Support	Vulnerabilities fixed[n 1]	Protocol selection by user
+[n 2]
+SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	EV
+[n 3][38]	SHA-2
+[39]	ECDSA
+[40]	BEAST[n 4]	CRIME[n 5]	POODLE (SSLv3)[n 6]	RC4[n 7]	FREAK[41][42]	Logjam
+Google Chrome
+(Chrome for Android)
+[n 8]
+[n 9]	1–9	Windows (XP SP2+)
+OS X (10.7+)
+Linux
+Android (4.0+)
+iOS (7.0+)
+Chrome OS	Disabled by default	Enabled by default	Yes	No	No	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected
+[47]	Vulnerable
+(HTTPS)	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Yes[n 10]
+10–20	No[48]	Enabled by default	Yes	No	No	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Vulnerable
+(HTTPS/SPDY)	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Yes[n 10]
+21	No	Enabled by default	Yes	No	No	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated
+[49]	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Yes[n 10]
+22–25	No	Enabled by default	Yes	Yes[50]	No[50][51][52][53]	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+26–29	No	Enabled by default	Yes	Yes	No	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+30–32	No	Enabled by default	Yes	Yes	Yes[51][52][53]	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+33–37	No	Enabled by default	Yes	Yes	Yes	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Partly mitigated
+[n 12]	Lowest priority
+[56][57][58]	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+38–39	No	Enabled by default	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Partly mitigated
+[n 12]	Lowest priority
+[56][57][58]	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+40	No	Disabled by default
+[55][59]	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated
+[n 13]	Lowest priority	Vulnerable
+(except Windows)	Vulnerable	Yes[n 14]
+41, 42	No	Disabled by default	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated	Lowest priority	Mitigated	Vulnerable	Yes[n 14]
+43	No	Disabled by default	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated	Only as fallback
+[n 15][60]	Mitigated	Vulnerable	Yes[n 14]
+44	45	No	No[61]	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Not affected	Only as fallback
+[n 15]	Mitigated	Mitigated[62]	Temporary
+[n 11]
+Google Android OS Browser
+[63]	Android 1.0, 1.1, 1.5, 1.6, 2.0–2.1, 2.2–2.2.3	No	Enabled by default	Yes	No	No	Unknown	No	No	Unknown	Unknown	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+Android 2.3–2.3.7, 3.0–3.2.6, 4.0–4.0.4, 4.1–4.3.1	No	Enabled by default	Yes	No	No	Unknown	Yes[39]	since Android OS 3.0[64]	Unknown	Unknown	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+Android 4.4–4.4.4	No	Enabled by default	Yes	Disabled by default	Disabled by default	Unknown	Yes	Yes[40]	Unknown	Unknown	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+Android 5.0-5.0.2	No	Enabled by default	Yes	Yes[65]	Yes[65]	Unknown	Yes	Yes	Unknown	Unknown	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+Android 5.1-5.1.1	No	No	Yes	Yes	Yes	Unknown	Yes	Yes	Unknown	Unknown	Not affected	Vulnerable	Mitigated	Vulnerable	No
+Android 6.0	No	No	Yes	Yes	Yes	Unknown	Yes	Yes	Unknown	Unknown	Not affected	Unknown	Mitigated	Unknown	Unknown
+Browser	Version	Platforms	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	EV certificate	SHA-2 certificate	ECDSA certificate	BEAST	CRIME	POODLE (SSLv3)	RC4	FREAK	Logjam	Protocol selection by user
+Mozilla Firefox
+(Firefox for mobile)
+[n 16]	1.0	Windows (XP SP2+)
+OS X (10.6+)
+Linux
+Android (2.3+)
+iOS (preview)
+Firefox OS
+Maemo
+
+ESR only for:
+Windows (XP SP2+)
+OS X (10.6+)
+Linux	Enabled by default
+[66]	Enabled by default
+[66]	Yes[66]	No	No	No	Yes[39]	No	Not affected
+[67]	Not affected	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+1.5	Enabled by default	Enabled by default	Yes	No	No	No	Yes	No	Not affected	Not affected	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+2	Disabled by default
+[66][68]	Enabled by default	Yes	No	No	No	Yes	Yes[40]	Not affected	Not affected	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+3–7	Disabled by default	Enabled by default	Yes	No	No	Yes	Yes	Yes	Not affected	Not affected	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+8–10
+ESR 10	No[68]	Enabled by default	Yes	No	No	Yes	Yes	Yes	Not affected	Not affected	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+11–14	No	Enabled by default	Yes	No	No	Yes	Yes	Yes	Not affected	Vulnerable
+(SPDY)[49]	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+15–22
+ESR 17.0–17.0.10	No	Enabled by default	Yes	No	No	Yes	Yes	Yes	Not affected	Mitigated	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 10]
+ESR 17.0.11	No	Enabled by default	Yes	No	No	Yes	Yes	Yes	Not affected	Mitigated	Vulnerable	Lowest priority
+[69][70]	Not affected	Vulnerable	Yes[n 10]
+23	No	Enabled by default	Yes	Disabled by default
+[71]	No	Yes	Yes	Yes	Not affected	Mitigated	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 17]
+24, 25.0.0
+ESR 24.0–24.1.0	No	Enabled by default	Yes	Disabled by default	Disabled by default
+[73]	Yes	Yes	Yes	Not affected	Mitigated	Vulnerable	Vulnerable	Not affected	Vulnerable	Yes[n 17]
+25.0.1, 26
+ESR 24.1.1	No	Enabled by default	Yes	Disabled by default	Disabled by default	Yes	Yes	Yes	Not affected	Mitigated	Vulnerable	Lowest priority
+[69][70]	Not affected	Vulnerable	Yes[n 17]
+27–33
+ESR 31.0–31.2	No	Enabled by default	Yes	Yes[74][75]	Yes[76][75]	Yes	Yes	Yes	Not affected	Mitigated	Vulnerable	Lowest priority	Not affected	Vulnerable	Yes[n 17]
+34, 35
+ESR 31.3–31.7	No	Disabled by default
+[77][78]	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Mitigated
+[n 18]	Lowest priority	Not affected	Vulnerable	Yes[n 17]
+ESR 31.8	No	Disabled by default	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Mitigated	Lowest priority	Not affected	Mitigated[81]	Yes[n 17]
+36–38
+ESR 38.0	No	Disabled by default	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Mitigated	Only as fallback
+[n 15][82]	Not affected	Vulnerable	Yes[n 17]
+ESR 38.1,
+ESR 38.2	ESR 38.3	No	Disabled by default	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Mitigated	Only as fallback
+[n 15]	Not affected	Mitigated[81]	Yes[n 17]
+39, 40	41	No	No[83]	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Not affected	Only as fallback
+[n 15]	Not affected	Mitigated[81]	Yes[n 17]
+42
+43	No	No	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Not affected	Whitelisted hosts only
+[n 19]	Not affected	Mitigated	Yes[n 17]
+44	ESR 45	No	No	Yes	Yes	Yes	Yes	Yes	Yes	Not affected	Mitigated	Not affected	Not affected[n 20]	Not affected	Mitigated	Yes[n 17]
+Browser	Version	Platforms	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	EV certificate	SHA-2 certificate	ECDSA certificate	BEAST	CRIME	POODLE (SSLv3)	RC4	FREAK	Logjam	Protocol selection by user
+Microsoft Internet Explorer
+[n 21]	1.x	Windows 3.1, 95,NT[n 22],[n 23]
+Mac OS 7, 8	No SSL/TLS support
+2	Yes	No	No	No	No	No	No	No	No SSL 3.0 or TLS support	Vulnerable	Vulnerable	Vulnerable	N/A
+3	Yes	Yes[87]	No	No	No	No	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Unknown
+4, 5	Windows 3.1, 95, 98,NT[n 22],[n 23]
+Mac OS 7.1, 8, X,
+Solaris,HP-UX	Enabled by default	Enabled by default	Disabled by default
+[87]	No	No	No	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Yes[n 10]
+6	Windows 98, ME,NT[n 22], 2000[n 23]	Enabled by default	Enabled by default	Disabled by default
+[87]	No	No	No	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Yes[n 10]
+6	Windows XP[n 23]	Enabled by default	Enabled by default	Disabled by default	No	No	No	Yes
+[n 24] [88]	No	Mitigated	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Yes[n 10]
+6	Server 2003[n 23]	Enabled by default	Enabled by default	Disabled by default	No	No	No	Yes
+[n 24] [88]	No	Mitigated	Not affected	Vulnerable	Vulnerable	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+7, 8	Windows XP[n 23]	Disabled by default
+[93]	Enabled by default	Yes[93]	No	No	Yes	Yes
+[n 24] [88]	No	Mitigated	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Yes[n 10]
+7, 8	Server 2003[n 23]	Disabled by default
+[93]	Enabled by default	Yes[93]	No	No	Yes	Yes
+[n 24] [88]	No	Mitigated	Not affected	Vulnerable	Vulnerable	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+7, 8[n 25]	9	Windows Vista	Disabled by default	Enabled by default	Yes	No	No	Yes	Yes	Yes[40]	Mitigated	Not affected	Vulnerable	Vulnerable	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+Server 2008
+8, 9, 10[n 25]	Windows 7	Disabled by default	Enabled by default	Yes	Disabled by default
+[95]	Disabled by default
+[95]	Yes	Yes	Yes	Mitigated	Not affected	Vulnerable	Lowest priority
+[96][n 26]	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+Server 2008 R2
+10[n 25]	Windows 8	Disabled by default	Enabled by default	Yes	Disabled by default
+[95]	Disabled by default
+[95]	Yes	Yes	Yes	Mitigated	Not affected	Vulnerable	Lowest priority
+[96][n 26]	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+10	Server 2012
+11	Windows 7	Disabled by default	Disabled by default
+[n 27]	Yes	Yes[98]	Yes[98]	Yes	Yes	Yes	Mitigated	Not affected	Mitigated
+[n 27]	Lowest priority
+[96][n 26]	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+Server 2008 R2
+11	Windows 8.1	Disabled by default	Disabled by default
+[n 27]	Yes	Yes[98]	Yes[98]	Yes	Yes	Yes	Mitigated	Not affected	Mitigated
+[n 27]	Only as fallback
+[n 15][102][103]	Mitigated
+[91]	Mitigated
+[92]	Yes[n 10]
+Server 2012 R2
+Microsoft Edge[n 28]
+and (as fallback)
+Internet Explorer[n 21]	IE 11	Edge[n 29]	Windows 10	Disabled by default	Disabled by default	Yes	Yes	Yes	Yes	Yes	Yes	Mitigated	Not affected	Mitigated	Only as fallback
+[n 15]	Mitigated	Mitigated	Yes[n 10]
+Server 2016
+Microsoft Internet Explorer Mobile
+[n 21]	7, 9	Windows Phone 7, 7.5, 7.8	Disabled by default
+[93]	Enabled by default	Yes	No
+[citation needed]	No
+[citation needed]	No
+[citation needed]	Yes	Yes[64]	Unknown	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Only with 3rd party tools[n 30]
+10	Windows Phone 8	Disabled by default	Enabled by default	Yes	Disabled by default
+[108]	Disabled by default
+[108]	No
+[citation needed]	Yes	Yes[109]	Mitigated	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	Only with 3rd party tools[n 30]
+11	Windows Phone 8.1	Disabled by default	Enabled by default	Yes	Yes[110]	Yes[110]	No
+[citation needed]	Yes	Yes	Mitigated	Not affected	Vulnerable	Only as fallback
+[n 15][102][103]	Vulnerable	Vulnerable	Only with 3rd party tools[n 30]
+Microsoft Edge
+[n 28]	Edge	Windows 10 Mobile	Disabled by default	Disabled by default	Yes	Yes	Yes	Yes	Yes	Yes	Mitigated	Not affected	Mitigated	Only as fallback
+[n 15]	Mitigated	Unknown	Unknown
+Browser	Version	Platforms	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	EV certificate	SHA-2 certificate	ECDSA certificate	BEAST	CRIME	POODLE (SSLv3)	RC4	FREAK	Logjam	Protocol selection by user
+Opera Browser
+(Opera Mobile)
+(Pre-Presto and Presto)
+[n 31]	1-2	Windows
+OS X
+Linux
+Android
+Symbian S60
+Maemo
+Windows Mobile	No SSL/TLS support[112]
+3	Yes[113]	No	No	No	No	No	No	No	No SSL 3.0 or TLS support	Vulnerable	Unknown	Unknown	N/A
+4	Yes	Yes[114]	No	No	No	No	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Unknown
+5	Enabled by default	Enabled by default	Yes[115]	No	No	No	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Yes[n 10]
+6-7	Enabled by default	Enabled by default	Yes[115]	No	No	No	Yes[39]	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Yes[n 10]
+8	Enabled by default	Enabled by default	Yes	Disabled by default
+[116]	No	No	Yes	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Yes[n 10]
+9	Disabled by default
+[117]	Enabled by default	Yes	Yes	No	since v9.5
+(only desktop)	Yes	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Yes[n 10]
+10–11.52	No[118]	Enabled by default	Yes	Disabled by default	Disabled by default
+[118]	Yes
+(only desktop)	Yes	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Yes[n 10]
+11.60–11.64	No	Enabled by default	Yes	Disabled by default	Disabled by default	Yes
+(only desktop)	Yes	No	Mitigated
+[119]	Not affected	Vulnerable	Vulnerable	Unknown	Unknown	Yes[n 10]
+12–12.14	No	Disabled by default
+[n 32]	Yes	Disabled by default	Disabled by default	Yes
+(only desktop)	Yes	No	Mitigated	Not affected	Mitigated
+[n 32]	Vulnerable	Unknown	Mitigated[121]	Yes[n 10]
+12.15–12.17	No	Disabled by default	Yes	Disabled by default	Disabled by default	Yes
+(only desktop)	Yes	No	Mitigated	Not affected	Mitigated	Partly mitigated
+[122][123]	Unknown	Mitigated[121]	Yes[n 10]
+Opera Browser
+(Opera Mobile)
+(Webkit and Blink)
+[n 33]	14–16	Windows (XP+)
+OS X (10.7+)
+Linux
+Android (4.0+)	No	Enabled by default	Yes	Yes[126]	No[126]	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+17–19	No	Enabled by default	Yes	Yes[127]	Yes[127]	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Vulnerable	Vulnerable	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+20–24	No	Enabled by default	Yes	Yes	Yes	Yes
+(only desktop)	needs SHA-2 compatible OS[39]	needs ECC compatible OS[40]	Not affected	Mitigated	Partly mitigated
+[n 34]	Lowest priority
+[128]	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+25, 26	No	Enabled by default
+[n 35]	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated
+[n 36]	Lowest priority	Vulnerable
+(except Windows)	Vulnerable	Temporary
+[n 11]
+27	No	Disabled by default
+[59]	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated
+[n 37]	Lowest priority	Vulnerable
+(except Windows)	Vulnerable	Yes[n 38]
+(only desktop)
+28, 29	No	Disabled by default	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated	Lowest priority	Mitigated	Vulnerable	Yes[n 38]
+(only desktop)
+30	No	Disabled by default	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Mitigated	Only as fallback
+[n 15][60]	Mitigated	Mitigated[121]	Yes[n 38]
+(only desktop)
+31	32	No	No[61]	Yes	Yes	Yes	Yes
+(only desktop)	Yes	needs ECC compatible OS[40]	Not affected	Mitigated	Not affected	Only as fallback
+[n 15][60]	Mitigated	Mitigated	Temporary
+[n 11]
+Browser	Version	Platforms	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	EV certificate	SHA-2 certificate	ECDSA certificate	BEAST	CRIME	POODLE (SSLv3)	RC4	FREAK	Logjam	Protocol selection by user
+Apple Safari
+[n 39]	1	Mac OS X 10.2, 10.3	No[133]	Yes	Yes	No	No	No	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+2–5	Mac OS X 10.4, 10.5,Win XP	No	Yes	Yes	No	No	since v3.2	No	No	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+3–5	Vista,Win 7	No	Yes	Yes	No	No	since v3.2	No	Yes[64]	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+4–6	Mac OS X 10.6, 10.7	No	Yes	Yes	No	No	Yes	Yes[39]	Yes[40]	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+6	OS X 10.8	No	Yes	Yes	No	No	Yes	Yes	Yes[40]	Mitigated
+[n 40]	Not affected	Mitigated
+[n 41]	Vulnerable
+[n 41]	Mitigated
+[139]	Vulnerable	No
+7	9	OS X 10.9	No	Yes	Yes	Yes[140]	Yes[140]	Yes	Yes	Yes	Mitigated
+[135]	Not affected	Mitigated
+[n 41]	Vulnerable
+[n 41]	Mitigated
+[139]	Vulnerable	No
+8	9	OS X 10.10	No	Yes	Yes	Yes	Yes	Yes	Yes	Yes	Mitigated	Not affected	Mitigated
+[n 41]	Lowest priority
+[141][n 41]	Mitigated
+[139]	Mitigated
+[142]	No
+9	OS X 10.11	No	No	Yes	Yes	Yes	Yes	Yes	Yes	Mitigated	Not affected	Not affected	Lowest priority	Mitigated	Mitigated	No
+Apple Safari
+(mobile)
+[n 42]	3	iPhone OS 1, 2	No[146]	Yes	Yes	No	No	No	No	Unknown	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+4, 5	iPhone OS 3, iOS 4	No	Yes	Yes	No	No	Yes[147]	Yes	since iOS 4[64]	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+5, 6	iOS 5, 6	No	Yes	Yes	Yes[143]	Yes[143]	Yes	Yes	Yes	Vulnerable	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+7	iOS 7	No	Yes	Yes	Yes	Yes	Yes	Yes	Yes[148]	Mitigated
+[149]	Not affected	Vulnerable	Vulnerable	Vulnerable	Vulnerable	No
+8	iOS 8	No	Yes	Yes	Yes	Yes	Yes	Yes	Yes	Mitigated	Not affected	Mitigated
+[n 41]	Lowest priority
+[150][n 41]	Mitigated
+[151]	Mitigated
+[152]	No
+9	iOS 9	No	No	Yes	Yes	Yes	Yes	Yes	Yes	Mitigated	Not affected	Not affected	Lowest priority	Mitigated	Mitigated	No
+Browser	Version	Platforms	SSL 2.0 (insecure)	SSL 3.0 (insecure)	TLS 1.0	TLS 1.1	TLS 1.2	EV
+[n 3]	SHA-2	ECDSA	BEAST[n 4]	CRIME[n 5]	POODLE (SSLv3)[n 6]	RC4[n 7]	FREAK[41][42]	Logjam	Protocol selection by user
+SSL protocols	TLS protocols	Certificate Support	Vulnerabilities fixed
+Color or Note	Significance
+Browser version	Platform
+Browser version	Operating system	Future release; under development
+Browser version	Operating system	Current latest release
+Browser version	Operating system	Former release; still supported
+Browser version	Operating system	Former release; long-term support still active, but will end in less than 12 months
+Browser version	Operating system	Former release; no longer supported
+n/a	Operating system	Mixed / Unspecified
+Operating system (Version+)	Minimum required operating system version (for the current latest version of the browser)
+Operating system	No longer supported for this operating system

@@ -1,0 +1,70 @@
+Ubuntu14 64bit
+
+
+
+https://developer.blender.org/diffusion/C/
+
+https://wiki.blender.org/wiki/Main_Page
+
+
+
+git clone git://git.blender.org/cycles.git
+
+
+
+sudo apt-get install git cmake  
+
+安装编译器c++：build-essential 
+
+安装OpenGL：
+
+libgl1-mesa-dev
+
+libglu1-mesa-dev
+
+libglut-dev
+
+freeglut3-dev
+
+安装GLEW：libglew-dev
+
+安装boost：libboost-all-dev
+
+安装其他：
+
+libxmu-dev
+
+libxi-dev
+
+libopenexr-dev
+
+安装pugixml：libpugixml-dev
+
+安装OpenShadingLanguage：libosl-dev
+
+
+
+diff --git a/src/util/util_guarded_allocator.h b/src/util/util_guarded_allocator.h
+index 87c1526..07fa56c 100644
+--- a/src/util/util_guarded_allocator.h
++++ b/src/util/util_guarded_allocator.h
+@@ -17,6 +17,7 @@
+ #ifndef __UTIL_GUARDED_ALLOCATOR_H__
+ #define __UTIL_GUARDED_ALLOCATOR_H__
+
++#include <stdlib.h>
+ #include <cstddef>
+ #include <memory>
+
+diff --git a/src/util/util_ies.cpp b/src/util/util_ies.cpp
+index e068957..75bb0e2 100644
+--- a/src/util/util_ies.cpp
++++ b/src/util/util_ies.cpp
+@@ -14,6 +14,7 @@
+  * limitations under the License.
+  */
+
++#include <algorithm>
+ #include "util/util_foreach.h"
+ #include "util/util_ies.h"
+ #include "util/util_math.h"

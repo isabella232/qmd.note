@@ -1,0 +1,223 @@
+常用git-svn命令
+
+sudo apt-get install git-svn
+
+git svn clone [url]
+
+git svn rebase
+
+git svn log -3
+
+
+
+常用的SVN命令
+
+svn co -depth <mod> url # 复制svn库到本地
+
+svn export # 复制svn库到本地，纯数据，不带管理信息
+
+svn import # 导入文件到新的库
+
+svn up --set-depth <mode> # 更新本地库，与服务器同步
+
+svn diff -r<v1>:<v2> # 查看版本内容差异
+
+svn st <file> # 查看本地修改
+
+svn log -l<limit> # 查看log
+
+svn add <file> # 在本地添加文件
+
+svn del <file> # 在本地删除文件
+
+svn move <src> <dst> 在本地移动或者重命名文件
+
+svn ci -m "log." # 提交修改
+
+svn revert <file> # 还原指定文件到最新版本
+
+
+
+常用的git命令
+
+git和svn最大的不同是本地有一个数据仓库，即svn=远程仓库+工作数据，git=远程仓库+本地仓库+工作数据
+
+git clone是本地没有repository时，将远程repository整个复制下来。
+
+git pull是本地有repository，将远程的repository里新的数据下载到本地仓库，并与工作数据merge。
+
+git fetch只是将远程仓库下载到本地仓库。
+
+git merge和git rebase用于合并分支，rebase会把本地仓库里的每个提交取消掉，并把工作数据临时 保存为补丁(放到".git/rebase"目录中)，然后把工作数据更新为最新的origin"分支，最后把保存的这些补丁应用到"mywork"分支上。
+
+
+
+
+
+
+
+git查看状态
+
+git remote -v # 查看远程库
+
+git status # 查看本地分支，本地orign master分支状态
+
+git branch # 查看本地分支状态
+
+git branch -r # 查看远程分支状态，本地分支为白色显示
+
+
+
+
+
+git add <file> # 将工作文件修改提交到本地暂存区
+
+git add . # 将所有修改过的工作文件提交暂存区
+
+git rm <file> # 从版本库中删除文件
+
+git revert <$id> # 恢复某次提交的状态，恢复动作本身也创建次提交对象
+
+git revert HEAD # 恢复最后一次提交的状态
+
+git diff <file> # 比较当前文件和暂存区文件差异
+
+git diff <id1> <id2> # 比较两次提交之间的差异
+
+git log -p <file> # 查看每次详细修改内容的差异
+
+git push origin master # 将本地主分支推到远程主分支
+
+git pull # 抓取远程仓库所有分支更新并合并到本地
+
+
+
+
+
+git remote -v # 查看远程服务器地址和仓库名称
+
+git remote show <name> # 查看远程服务器仓库状态
+
+git remote add <name> <url> # 添加远程仓库地址
+
+
+
+［国内］
+
+码云(开源中国) - http://git.oschina.net/
+
+码市 - https://coding.net/
+
+收购了gitcafe
+
+CSDN Code - https://code.csdn.net/
+
+百度效率云 - http://xiaolvyun.baidu.com/
+
+淘宝 - http://code.taobao.org/
+
+京东 - https://code.jd.com/
+
+
+
+［国外］
+
+github - https://github.com/
+
+gitlab - https://gitlab.com/
+
+BitBucket - https://bitbucket.org/
+
+Sourceforge - https://sourceforge.net/
+
+Google - https://opensource.google.com/
+
+2016年以前是https://code.google.com/
+
+
+
+
+
+搭建SVN服务器
+
+
+
+ubuntu-14.04 x86_64
+
+svn-1.8.8
+
+
+
+svn服务器默认端口号是3690。如果想在同一台PC上启动多个svn服务器，需要为每个svn服务器指定不同端口号。
+
+svnadmin create /home/svn/doc
+
+svnserve -d -r /home/svn/doc --listen-port 3691
+
+svnadmin create /home/svn/server
+
+svnserve -d -r /home/svn/server --listen-port 3692
+
+
+
+doc/conf/svnserve.conf
+
+--------------------
+
+[general]
+
+anon-access = none
+
+auth-access = write
+
+password-db = passwd
+
+authz-db = authz
+
+---------------------
+
+doc/conf/passwd
+
+---------------------
+
+[users]
+
+kkk=123456
+
+---------------------
+
+doc/conf/authz
+
+---------------------
+
+[groups]
+
+admin=kkk
+
+[/]
+
+@admin=rw
+
+---------------------
+
+
+
+svnadmin create doc
+
+svnserve -d -r doc --listen-port 3691
+
+svn import -m "New import." files svn://192.168.1.1:3691
+
+
+
+镜像
+
+svnadmin create /home/svn/server
+
+svnsync init file:///home//svn/server svn://192.168.1.10/server
+
+svnsync sync file:///home/svn/server
+
+svnserve -d -r /home/svn/server
+
+注意需要hooks/pre-revprop-change返回0

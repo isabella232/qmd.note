@@ -1,0 +1,41 @@
+
+
+package java.lang
+  Boolean Byte Long Math Number StringBuffer StringBuilder
+  Object
+    getClass() wait() notify() finalize() equals()
+  Process
+  Runtime
+  Thread
+  System
+
+package java.io
+  File FileReader FileWriter FileInputStream FileOutputStream
+  BufferReader BufferWriter BufferedInputStream BufferedOutputStream
+
+package java.util
+  List<E>
+  Iterator<E>
+
+package android
+  R
+
+package android.content
+  Context (java.lang.Object)
+    bindService()
+    startActivity()
+
+
+package android.os
+  Binder
+  Process
+  Handler (java.lang.Object)
+    sendMessage()
+    handleMessage()
+  Looper
+
+package android.app
+  Activity
+  Service
+
+End

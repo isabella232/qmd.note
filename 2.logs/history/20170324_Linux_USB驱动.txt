@@ -1,0 +1,32 @@
+
+CPU通过USB主机控制器和USB设备打交道。USB总线以轮询方式工作。所有数据传输必须由主机发起。USB通信最基本形式是通过USB设备里的端点，端点和主机通过管道连接。
+
+端点有方向。所有的USB设备必须具有端点0,作为缺省的控制管道，它可以作为in端点，也可以作为out端点。低速设备做多拥有2个端点，高速设备做动15个in端点和15个out端点。这些端点在设备内部拥有固定唯一的端点号。
+
+管道的通信方式分两种：stream和message。message管道要求数据必须具有一定的格式，对应两个相同号码的端点，一个用来in，一个用来out。缺省管道就是message管道，与缺省端点0对应。
+
+端点有四种类型，对应四种数据传输方式：控制传输，中断传输，批量传输，等时传输。
+
+compound device是将HUB和连在HUB上的设备封装在一起组成的设备，而composite device是包含彼此独立的多个接口的设备
+
+USB协议采用上面的分层结构，类似TCP/IP协议，下层为上层提供服务。
+
+
+
+          Client SW            <----->          Function
+
+USB System SW           <----->         USB Logical Device
+
+USB Host Controller     <----->         USB Bus Interface
+
+USB host controller看到的是一个个HUB和HUB上的USB device，但是USB System SW看到的只有USB逻辑设备。Client SW看到的是设备提供的功能。真实数据流只发生在Host controller和设备的Bus interface之间，其他的都是逻辑上的。各种USB设备提供的功能不同，但是面向主机的Bus Interface是一致的。一个compound device和单独的一个hub然后连接了多个USB设备是一样的，它里面包含的hub和各个设备都会有自己独立的地址，而一个composite device里不管具有多少接口，它都只有一个地址。
+
+一个USB逻辑设备就是一群端点的集合，它与主机之间的通信发生在主机上的一个缓冲区和设备上的一个端点之间，通过管道来传输数据。意思就是管道的一端是主机上的一个缓冲区，一端是设备上的端点。
+
+USB端点被捆绑为接口，一个接口代表一个基本功能，在内核里对应一个驱动程序。有的设备具有多个接口，像USB扬声器就包括一个键盘接口和一个音频流接口，在linux里需要两个不同的驱动程序。
+
+
+
+
+
+待续...

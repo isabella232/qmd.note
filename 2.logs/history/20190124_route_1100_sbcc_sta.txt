@@ -1,0 +1,292 @@
+-----------------------------------
+- rule
+-----------------------------------
+0:	from all lookup local 
+9999:	from all lookup main 
+10000:	from all fwmark 0xc0000/0xd0000 lookup legacy_system 
+10500:	from all oif wlan1_0 uidrange 0-0 lookup local_network 
+10500:	from all oif wlan2_0 uidrange 0-0 lookup wlan2_0 
+13000:	from all fwmark 0x10063/0x1ffff lookup local_network 
+13000:	from all fwmark 0x10064/0x1ffff lookup wlan2_0 
+14000:	from all oif wlan1_0 lookup local_network 
+14000:	from all oif wlan2_0 lookup wlan2_0 
+15000:	from all fwmark 0x0/0x10000 lookup legacy_system 
+16000:	from all fwmark 0x0/0x10000 lookup legacy_network 
+17000:	from all fwmark 0x0/0x10000 lookup local_network 
+19000:	from all fwmark 0x64/0x1ffff lookup wlan2_0 
+22000:	from all fwmark 0x0/0xffff lookup wlan2_0 
+23000:	from all fwmark 0x0/0xffff uidrange 0-0 lookup main 
+32000:	from all unreachable
+
+-----------------------------------
+- table 255
+-----------------------------------
+broadcast 127.0.0.0 dev lo  proto kernel  scope link  src 127.0.0.1 
+local 127.0.0.0/8 dev lo  proto kernel  scope host  src 127.0.0.1 
+local 127.0.0.1 dev lo  proto kernel  scope host  src 127.0.0.1 
+broadcast 127.255.255.255 dev lo  proto kernel  scope link  src 127.0.0.1 
+broadcast 192.168.2.0 dev wlan2_0  proto kernel  scope link  src 192.168.2.12 
+local 192.168.2.12 dev wlan2_0  proto kernel  scope host  src 192.168.2.12 
+broadcast 192.168.2.255 dev wlan2_0  proto kernel  scope link  src 192.168.2.12 
+broadcast 192.168.16.0 dev wlan1_0  proto kernel  scope link  src 192.168.16.1 
+local 192.168.16.1 dev wlan1_0  proto kernel  scope host  src 192.168.16.1 
+broadcast 192.168.16.255 dev wlan1_0  proto kernel  scope link  src 192.168.16.1 
+
+-----------------------------------
+- table 254
+-----------------------------------
+default via 192.168.2.1 dev wlan2_0 
+192.168.2.0/24 dev wlan2_0  proto kernel  scope link  src 192.168.2.12 
+192.168.16.0/24 dev wlan1_0  proto kernel  scope link  src 192.168.16.1 
+
+-----------------------------------
+- table 0
+-----------------------------------
+default via 192.168.2.1 dev wlan2_0  table wlan2_0  proto static 
+192.168.2.0/24 dev wlan2_0  table wlan2_0  proto static  scope link 
+default via 192.168.2.1 dev wlan2_0 
+192.168.2.0/24 dev wlan2_0  proto kernel  scope link  src 192.168.2.12 
+192.168.16.0/24 dev wlan1_0  proto kernel  scope link  src 192.168.16.1 
+broadcast 127.0.0.0 dev lo  table local  proto kernel  scope link  src 127.0.0.1 
+local 127.0.0.0/8 dev lo  table local  proto kernel  scope host  src 127.0.0.1 
+local 127.0.0.1 dev lo  table local  proto kernel  scope host  src 127.0.0.1 
+broadcast 127.255.255.255 dev lo  table local  proto kernel  scope link  src 127.0.0.1 
+broadcast 192.168.2.0 dev wlan2_0  table local  proto kernel  scope link  src 192.168.2.12 
+local 192.168.2.12 dev wlan2_0  table local  proto kernel  scope host  src 192.168.2.12 
+broadcast 192.168.2.255 dev wlan2_0  table local  proto kernel  scope link  src 192.168.2.12 
+broadcast 192.168.16.0 dev wlan1_0  table local  proto kernel  scope link  src 192.168.16.1 
+local 192.168.16.1 dev wlan1_0  table local  proto kernel  scope host  src 192.168.16.1 
+broadcast 192.168.16.255 dev wlan1_0  table local  proto kernel  scope link  src 192.168.16.1 
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+fe80::/64 dev wlan2_0  table wlan2_0  proto kernel  metric 256  pref medium
+fe80::/64 dev wlan2_0  table wlan2_0  proto static  metric 1024  pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+fe80::/64 dev wlan1_0  table 1006  proto kernel  metric 256  pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+fe80::/64 dev cecl  table 1007  proto kernel  metric 256  pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+local ::1 dev lo  table local  proto none  metric 0  pref medium
+local fe80::129f:a9ff:fec6:f334 dev lo  table local  proto none  metric 0  pref medium
+local fe80::129f:a9ff:fec6:f3b1 dev lo  table local  proto none  metric 0  pref medium
+local fe80::fcff:ffff:fece:cece dev lo  table local  proto none  metric 0  pref medium
+ff00::/8 dev cecl  table local  metric 256  pref medium
+ff00::/8 dev wlan1_0  table local  metric 256  pref medium
+ff00::/8 dev wlan2_0  table local  metric 256  pref medium
+unreachable default dev lo  proto kernel  metric 4294967295  error -101 pref medium
+
+-----------------------------------
+- table filter
+-----------------------------------
+Chain INPUT (policy ACCEPT 189 packets, 14408 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+  189 14408 bw_INPUT   all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  189 14408 fw_INPUT   all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 oem_fwd    all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 fw_FORWARD  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 bw_FORWARD  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 natctrl_FORWARD  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 192 packets, 11882 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+  192 11882 oem_out    all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  192 11882 fw_OUTPUT  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  192 11882 st_OUTPUT  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  192 11882 bw_OUTPUT  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain bw_FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain bw_INPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0            all  --  *      *       0.0.0.0/0            0.0.0.0/0            ! quota globalAlert: 2097152 bytes 
+  181 12980            all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner socket exists
+
+Chain bw_OUTPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0            all  --  *      *       0.0.0.0/0            0.0.0.0/0            ! quota globalAlert: 2097152 bytes 
+  192 11882            all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner socket exists
+
+Chain bw_costly_shared (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 bw_penalty_box  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain bw_data_saver (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain bw_happy_box (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner UID match 0-9999
+    0     0 bw_data_saver  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain bw_penalty_box (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 bw_happy_box  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain fw_FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain fw_INPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain fw_OUTPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain fw_dozable (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  lo     lo      0.0.0.0/0            0.0.0.0/0           
+    0     0 RETURN     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp flags:0x04/0x04
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner UID match 0-9999
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain fw_powersave (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  lo     lo      0.0.0.0/0            0.0.0.0/0           
+    0     0 RETURN     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp flags:0x04/0x04
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner UID match 0-9999
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain fw_standby (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  lo     lo      0.0.0.0/0            0.0.0.0/0           
+    0     0 RETURN     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp flags:0x04/0x04
+
+Chain natctrl_FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain natctrl_tether_counters (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain oem_fwd (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain oem_out (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain st_OUTPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain st_clear_caught (2 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain st_clear_detect (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 REJECT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            connmark match  0x2000000/0x2000000 reject-with icmp-port-unreachable
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            connmark match  0x1000000/0x1000000
+    0     0 CONNMARK   tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            u32 "0x0>>0x16&0x3c@0xc>>0x1a&0x3c@0x0&0xffff0000=0x16030000&&0x0>>0x16&0x3c@0xc>>0x1a&0x3c@0x4&0xff0000=0x10000" CONNMARK or 0x1000000
+    0     0 CONNMARK   udp  --  *      *       0.0.0.0/0            0.0.0.0/0            u32 "0x0>>0x16&0x3c@0x8&0xffff0000=0x16fe0000&&0x0>>0x16&0x3c@0x14&0xff0000=0x10000" CONNMARK or 0x1000000
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            connmark match  0x1000000/0x1000000
+    0     0 st_clear_caught  tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            state ESTABLISHED u32 "0x0>>0x16&0x3c@0xc>>0x1a&0x3c@0x0&0x0=0x0"
+    0     0 st_clear_caught  udp  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain st_penalty_log (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 CONNMARK   all  --  *      *       0.0.0.0/0            0.0.0.0/0            CONNMARK or 0x1000000
+    0     0 NFLOG      all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain st_penalty_reject (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 CONNMARK   all  --  *      *       0.0.0.0/0            0.0.0.0/0            CONNMARK or 0x2000000
+    0     0 NFLOG      all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 REJECT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            reject-with icmp-port-unreachable
+
+-----------------------------------
+- table nat
+-----------------------------------
+Chain PREROUTING (policy ACCEPT 18 packets, 3263 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+   18  3263 oem_nat_pre  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain INPUT (policy ACCEPT 3 packets, 644 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 177 packets, 9685 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain POSTROUTING (policy ACCEPT 177 packets, 9685 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+  177  9685 natctrl_nat_POSTROUTING  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain natctrl_nat_POSTROUTING (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain oem_nat_pre (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+-----------------------------------
+- table mangle
+-----------------------------------
+Chain PREROUTING (policy ACCEPT 189 packets, 14592 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain INPUT (policy ACCEPT 178 packets, 13197 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 MARK       all  --  wlan1_0 *       0.0.0.0/0            0.0.0.0/0            MARK set 0x30063
+  180 13352 MARK       all  --  wlan2_0 *       0.0.0.0/0            0.0.0.0/0            MARK set 0x30064
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 natctrl_mangle_FORWARD  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 181 packets, 11179 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain POSTROUTING (policy ACCEPT 181 packets, 11179 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+  192 11882 bw_mangle_POSTROUTING  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  192 11882 idletimer_mangle_POSTROUTING  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain bw_mangle_POSTROUTING (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  192 11882            all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner socket exists
+
+Chain idletimer_mangle_POSTROUTING (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  181 11179 IDLETIMER  all  --  *      wlan2_0  0.0.0.0/0            0.0.0.0/0            timeout:15 label:1 send_nl_msg:1
+
+Chain natctrl_mangle_FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 TCPMSS     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp flags:0x02/0x02 TCPMSS clamp to PMTU
+
+-----------------------------------
+- table raw
+-----------------------------------
+Chain PREROUTING (policy ACCEPT 190 packets, 14683 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+  204 17027 bw_raw_PREROUTING  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  204 17027 idletimer_raw_PREROUTING  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+  204 17027 natctrl_raw_PREROUTING  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 183 packets, 11299 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain bw_raw_PREROUTING (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  204 17027            all  --  *      *       0.0.0.0/0            0.0.0.0/0            owner socket exists
+
+Chain idletimer_raw_PREROUTING (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  190 14683 IDLETIMER  all  --  wlan2_0 *       0.0.0.0/0            0.0.0.0/0            timeout:15 label:1 send_nl_msg:1
+
+Chain natctrl_raw_PREROUTING (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+-----------------------------------
+- table security
+-----------------------------------
+Chain INPUT (policy ACCEPT 189 packets, 14408 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 192 packets, 11882 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+

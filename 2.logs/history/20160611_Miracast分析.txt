@@ -1,0 +1,388 @@
+Just write a little notes.
+
+进入RTSP状态时启动RTSP线程。
+RTSP状态分三个阶段：
+第一阶段进行初始化，主要完成socket连接，
+1. 启动RTSP线程：
+1.1 连接TX的RTSP server，默认端口号7236（TCP）；
+1.2 设置RTP过滤器参数（IP和Port），默认端口号24030（UDP）；
+1.3 创建I2C server socket，监听的默认端口号23030（TCP），启动I2C线程；
+1.4 创建HDCP2 server socket，监听的默认端口号25030（TCP），启动HDCP线程；
+2. RTSP数据交互。
+第二阶段中，经过几次RTSP交互，trigger SETUP事件，SETUP做这几件事，
+1. 创建RTP socket，启动RTP线程；
+2. 初始化Kernel RTP；
+1.1 通过/dev/xxx获取共享内存的物理地址；
+1.2 通过mmap将物理地址映射到线程的虚拟地址空间；
+1.3 将物理地址设置给Media Player的播放路径；
+3. Start Media Player；
+
+Media Client
+main()
+system_init()
+system_ipc = new RT_MediaConfig()
+system_ipc->initCheck()
+m_ipc.createConnection()    // Unix Socket: /tmp/MediaPlayRequest
+xSendCmd(CMD_CONFIG_CONNECTION)
+set_HDMI_display()
+VoutUtil *voutUtil = &VoutUtil::instance(true)
+mInstance = new VoutUtil(bNeedInitRPC)  // VoutUtil.cpp
+initRPC()
+AUDIO_AGENT_0_register(rnode)
+ipc_register(AUDIO_AGENT_0)
+ReplyHandler_register(rnode)
+ipc_register(Reply_Handler)
+initRPCProxy(rnode)
+openRPC()   // read: rpc2 rpc3 rpc6 rpc7
+openStubRPC()   // write: rpc0 rpc1 rpc4 rpc5
+for(registerRPC())
+for(pthread_create(RPCProxy_loop()))  // x3
+MediaPlayerCreate()
+g_MediaPlayer= new RTMediaPlayer(false)
+g_MediaPlayer->initCheck()
+rtp_InitKernelRtp(g_MediaPlayer)
+open("/dev/mcp_core")
+open("/dev/mem")
+init_and_kmap()
+fopen("/proc/aeiudp")
+MediaPlayerDataSourceSet(g_MediaPlayer)
+g_MediaPlayer->setDataSource(g_mplayer_path)
+MediaFlowInit()
+g_MediaPlayer->prepare()
+
+class RTMediaPlayer
+setDataSource()
+m_ipc.createConnection()    // Unix Socket: /tmp/MediaPlayRequest
+pthread_create(procEntry)
+pthread_create(workerProcEntry)
+mListener = new RTMediaPlayerEventListener
+mRvsd = new RVSD(m_rvsdID)
+init(handle)
+pRvsdInfo = new RVSD_INFO(handle)
+mVDecAbc(NULL)
+mRvsd->setListener(mListener)
+mRvsd->start()  // rvsd_entry.cpp
+rvsd_run()  // rvsd_maincore.cpp
+
+pthread_create(rvsd_thread)
+socket_main()
+ipc_handler()
+server_sockfd = socket(/tmp/rvsdsocket)
+while(...)
+select(server_sockfd )
+client_sockfd = accept()
+rvsd_handle_InBandCMD()  // rvsd_InBandCMD.cpp
+
+rvsd_thread线程创建服务器socket，如果有client来连接，调用rvsd_handle_InBandCMD()与这个socket交互。这里client是DvdPlayer。
+在rvsd_handle_InBandCMD()中会创建VDec_Abc_decode_pthread线程，即VDec_decode_loop()函数。
+rvsd_handle_InBandCMD()
+rvsdRingBuffer_init()  // Malloc Ring Buffer
+
+while (1)
+poll(client_sockfd)
+check_create_codec_handler()
+rvsd_create_codec_handler()
+pRvsdInfo->mVDecAbc = new VDecAbc)
+pthread_create( VDec_Abc_decode_pthread)
+VDec_decode_loop()  // rvsd_VDecAbc.cpp
+mIonFd = ion_open()
+recv(client_sockfd)
+switch()
+case ENUM_IPC_RVSD_VIDEO_INIT: // rvsd_video_init
+case ENUM_IPC_RVSD_VIDEO_REF_CLOCK:  //get RefClock
+case ENUM_IPC_RVSD_VIDEO_FLUSH:  //AGENT_FLUSH
+case ENUM_IPC_RVSD_VIDEO_PAUSE: //AGENT_PAUSE
+case ENUM_IPC_RVSD_VIDEO_RUN: //AGENT_RUN
+case ENUM_IPC_RVSD_VIDEO_PRIVATE_INFO: //Get Video PrivateInfo
+case ENUM_IPC_RVSD_VIDEO_ERROR_CONCEALMENT: //SetErrConcealment
+case ENUM_IPC_RVSD_VIDEO_GET_SEQUENCE_INFO: // GetVideoSequenceInfo
+case ENUM_IPC_RVSD_VIDEO_VO_INSTANCE_ID://receive VO instance ID from Dvdplayer
+case ENUM_IPC_RVSD_VIDEO_STOP: //AGENT_STOP
+case ENUM_IPC_RVSD_VIDEO_DESTROY: //AGENT_DESTROY
+
+
+RVSD CMD
+
+Boot
+
+28  VO_INSTANCE_ID
+50  SP_CREATE
+21  VIDEO_BS_HANDLER
+21  VIDEO_BS_HANDLER
+5d  VIDEO_INIT_MPEG2_CC_RING_BUF
+51  SP_INIT_RING_BUF
+57  SP_ENABLE
+16  VIDEO_INIT
+5a  SP_CONFIG
+57  SP_ENABLE
+27  VIDEO_GET_SEQUENCE_INFO
+
+
+First
+
+54  SP_PAUSE
+24  VIDEO_PAUSE
+34  VIDEO_ERROR_CONCEALMENT
+34  VIDEO_ERROR_CONCEALMENT
+20  VIDEO_REF_CLOCK
+55  SP_RUN
+25  VIDEO_RUN
+56  SP_FLUSH
+23  VIDEO_FLUSH
+34  VIDEO_ERROR_CONCEALMENT
+56  SP_FLUSH
+23  VIDEO_FLUSH
+16  VIDEO_INIT
+34  VIDEO_ERROR_CONCEALMENT
+33  VIDEO_PRIVATE_INFO
+56  SP_FLUSH
+23  VIDEO_FLUSH
+34  VIDEO_ERROR_CONCEALMENT
+27  VIDEO_GET_SEQUENCE_INFO
+
+
+Disconnect
+
+33  VIDEO_PRIVATE_INFO
+27  VIDEO_GET_SEQUENCE_INFO
+26  VIDEO_SEEK
+54  SP_PAUSE
+24  VIDEO_PAUSE
+53  SP_STOP
+29  VIDEO_STOP
+
+
+Persistent/First
+
+54  SP_PAUSE
+24  VIDEO_PAUSE
+34  VIDEO_ERROR_CONCEALMENT
+34  VIDEO_ERROR_CONCEALMENT
+20  VIDEO_REF_CLOCK
+56  SP_FLUSH
+55  SP_RUN
+25  VIDEO_RUN
+23  VIDEO_FLUSH
+34  VIDEO_ERROR_CONCEALMENT
+33  VIDEO_PRIVATE_INFO
+
+
+Disconnect
+
+33  VIDEO_PRIVATE_INFO
+54  SP_PAUSE
+24  VIDEO_PAUSE
+53  SP_STOP
+29  VIDEO_STOP
+
+End
+
+
+
+Media Server
+main()
+system_init()
+firmware_init_No_R_PROGRAM()
+AUDIO_AGENT_0_register(rnode)
+ReplyHandler_register(rnode)
+initRPCProxy(rnode)
+openRPC()
+openStubRPC()
+for(registerRPC())
+for(pthread_create(RPCProxy_loop()))  // x3
+aei_create_shared_memory()
+gv_ion_fd = ipc_fd = open("/dev/ion")
+ioctl(ION_IOC_ALLOC)
+ioctl(ION_IOC_PHYS)
+ioctl(ION_IOC_MAP)
+ptr = mmap(size)  // size=8MB+DESC_SIZE, DESC_SIZE=4KB HDCP desc size
+fopen("/proc/aeiudp")
+fprintf(fd, "M %lX %X %d %d\n", phyAddr, size, gv_map_fd, DESC_SIZE);
+gv_hdcp_desc_ptr = ptr
+gv_ts_stream_ptr = ptr + DESC_SIZE
+gv_ts_stream_phyAddr = phyAddr + DESC_SIZE
+audio_firmware_configure()
+board_init()
+/*
+根据programID， versionID和opt创建一个CLNT_STRUCT结构体
+programID=VIDEO_SYSTEM=201
+versionID=
+*/
+clnt = prepareCLNT()  // 
+SetVO(clnt)
+VIDEO_RPC_VOUT_ToAgent_SetBackground_0()
+ConfigVoutMixerOrder()
+initPLL()
+MediaPlayServer::getMediaPlayServer()
+m_pInstance = new MediaPlayServer()
+xCreateConnection("/tmp/MediaPlayRequest")
+m_pThread = new CThread(MediaPlayServer::procEntry)
+xProcEntry()
+m_pThread->Run()
+fopen("/sys/kernel/abc_pu/pu_memsize")
+
+
+
+VideoPlayback类型定义在Application/AppClass/Class/Playback/VideoPlayback.cpp中，VideoPlayback在LoadMedia()时调用ReconstructFlow()，该函数创建一系列对象，包括FlowManager、各个Filter、CReferenceClock对象，然后将Filter添加到FlowManager里面，FlowManager还负责将各Filter的Pin按一定规则connect起来。
+
+FlowMannager管理的Filter有：
+CNavigationFilter       Filters/NavigationFilter/CNavigationFilter.cpp
+CMPEG2Decoder      Filters/VideoDecoder/VDecodeMPEG2/CMPEG2Decoder.cpp
+CVideoOutFilter         Filters/VideoDecoder/VDecodeMPEG2/CVideoOutFilter.cpp
+CFilterSpu                 Filters/SPUDecoder/CFilterSpu.cpp
+
+TTDecodeFilter          Filters/TTDecodeFilter/TTDecodeFilter.cpp
+
+CCDecodeFilter        Filters/CCDecodeFilter/CCDecodeFilter.cpp
+
+
+
+MediaPlayServer::xProcEntry()
+while()
+xAccept(&m_client[index])
+xProcessCommand(pClient)
+PLBK:
+pClient->flow.pPlayback = new VideoPlayback()
+PRSN:
+xLoadMedia()
+pPlayback->LoadMedia()
+ReconstructFlow()
+m_pFManager = new CPlaybackFlowManager()
+m_pSource = new CNavigationFilter
+m_pRefClock = new CReferenceClock()
+m_pCCDecoder    = new CCDecodeFilter()
+m_pTTDecoder    = new TTDecodeFilter()
+m_pVDecoder = new CMPEG2Decoder()
+m_pVideoOut = new CVideoOutFilter(FILTER_TYPE_VO)
+m_pSPUDecoder = new CFilterSpu
+
+
+m_pFManager->AddFilter(m_pSource, "DVD Source")
+m_pFManager->AddFilter(m_pVDecoder, "DVD VDecoder")
+m_pFManager->AddFilter(m_pVideoOut, "VideoOut Filter")
+m_pFManager->AddFilter(m_pSPUDecoder, "DVD SPU Decoder")
+m_pFManager->AddFilter(m_pTTDecoder, "TTDecoder")
+m_pFManager->AddFilter(m_pCCDecoder, "CCDecoder")
+
+m_pVDecoder->SetRefClock(m_pRefClock)
+m_pSource->EnumPins(&pEnumPins)
+pEnumPins->Next(&pPinVideo)
+...
+
+m_pVDecoder->FindPin(&pPin2, "InputPin 1")
+m_pFManager->ConnectDirect(pPinVideo, pPin2, NULL)
+m_pNavControl->LoadMedia()  == CNavigationFilter::LoadMedia()
+SelectInputPlugin()
+SelectDemuxPlugin()
+
+PLAY:
+pPlayback->m_pFManager->Run()
+((CBaseFilter*)(m_IFilterArr[i]))->Pause(State_Paused_Running)
+CNavigationFilter::StartStreaming()
+osal_ThreadBegin(ThreadProcEntry)
+CNavigationFilter::ThreadProc()
+
+class MediaPlayServer
+CLIENT_INFO m_client[2]
+FLOW_INFO flow
+VideoPlayback *pPlayback
+CPlaybackFlowManager *m_pFManager
+CNavigationFilter *m_pSource
+CReferenceClock *m_pRefClock
+CMPEG2Decoder *m_pVDecoder
+CVideoOutFilter *m_pVideoOut
+CFilterSpu *m_pSPUDecoder
+INavControl *m_pNavControl
+VoutUtil m_voutUtil
+
+系统启动
+
+COFG   4    16_0_0_0
+PLBK   4     36_0_0_0
+SURL   56   socket:///tmp/MediaData?container=ts?sharedMem=245460992
+PRSN   4     1_0_0_0
+PROP   8     1_0_0_0_1_0_0_0
+FUNC  23    ____S_e_t_D_i_s_p_l_a_y_R_a_t_i_o__7_5__
+GVSI     4     0_0_0_0
+
+
+
+系统启动后第一次miracast连接
+
+SVEL   8      0_16_0_0_0_16_0_0
+PLAY   0
+SVDR  4     1_0_0_0
+GVSI    4      1_0_0_0
+GASI    4      255_255_255_255
+
+
+系统启动后第一次miracast断开
+
+SVDR  4    0_0_0_0
+STOP  4    1_0_0_0
+SVLD  4     1_0_0_0
+PROP  8     1_0_0_0_1_0_0_0
+FUNC  23    ____S_e_t_D_i_s_p_l_a_y_R_a_t_i_o__7_5__
+
+
+系统启动后第二次miracast连接
+
+SVEL  8     0_16_0_0_0_16_0_0
+PLAY  0
+SVDR  4    1_0_0_0
+
+
+系统启动后第二次miracast断开
+
+SVDR  4     0_0_0_0
+STOP  4     1_0_0_0
+SVLD  4     0_0_0_0
+PROP  8     1_0_0_0_1_0_0_0
+FUNC  23    ____S_e_t_D_i_s_p_l_a_y_R_a_t_i_o__7_5__
+
+
+
+size      =[0x801000][8392704]
+offset    =[0x1000][4096]
+addr     =[0x4175000][68636672]
+
+MemHeaderPtr   =[0xf618 4000]
+PhyAddr               =[0x417 6000]  [68640768]
+ts_size                  =[0x800]    [2048]
+nav_size              =[0x3000]   [12288]
+total_size             =[0x80 0000] [8388608]
+ts_cnt                    =[4086]
+
+pagesize              =[0x1000] [4096]
+
+
+------------------------------------------- <--rtp_mem_ptr
+4096 (header)
+------------------------------------------- <--nav_mem_ptr
+4096*3          4096 (header)
+(nav_size)    -------------------------- <--nav_ptr
+                       4096
+                       --------------------------
+                       4096
+------------------------------------------- <--data_mem_ptr
+4096 (header)
+------------------------------------------- <--data_ptr
+2048             tsu
+                      --------------------------
+                      payload
+-------------------------------------------
+2048             tsu
+                      ---------------------------
+                      payload
+-------------------------------------------
+2048            tsu
+                     ---------------------------
+                     payload
+-------------------------------------------
+2048            tsu
+                     ---------------------------
+                     payload
+-------------------------------------------
+
+
+ 

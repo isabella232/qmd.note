@@ -1,0 +1,61 @@
+Blender快捷键
+1. 基本操作
+【G】——移动 
+【R】——旋转 
+【S】——缩放 
+【X】——删除
+
+【T】——
+
+【N】——
+
+【A】——全选
+【B】——矩形框选
+【C】——圈选Circle select
+【CTRL-LMB】——自由圈选 
+【SHIFT+C】3D Cursor到世界原点
+
+【编辑模式：F】选点封面
+
+【编辑模式：ALT+M】选点合并
+
+【E】——挤出Extrude
+【SHIFT+D】——复制  Duplicate
+【SHIFT+A】——添加物体 Add object
+
+【SHIFT+CTRL+ALT+C】——中心点到几何体  Origin to Geometry
+【CTRL+J】——合并物体 Join Objects
+
+2. 高级操作
+视图类
+【Numpad 1】——前面观(Frontview) 
+【Numpad 3】——侧面观(Sideview) 
+【Numpad 7】——俯视图(Topview) 
+【Numpad 0】——镜头观(Cameraview)
+【CTRL+ALT+Q】——切换四视图  Toggle Quad View
+【CTRL+UP】——切换全屏 ARROW Toggle Full Screen
+【Z】Wireframe/Shading 
+
+【CTRL+NUMPAD 1】 Back View——后视图 
+【CTRL+NUMPAD 3】 Left Side View——左侧视图 
+【CTRL+NUMPAD 7】 Bottom View——底视图 
+
+
+
+3. 选择类
+
+
+
+Ctrl + D 复制。
+Alt + D 关联复制（与上面的Ctrl + D 类似，差别在于复制出来的物体是异位同体，编辑其中一个，会影响到另一个）
+Ctrl + M 镜像，可以理解为反向翻转。
+
+
+
+
+
+
+其他
+【ALT+S】 Clear Scale——清除缩放 
+【ALT+R】 Clear Rotation——清除旋转 
+【ALT+G】 Clear Location——清除移动 

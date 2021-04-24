@@ -1,0 +1,33 @@
+https://iperf.fr/
+
+
+
+编译：
+
+
+
+#!/bin/sh
+
+function make_iperf()
+{
+	app=iperf-3.1.3
+	#rm -rf $app
+	#tar -xf $app-source.tar.gz
+
+	cd $app
+	./configure --host=arm-linux-gnueabihf --disable-shared
+	make clean
+	make
+	cd -
+
+}
+
+make_iperf
+
+使用：
+
+
+
+Server $ iperf -s
+
+Client $ iperf -c 192.168.1.5

@@ -1,0 +1,76 @@
+
+1.体系结构的发展
+1.1 版本的发展
+到目前，ARM体系结构共定义了7个版本，v1~v7。
+v4有T变种（v4T支持Thumb指令集）。ARM920T，是ARM9系列的第一个处理器，1997年推出。
+v4T包括：
+
+ARM7TDMI核（ARM710T、ARM720T、ARM740T处理器）、ARM7TDMI-S；
+
+ARM9TDMI核（ARM910T、ARM920T、ARM940T处理器）、StrongARM（Intel）；
+
+v5有T变种、E变种（DSP指令）、J变种（Java指令）。
+
+v5T包括：
+
+ARM10TDMI核（ARM1020T处理器）；
+
+v5TE包括：
+
+ARM9E核（ARM946、ARM966）、ARM9E-S；
+
+ARM10E核（ARM1020E、ATM1022E）、Xscal（Intel）；
+
+v5TEJ包括：
+
+ARM9EJ核（ARM926EJ）、ARM9EG-S；
+
+ARM10EJ核；
+
+v6架构于2001年发布，2002年发布v6版本的核ARM11，v6包含四种特殊指令集：Thumb指令（T）、DSP指令（E）、Java指令（J）、Media指令。
+v7架构采用了Thumb-2技术、NEON技术，cortex系列分高端Cortex-A、中端Cortex-R、低端Cortex-M。
+1.2 体系结构的发展 
+ARM7系列处理器，v4指令集，三级流水线，内核采用冯诺依曼体系结构，数据和指令使用同一条总线；最高频率130MIPS；主时钟20~133MHz。
+ARM9系列处理器，v4指令集，五级流水线，内核采用哈佛体系结构，数据和指令使用不同的总线；主时钟100~233MHz；
+ARM9E系列处理器，v5指令集；
+ARM10系列处理器，六级流水线；
+ARM11系列处理器，v6指令集，八级流水线，如ARM1136J-S；
+
+
+2. ARM920T体系结构
+ARM9TDMI内核，v4T架构；
+两套指令集；
+5级流水线；
+16KB数据缓存和16KB指令缓存；
+有MMU；
+7中工作模式：User、FIQ、IRQ、Supervisor、Abort、Undef、System；
+37个32位寄存器（30个通用、1个当前程序状态寄存器CPSR、5个备份程序状态寄存器、1个PC）；
+
+
+处理器模式	体系结构	模式标志码
+User	所有	0b10000
+FIQ ‑快速中断请求模式	所有	0b10001
+IRQ ‑ 中断请求模式	所有	0b10010
+Supervisor	所有	0b10011
+Abort	所有	0b10111
+Undefined	所有	0b11011
+System	ARMv4和以上版本	0b11111
+Monitor	Security Extensions only	0b10110
+
+
+
+
+
+
+
+
+
+
+3. 结构框图S3C2410、LPC11XX、s5pc100
+
+
+      
+
+
+
+            

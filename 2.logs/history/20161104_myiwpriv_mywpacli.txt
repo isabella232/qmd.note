@@ -1,0 +1,420 @@
+My iwpriv
+
+bug: wifi_iwpriv() socket close need close
+
+
+
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
+#include <linux/types.h> /* for "caddr_t" et al		*/
+#include <sys/socket.h> /* For AF_INET & struct sockaddr */
+#include <linux/wireless.h>
+//#include <net/if.h> /* for IFNAMSIZ and co... */
+
+/*------------------------------------------------------------------*/
+/*
+ * Get information about what private ioctls are supported by the driver
+ *
+ * Note : there is one danger using this function. If it return 0, you
+ * still need to free() the buffer. Beware.
+ */
+int wifi_get_priv_info(int skfd,
+		 const char * ifname,
+		 struct iw_priv_args ** ppriv)
+{
+	struct iwreq wrq;
+	struct iw_priv_args *priv = NULL;	/* Not allocated yet */
+	struct iw_priv_args *newpriv = NULL;
+	int maxpriv = 16;	/* Minimum for compatibility WE<13 */
+
+	/* Some driver may return a very large number of ioctls. Some
+	* others a very small number. We now use a dynamic allocation
+	* of the array to satisfy everybody. Of course, as we don't know
+	* in advance the size of the array, we try various increasing
+	* sizes. Jean II */
+	do {
+		/* (Re)allocate the buffer */
+		newpriv = (struct iw_priv_args*)realloc(priv, maxpriv * sizeof(priv[0]));
+		if(newpriv == NULL) {
+			fprintf(stderr, "%s: Allocation failed\n", __FUNCTION__);
+			break;
+		}
+		priv = newpriv;
+
+		/* Ask the driver if it's large enough */
+		wrq.u.data.pointer = (caddr_t) priv;
+		wrq.u.data.length = maxpriv;
+		wrq.u.data.flags = 0;
+		strncpy(wrq.ifr_name, ifname, IFNAMSIZ);
+		if(ioctl(skfd, SIOCGIWPRIV, &wrq) >= 0) {
+			int n = wrq.u.data.length;
+			int k = 0;
+			/* Success. Pass the buffer by pointer */
+			*ppriv = priv;
+
+			/* Is there any ? */
+			if(n <= 0) {
+				/* Should I skip this message ? */
+				fprintf(stderr, "%-8.16s  no private ioctls.\n\n", ifname);
+			} else {
+				#if 0
+				static const char *argtype[] = {"     ", "byte ", "char ", "", "int  ", "float", "addr "};
+
+				printf("%-8.16s  Available private ioctls :\n", ifname);
+				/* Print them all */
+				for(k = 0; k < n; k++)
+					if(priv[k].name[0] != '\0')
+						printf(" %-16.16s (%.4X) : set %3d %s & get %3d %s\n",
+							priv[k].name, priv[k].cmd,
+							priv[k].set_args & IW_PRIV_SIZE_MASK,
+							argtype[(priv[k].set_args & IW_PRIV_TYPE_MASK) >> 12],
+							priv[k].get_args & IW_PRIV_SIZE_MASK,
+							argtype[(priv[k].get_args & IW_PRIV_TYPE_MASK) >> 12]);
+						printf("\n");
+				#endif
+			}
+
+			/* Return the number of ioctls */
+			return (wrq.u.data.length);
+		}
+
+		/* Only E2BIG means the buffer was too small, abort on other errors */
+		if(errno != E2BIG) {
+			/* Most likely "not supported". Don't barf. */
+			break;
+		}
+
+		/* Failed. We probably need a bigger buffer. Check if the kernel
+		* gave us any hints. */
+		if(wrq.u.data.length > maxpriv)
+			maxpriv = wrq.u.data.length;
+		else
+			maxpriv *= 2;
+	}  while(maxpriv < 1000);
+
+	/* Cleanup */
+	if(priv)
+		free(priv);
+	*ppriv = NULL;
+
+	return (-1);
+}
+
+int wifi_iwpriv(char*ifname, char*cmd, char*arg)
+{
+	static const int families[] = {AF_INET, AF_IPX, AF_AX25, AF_APPLETALK};
+	unsigned int i = 0;
+	int skfd = -1;
+
+	/*
+	* Now pick any (exisiting) useful socket family for generic queries
+	* Note : don't open all the socket, only returns when one matches,
+	* all protocols might not be valid.
+	* Workaround by Jim Kaba <jkaba@sarnoff.com>
+	* Note : in 99% of the case, we will just open the inet_sock.
+	* The remaining 1% case are not fully correct...
+	*/
+
+	/* Try all families we support */
+	for(i = 0; i < sizeof(families)/sizeof(int); ++i) {
+		/* Try to open the socket, if success returns it */
+		skfd = socket(families[i], SOCK_DGRAM, 0);
+		if(skfd >= 0)
+			break;
+	}
+
+	struct iw_priv_args *priv = NULL;
+	int number = 0;	      /* Max of private ioctl */
+	int ret = -1;
+
+	/* Read the private ioctls */
+	number = wifi_get_priv_info(skfd, ifname, &priv);
+
+	/* Is there any ? */
+	if(number <= 0) {
+		/* Should I skip this message ? */
+		fprintf(stderr, "%-8.16s  no private ioctls.\n\n", ifname);
+		if(priv)
+			free(priv);
+		return(-1);
+	}
+
+	struct iwreq wrq;
+	unsigned char buffer[1024];
+	int k = -1;	      /* Index in private description table */
+	int temp;
+	int subcmd = 0;     /* sub-ioctl index */
+	int offset = 0;     /* Space for sub-ioctl index */
+	int priv_size = 0;
+
+	/* Search the correct ioctl */
+	while((++k < number) && strcmp(priv[k].name, cmd));
+	if(k == number) {
+		fprintf(stderr, "Invalid command : %s\n", cmd);
+		return(-1);
+	}
+
+	/* Watch out for sub-ioctls ! */
+	if(priv[k].cmd < SIOCDEVPRIVATE) {
+		fprintf(stdout, "SIOCDEVPRIVATE\n");
+		return (-1);
+	}
+
+
+	/* If we have to set some data */
+	if((priv[k].set_args & IW_PRIV_TYPE_MASK) && (priv[k].set_args & IW_PRIV_SIZE_MASK)) {
+		switch(priv[k].set_args & IW_PRIV_TYPE_MASK) {
+		case IW_PRIV_TYPE_BYTE:
+			break;
+
+		case IW_PRIV_TYPE_INT:
+			break;
+
+		case IW_PRIV_TYPE_CHAR:
+			/* Size of the string to fetch */
+			wrq.u.data.length = strlen(arg) + 1;
+			if(wrq.u.data.length > (priv[k].set_args & IW_PRIV_SIZE_MASK))
+				wrq.u.data.length = priv[k].set_args & IW_PRIV_SIZE_MASK;
+
+			/* Fetch string */
+			memcpy(buffer, arg, wrq.u.data.length);
+			buffer[sizeof(buffer) - 1] = '\0';
+			break;
+
+		case IW_PRIV_TYPE_FLOAT:
+			break;
+
+		case IW_PRIV_TYPE_ADDR:
+			break;
+
+		default:
+			fprintf(stderr, "Not implemented...\n");
+			return(-1);
+		}
+
+		if((priv[k].set_args & IW_PRIV_SIZE_FIXED) &&
+			(wrq.u.data.length != (priv[k].set_args & IW_PRIV_SIZE_MASK)))
+		{
+			printf("The command %s needs exactly %d argument(s)...\n",
+				cmd, priv[k].set_args & IW_PRIV_SIZE_MASK);
+			return(-1);
+		}
+	} else {
+		wrq.u.data.length = 0L;
+	}
+
+	strncpy(wrq.ifr_name, ifname, IFNAMSIZ);
+
+	/* Size (in bytes) of various events */
+	static const int priv_type_size[] = {
+		0,				/* IW_PRIV_TYPE_NONE */
+		1,				/* IW_PRIV_TYPE_BYTE */
+		1,				/* IW_PRIV_TYPE_CHAR */
+		0,				/* Not defined */
+		sizeof(__u32),			/* IW_PRIV_TYPE_INT */
+		sizeof(struct iw_freq), 	/* IW_PRIV_TYPE_FLOAT */
+		sizeof(struct sockaddr),	/* IW_PRIV_TYPE_ADDR */
+		0,				/* Not defined */
+	};
+
+	priv_size = (priv[k].set_args & IW_PRIV_SIZE_MASK) * (priv_type_size[(priv[k].set_args & IW_PRIV_TYPE_MASK) >> 12]);
+
+
+	/* Those two tests are important. They define how the driver
+	* will have to handle the data */
+	if((priv[k].set_args & IW_PRIV_SIZE_FIXED) &&
+		((priv_size + offset) <= IFNAMSIZ))
+	{
+		/* First case : all SET args fit within wrq */
+		if(offset)
+			wrq.u.mode = subcmd;
+		memcpy(wrq.u.name + offset, buffer, IFNAMSIZ - offset);
+	} else {
+		if((priv[k].set_args == 0) &&
+			(priv[k].get_args & IW_PRIV_SIZE_FIXED) &&
+			(priv_size <= IFNAMSIZ))
+		{
+			/* Second case : no SET args, GET args fit within wrq */
+			if(offset)
+				wrq.u.mode = subcmd;
+		} else {
+			/* Third case : args won't fit in wrq, or variable number of args */
+			wrq.u.data.pointer = (caddr_t) buffer;
+			wrq.u.data.flags = subcmd;
+		}
+	}
+
+	/* Perform the private ioctl */
+	if(ioctl(skfd, priv[k].cmd, &wrq) < 0) {
+		fprintf(stderr, "Interface doesn't accept private ioctl...\n");
+		fprintf(stderr, "%s (%X): %s\n", cmd, priv[k].cmd, strerror(errno));
+		return(-1);
+	}
+
+	priv_size = (priv[k].get_args & IW_PRIV_SIZE_MASK) * (priv_type_size[(priv[k].get_args & IW_PRIV_TYPE_MASK) >> 12]);
+
+	/* If we have to get some data */
+	if((priv[k].get_args & IW_PRIV_TYPE_MASK) &&
+		(priv[k].get_args & IW_PRIV_SIZE_MASK))
+	{
+		int       j;
+		int       n = 0;	      /* number of args */
+
+		/* Check where is the returned data */
+		if((priv[k].get_args & IW_PRIV_SIZE_FIXED) &&
+			(priv_size <= IFNAMSIZ))
+		{
+			memcpy(buffer, wrq.u.name, IFNAMSIZ);
+			n = priv[k].get_args & IW_PRIV_SIZE_MASK;
+		} else {
+			n = wrq.u.data.length;
+		}
+
+		if (n == 0) {
+			return 0;
+		}
+
+		printf("%-8.16s  %s:", ifname, cmd);
+
+		switch(priv[k].get_args & IW_PRIV_TYPE_MASK) {
+		case IW_PRIV_TYPE_BYTE:
+			/* Display args */
+			for(j = 0; j < n; j++)
+				printf("%d  ", buffer[j]);
+			printf("\n");
+			break;
+
+		case IW_PRIV_TYPE_INT:
+			/* Display args */
+			for(j = 0; j < n; j++)
+				printf("%d  ", ((__s32 *) buffer)[j]);
+			printf("\n");
+			break;
+
+		case IW_PRIV_TYPE_CHAR:
+			/* Display args */
+			buffer[n] = '\0';
+			printf("%s\n", buffer);
+			break;
+
+		case IW_PRIV_TYPE_FLOAT: {
+			break;
+		}
+
+		case IW_PRIV_TYPE_ADDR: {
+			break;
+		}
+
+		default:
+			fprintf(stderr, "Not yet implemented...\n");
+			return(-1);
+		}
+	}   /* if args to set */
+
+	free(priv);
+	return(ret);
+}
+
+
+
+
+
+my wpa_cli
+
+
+
+
+
+int wifi_wpa_cli(char*ifname, char*cmd, char*buf_ret, int buf_len)
+{
+	struct sockaddr_un local;
+	struct sockaddr_un dest;
+	struct timeval tv;
+	int skfd = -1, ret = -1;
+
+	AEIDEBUGERROR("%s %s\n", ifname, cmd);
+	if ((skfd = socket(PF_UNIX, SOCK_DGRAM, 0)) < 0) {
+		AEIDEBUGERROR("socket create failed %d:%s\n", errno, strerror(errno));
+		return -1;
+	}
+
+	local.sun_family = AF_UNIX;
+	gettimeofday(&tv, NULL);
+	ret = snprintf(local.sun_path, sizeof(local.sun_path), "/tmp/wfd/wpa_ctrl_%ld_%ld", tv.tv_sec, tv.tv_usec);
+	if (ret < 0 || (size_t) ret >= sizeof(local.sun_path)) {
+		AEIDEBUGERROR("snprintf error\n");
+		close(skfd);
+		return -1;
+	}
+
+	if (bind(skfd, (struct sockaddr *) &local,sizeof(local)) < 0) {
+		if (errno == EADDRINUSE) {
+
+		}
+		AEIDEBUGERROR("bind error %d:%s\n", errno, strerror(errno));
+		ret = -1;
+		goto exit;
+	}
+
+	dest.sun_family = AF_UNIX;
+	snprintf(dest.sun_path, sizeof(dest.sun_path), "/var/run/wpa_supplicant/%s", ifname);
+	if (connect(skfd, (struct sockaddr *) &dest, sizeof(dest)) < 0) {
+		AEIDEBUGERROR("connect to %s error %d:%s\n", dest.sun_path, errno, strerror(errno));
+		ret = -1;
+		goto exit;
+	}
+
+	if (send(skfd, cmd, strlen(cmd), 0) < 0) {
+		AEIDEBUGERROR("send %s error %d:%s\n", cmd, errno, strerror(errno));
+		ret = -1;
+		goto exit;
+	}
+
+	if (!buf_ret || buf_len <= 0) {
+		ret = 0;
+		goto exit;
+	}
+
+	fd_set rfds;
+	tv.tv_sec = 3;
+	tv.tv_usec = 0;
+	FD_ZERO(&rfds);
+	FD_SET(skfd, &rfds);
+	ret = select(skfd + 1, &rfds, NULL, NULL, &tv);
+	if (ret > 0 && FD_ISSET(skfd, &rfds)) {
+		ret = recv(skfd, buf_ret, buf_len, 0);
+		if (ret < 0) {
+			AEIDEBUGERROR("recv error %d:%s\n", errno, strerror(errno));
+			ret = -1;
+			goto exit;
+		}
+		AEIDEBUGERROR("recv: \n%s\n", buf_ret);
+		ret = 0;
+	} else {
+		AEIDEBUGERROR("select error %d:%s\n", errno, strerror(errno));
+		ret = -1;
+		goto exit;
+	}
+
+exit:
+	unlink(local.sun_path);
+	if(skfd > 0)
+		close(skfd);
+	return ret;
+}
+
+
+
+
+
+
+
+
+
+
+My

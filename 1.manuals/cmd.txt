@@ -1,0 +1,49 @@
+
+# 20201218 Authenticating with GitHub from Git
+https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/
+https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/set-up-git#next-steps-authenticating-with-github-from-git
+
+windows: 
+git config --global credential.helper wincred
+
+Linux: 
+git config --global credential.helper cache
+git config --global credential.helper 'cache --timeout=3600'
+
+###########################
+# CMake
+###########################
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+mkdir build
+cd build
+cmake -G "NMake Makefiles" -Dx=y ..
+cmake --build . --target xxx
+cmake --install . --prefix "xxx"
+
+
+ws://192.168.1.4:8234
+{"content":{"action":"join_meeting","meeting_number":"4023824421","meeting_password":"123456","display_name":"screenbeam"}}
+{"content":{"action":"leave_meeting"}}
+{"content":{"action":"show_gallery_view"}}
+
+am broadcast -a screenbeam.zoom.mainservice.ACTION --es message '{"content":{"action":"connect_controller_server","ipaddr":"10.0.0.241","port":8236}}'
+am broadcast -a screenbeam.zoom.mainservice.ACTION --es message '{"content":{"action":"start_meeting","meeting_number":"5329579422","video_on":false}}'
+am broadcast -a screenbeam.zoom.mainservice.ACTION --es message '{"content":{"action":"join_meeting","meeting_number":"4023824421","meeting_password":"123456","display_name":"screenbeam"}}'
+am broadcast -a screenbeam.zoom.mainservice.ACTION --es message '{"content":{"action":"share_screen"}}'
+am broadcast -a screenbeam.zoom.mainservice.ACTION --es message '{"content":{"action":"show_gallery_view"}}'
+
+
+
+am start-foreground-service screenbeam.zoom
+am broadcast -n screenbeam.zoom/.MyReceiver -a screenbeam.zoom.ACTION --es message {"join_meeting":""}
+
+am start -n screenbeam.zoom/.MainActivity --activity-reorder-to-front --es mode background
+am start -n screenbeam.zoom/.MainActivity --es mode background --activity-brought-to-front
+dumpsys activity screenbeam.zoom | grep ACTIVITY
+start cmd.exe
+
+pm uninstall screenbeam.chromesbcc.receiver && pm install /data/screenbeam.chromesbcc.receiver.apk
+am force-stop screenbeam.chromesbcc.receiver && am startservice screenbeam.chromesbcc.receiver
+am broadcast -n screenbeam.chromesbcc.receiver/.MyReceiver -a screenbeam.chromesbcc.receiver.ACTION --es 'command' '{reload:0}'
+am broadcast -n screenbeam.chromesbcc.receiver/.MyReceiver -a screenbeam.chromesbcc.receiver.ACTION --es 'command' '{geckoview_message:{action:show}}'  
+

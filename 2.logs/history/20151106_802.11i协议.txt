@@ -1,0 +1,23 @@
+IEEE 802.11i 定义了三种加密方式：
+
+1. TKIP(Temporal Key IntegrityProtocol) 基于RC4
+
+2. CCMP(Counter-Mode/CBC-MAC Protocol) 基于AES和CCM(Counter-Mode/CBC-MAC)
+
+3. WRAP(Wireless Robust Authenticated Protocol) 基于AES和OCB(Offset Codebook)
+
+
+
+WEP：[KEY]+[RC4]+[CRC32]
+
+WPA-个人版：[PSK]+[TKIP][]
+
+WPA2-个人版：[PSK]+[CCMP][]
+
+WPA2-企业版：[802.1X]+[CCMP][]
+
+WPS：[PIN/PBC][CCMP][]
+
+
+
+EAP-TLS

@@ -1,0 +1,123 @@
+Ubuntu 18 development env
+
+[New system]
+sudo apt-get update
+sudo apt-get update --fix-missing
+# Basic
+sudo apt-get install vim git subversion meld putty
+sudo apt-get install terminator
+sudo apt-get install openssh-server vsftpd samba 
+sudo apt-get install dos2unix zip
+sudo apt-get install build-essential
+sudo apt-get install ctags //For vim tarlist
+sudo apt-get install curl
+sudo apt-get install bash-completion // optional
+sudo rm /bin/sh && sudo ln -s /bin/bash /bin/sh
+
+# For building
+sudo dpkg --add-architecture i386
+sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386
+sudo apt-get install libc6-i386 lib32z1 lib32stdc++6
+sudo apt-get install libncurses5-dev texinfo libpcre3-dev
+sudo apt-get install ccache autoconf
+sudo apt-get install u-boot-tools lzop
+sudo apt-get install device-tree-compiler #optional
+sudo apt-get install flex
+sudo apt-get install nautilus-open-terminal // ubuntu14
+sudo apt-get install freetype* // ubuntu14
+
+# For sec build
+sudo apt-get install libswitch-perl
+
+# For Android
+sudo apt-get install openjdk-7-jdk  // ubuntu14
+sudo apt-get install openjdk-8-jdk  // ubuntu18
+sudo apt-get install libxml2-utils // xmllint: command not found
+sudo apt-get install lzma  // lzma: Command not found
+sudo apt-get install android-tools-adb
+
+
+vi ~/.bashrc
+---------------------
+export LC_ALL=C.UTF-8
+export JACK_SERVER_VM_ARGUMENTS=-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4096m
+---------------------
+vi ~/.jack-server/config.properties
+---------------------
+jack.server.max-jars-size=104857600
+#jack.server.max-service=4
+jack.server.max-service=1
+jack.server.service.port=8076
+#jack.server.max-service.by-mem=1\=2147483648\:2\=3221225472\:3\=4294967296
+jack.server.admin.port=8077
+jack.server.config.version=2
+jack.server.time-out=7200
+---------------------
+android/prebuilts/sdk/tools
+./jack-admin uninstall-server
+./jack-admin install-server jack-launcher.jar jack-server-4.8.ALPHA.jar
+./jack-admin stop-server
+./jack-admin start-server
+./jack-admin list-server
+
+
+Ubuntu18 start script:
+sudo vi /etc/systemd/system/rc-local.service
+-----------------------
+[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=/etc/rc.local
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+[Install]
+WantedBy=multi-user.target
+-----------------------
+sudo chmod +x /etc/rc.local
+sudo systemctl enable rc-local
+sudo systemctl start rc-local.service
+sudo systemctl status rc-local.service
+
+
+[IPQ8074 build]
+sudo apt-get install gcc g++ binutils patch bzip2 flex make gettext pkg-config unzip zlib1g-dev libc6-dev subversion libncurses5-dev gawk sharutils curl ocaml-nox ocaml ocaml-findlib libpcre3-dev python-yaml libgl1-mesa-dri:i386 libgd-dev multiarch-support lib32ncurses5 lib32z1 libssl-dev
+chmod 755 qsdk/tools/scons/files/pywrap.sh
+chmod 755 qsdk/scripts/*.sh
+chmod 755 qsdk/scripts/*.pl
+chmod 755 qsdk/scripts/feeds
+chmod 755 qsdk/scripts/ipkg-build
+chmod 755 qca/feeds/luci/modules/luci-base/src/mkversion.sh
+chmod 755 apss_proc/out/meta-tools/mkimage
+------------------------
+Error: host automake automake.tmp
+vi qca_ipq807x/qsdk/build_dir/host/automake-1.15/bin/automake.in
+-3883   $text =~ s/\${([^ \t=:+{}]+)}/substitute_ac_subst_variables_worker ($1)/ge;
++3883   $text =~ s/\$[{]([^ \t=:+{}]+)}/substitute_ac_subst_variables_worker ($1)/ge;
+------------------------
+Error: host u-boot-2014.10 openssl/evp.h: No such file or directory
+sudo apt-get install libssl-dev
+------------------------
+Error: host u-boot-2014-10 rsa-sign.c error: dereferencing pointer to incomplete type
+u-boot-2014.10 error incomplete openssl1.1x
+https://github.com/openwrt/openwrt/commit/70b104f98c0657323b28fce140b73a94bf3eb756
+Add tools/mkimage/patches/210-openssl-1.1.x-compat.patch
+------------------------
+Error: host coccinelle. configure: error: You must install the OCaml compiler
+#sudo apt-get install ocaml libparmap-ocaml
+#vi qca_ipq807x/qsdk/tools/coccinelle/Makefile
+#HOST_CONFIGURE_ARGS += --disable-ocaml
+#sudo apt install coccinelle
+Use new coccinelle
+https://github.com/coccinelle/coccinelle.git
+------------------------
+Error: error verifying int64_t uses long long
+sudo apt-get install g++
+------------------------
+Error: cfns.gperf libc_name_p redeclared inline with gnu_inline attribute
+https://gcc.gnu.org/git/?p=gcc.git;a=commitdiff;h=ec1cc0263f156f70693a62cf17b254a0029f4852
+------------------------
+

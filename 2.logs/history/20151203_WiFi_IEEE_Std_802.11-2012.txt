@@ -1,0 +1,284 @@
+
+https://en.wikipedia.org/wiki/IEEE_802.11
+
+
+Within the IEEE 802.11 Working Group, the following IEEE Standards Association Standard and Amendments exist:
+
+
+IEEE 802.11-1997: The WLAN standard was originally 1 Mbit/s and 2 Mbit/s, 2.4 GHz RF and infrared (IR) standard (1997), all the others listed below are Amendments to this standard, except for Recommended Practices 802.11F and 802.11T.
+
+IEEE 802.11a: 54 Mbit/s, 5 GHz standard (1999, shipping products in 2001)
+IEEE 802.11b: Enhancements to 802.11 to support 5.5 Mbit/s and 11 Mbit/s (1999)
+IEEE 802.11c: Bridge operation procedures; included in the IEEE 802.1D standard (2001)
+IEEE 802.11d: International (country-to-country) roaming extensions (2001)
+IEEE 802.11e: Enhancements: QoS, including packet bursting (2005)
+IEEE 802.11F: Inter-Access Point Protocol (2003) Withdrawn February 2006
+IEEE 802.11g: 54 Mbit/s, 2.4 GHz standard (backwards compatible with b) (2003)
+IEEE 802.11h: Spectrum Managed 802.11a (5 GHz) for European compatibility (2004)
+IEEE 802.11i: Enhanced security (2004)
+IEEE 802.11j: Extensions for Japan (2004)
+
+
+IEEE 802.11-2007: A new release of the standard that includes amendments a, b, d, e, g, h, i, and j. (July 2007)
+
+IEEE 802.11k: Radio resource measurement enhancements (2008)
+IEEE 802.11n: Higher-throughput improvements using MIMO (multiple-input, multiple-output antennas) (September 2009)
+IEEE 802.11p: WAVE—Wireless Access for the Vehicular Environment (such as ambulances and passenger cars) (July 2010)
+IEEE 802.11r: Fast BSS transition (FT) (2008)
+IEEE 802.11s: Mesh Networking, Extended Service Set (ESS) (July 2011)
+IEEE 802.11T: Wireless Performance Prediction (WPP)—test methods and metrics Recommendation cancelled
+IEEE 802.11u: Improvements related to HotSpots and 3rd-party authorization of clients, e.g., cellular network offload (February 2011)
+IEEE 802.11v: Wireless network management (February 2011)
+IEEE 802.11w: Protected Management Frames (September 2009)
+IEEE 802.11y: 3650–3700 MHz Operation in the U.S. (2008)
+IEEE 802.11z: Extensions to Direct Link Setup (DLS) (September 2010)
+
+
+IEEE 802.11-2012: A new release of the standard that includes amendments k, n, p, r, s, u, v, w, y, and z (March 2012)
+
+IEEE 802.11aa: Robust streaming of Audio Video Transport Streams (June 2012)
+IEEE 802.11ac: Very High Throughput <6 GHz;[46] potential improvements over 802.11n: better modulation scheme (expected ~10% throughput increase), wider channels (estimate in future time 80 to 160 MHz), multi user MIMO;[47] (December 2013)
+IEEE 802.11ad: Very High Throughput 60 GHz (December 2012) — see WiGig
+IEEE 802.11ae: Prioritization of Management Frames (March 2012)
+IEEE 802.11af: TV Whitespace (February 2014)
+
+
+In process
+IEEE 802.11mc: Roll-up of 802.11-2012 with the aa, ac, ad, ae & af amendments to be published as 802.11-2016 (~ March 2016)
+IEEE 802.11ah: Sub 1 GHz license exempt operation (e.g., sensor network, smart metering) (~ March 2016)
+IEEE 802.11ai: Fast Initial Link Setup (~ November 2015)
+IEEE 802.11aj: China Millimeter Wave (~ June 2016)
+IEEE 802.11ak: General Links (~ May 2016)
+IEEE 802.11aq: Pre-association Discovery (~ July 2016)
+IEEE 802.11ax: High Efficiency WLAN (~ May 2018)
+IEEE 802.11ay: Enhancements for Ultra High Throughput in and around the 60 GHz Band (~ TBD)
+IEEE 802.11az: Next Generation Positioning (~ TBD)
+
+
+
+
+
+下载地址：http://standards.ieee.org/about/get/802/802.11.html
+
+
+
+全家族
+
+
+* IEEE 802.11，1997年，原始标准（2Mbit/s，工作在2.4GHz）。
+* IEEE 802.11a，1999年，物理层补充（54Mbit/s，工作在5GHz）。
+* IEEE 802.11b，1999年，物理层补充（11Mbit/s，工作在2.4GHz）。
+* IEEE 802.11c，符合802.1D的媒体接入控制层桥接（MAC Layer Bridging）。
+* IEEE 802.11d，根据各国无线电规定做的调整。
+* IEEE 802.11e，对服务等级（Quality of Service,QoS）的支持。
+* IEEE 802.11f，基站的互连性（IAPP,Inter-Access Point Protocol），2006年2月被IEEE批准撤销。
+* IEEE 802.11g，2003年，物理层补充（54Mbit/s，工作在2.4GHz）。
+* IEEE 802.11h，2004年，无线覆盖半径的调整，室内（indoor）和室外（outdoor）信道（5GHz频段）。
+* IEEE 802.11i，2004年，无线网络的安全方面的补充。
+* IEEE 802.11j，2004年，根据日本规定做的升级。
+* IEEE 802.11l，预留及准备不使用。
+* IEEE 802.11m，维护标准；互斥及极限。
+* IEEE 802.11n，2009年9月通过正式标准，WLAN的传输速率由802.11a及802.11g提供的54Mbps、108Mbps，提高达350Mbps甚至高达475Mbps。
+* IEEE 802.11p，2010年，这个通讯协定主要用在车用电子的无线通讯上。
+* IEEE 802.11k，2008年，该协议规范规定了无线局域网络频谱测量规范。该规范的制订体现了无线局域网络对频谱资源智能化使用的需求。
+* IEEE 802.11r，2008年，快速基础服务转移，主要是用来解决客户端在不同无线网络AP间切换时的延迟问题。
+* IEEE 802.11s，2007年9月.拓扑发现、路径选择与转发、信道定位、安全、流量管理和网络管理。网状网络带来一些新的术语。
+* IEEE 802.11w，2009年，针对802.11管理帧的保护。
+* IEEE 802.11x，包括802.11a/b/g等三个标准。
+* IEEE 802.11y，2008年，针对美国3650–3700 MHz 的规定。
+* IEEE 802.11ac，802.11n之后的版本。工作在5G频段，理论上可以提供高达每秒1Gbit的数据传输能力。
+
+
+除了上面的IEEE标准，另外有一个被称为IEEE802.11b+的技术，通过PBCC技术（Packet Binary Convolutional Code）在IEEE 802.11b（2.4GHz频段） 基础上提供22Mbit/s的数据传输速率。但这事实上并不是一个IEEE的公开标准，而是一项产权私有的技术，产权属于美国德州仪器公司。
+
+
+
+【长度固定的element】
+Authentication Algorithm Number
+
+长度：2 byte
+
+描述：此位代表连接发生之前802.11层次（802.11-level）的最初认证程序所使用的认证类型。
+
+取值：0=开放系统认证，1=共享密钥认证
+
+
+
+
+
+Authentication Transaction Sequence Number
+
+长度：2 byte
+
+描述：身份认证程序分为好几个步骤，用以追踪身份认证的进度。
+
+取值：1~65535
+
+
+
+
+
+Beacon interval
+
+长度：2 byte
+
+描述：设定Beacon信号之间相隔多少时间单位，单位毫秒。
+
+取值：1~65535
+
+
+
+
+
+Capability information
+
+长度：2 byte
+
+描述：用来通知各方，该网络具备哪种性能。（如beacon，probe req，probe resp）
+
+取值：1~65535
+
+
+
+
+
+Current AP Address
+
+长度：6 byte
+
+描述：移动工作站用来表明所连接的基站的MAC地址。（如association，reassociation）
+
+取值：1~65535
+
+
+
+
+
+Listen interval
+
+长度：2 byte
+
+描述：为了节省电池的电力。当工作站处于休眠状态，基站必须为之暂存帧。
+
+取值：1~65535
+
+
+
+
+
+Association ID
+
+长度：2 byte
+
+描述：当工作站与基站连接时，会被赋予一个连接识别码，14个bit。
+
+取值：1~2007
+
+
+
+Timestamp
+
+长度：8 byte
+
+描述：用来同步BSS中的工作站。
+
+取值：
+
+
+
+Reason Code
+
+长度：2 byte
+
+描述：当对方不适合加入网络时，工作站会送出Disassociation或Deauthentication帧作为应答，包含了这个原因代码。
+
+取值：...
+
+
+
+Status Code
+
+长度：2 byte
+
+描述：用来表示某项过程成功或失败。
+
+取值：0=成功，其他分别代表不同状态。
+
+
+
+【长度不定的element】
+Element ID (1 Byte) | Length (1 Byte) | Content
+
+共256种长度不定的Element，每种Element最大长度256Byte。
+
+常用的介绍如下。
+
+
+
+0. SSID
+
+1. Supported rates
+
+2. FH Parameter Set
+
+描述：跳频（Frequency Hopping）参数组合。包含了加入802.11跳频网络所需要的参数。
+
+
+
+3. DS Parameter Set
+
+描述：直接序列参数集合。802.11直接序列（Direct Sequence）网络只有一个参数：网络所使用的信道数。
+
+
+
+4. CF Parameter Set
+
+描述：免竞争参数组合。出现在支持免竞争基站所发送的Beacon帧中。
+
+
+
+5. TIM
+
+描述：数据待传信息（Traffic Indication Map）。基站为处于休睡状态的工作站暂存帧，每隔一段时间，基站就会尝试传递这些暂存帧给休眠中的工作站。
+
+
+
+36. Supported Channels
+
+37. Channel Switch Announcement
+
+描述：802.11h为网络加入了动态切换信道的能力。
+
+
+
+42. ERP
+
+描述：扩展速率物理层Extended Rate PHY。为了兼容早期产品
+
+
+
+45. HT Capabilities
+
+描述：高吞吐量能力High Throughput Capabilities
+
+
+
+48. RSN
+
+描述：Robust Security Network
+
+
+
+50. Extended Supported Rates
+
+60. Extended Channel Switch Announcement
+
+
+
+61. HT Operation
+
+描述：高吞吐量操作High Throughput Operation
+
+
+
+221. Vendor Specific

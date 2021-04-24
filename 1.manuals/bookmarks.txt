@@ -1,0 +1,46 @@
+[Work]
+Office365: https://outlook.office365.com/owa
+Redmine: http://aeiredmine.actiontec.com/redmine/
+
+[Android]
+Android API Reference: http://www.android-doc.com/reference/packages.html
+Android Activity: http://www.android-doc.com/reference/android/app/Activity.html
+
+[C/CXX]
+C/CXX Library Reference: http://www.cplusplus.com/reference/
+C/CXX Map: http://www.cplusplus.com/reference/map/map/
+
+[OpenGLES]
+OpenGLES Reference: https://www.khronos.org/registry/OpenGL-Refpages/
+OpenGLES2.0: https://www.khronos.org/registry/OpenGL-Refpages/es2.0/
+
+[Skia]
+Skia: https://skia.org/
+Skia API:https://skia.org/user/api
+
+[nodejs]
+Home = https://nodejs.org/en/
+API = https://nodejs.org/api/
+Tutorial = http://www.runoob.com/nodejs/nodejs-tutorial.html
+
+[nodejs socket.io]
+Home = https://socket.io/docs/#
+Server API = https://socket.io/docs/server-api/#
+Client API = https://socket.io/docs/client-api/#
+github = https://github.com/socketio/socket.io-client
+
+[Java socket.io]
+github = https://github.com/socketio/socket.io-client-java
+API = http://socketio.github.io/socket.io-client-java/apidocs/
+
+[Android API]
+API = http://www.android-doc.com/reference/packages.html
+
+[Java JSON]
+API = http://www.docjar.com/docs/api/org/json/JSONObject.html
+
+[MySQL]
+Tutorial = http://www.runoob.com/mysql/mysql-tutorial.html
+
+[Rxjava]
+https://mcxiaoke.gitbooks.io/rxdocs/content/

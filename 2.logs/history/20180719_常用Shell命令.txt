@@ -1,0 +1,29 @@
+[Shell]
+
+grep -rHnw xxx . --exclude-dir=out
+date ; time make xxx; date
+lspci | awk -F '=' '{print $1}'
+
+while ls -l; do sleep 1; done
+while read LINE; do touch $LINE/*; done
+
+find . -type d | while read LINE; do touch $LINE/*; done
+find . -name *txt -exec ls -l {} \; && date
+find . -name *txt | xargs touch -
+find . -type f
+find . -mtime -5
+find . -mtime +3
+find . -size +100c
+
+文件夹大小排序： du -s * | sort -nr
+文件夹大小：du -hd1
+du -hd1
+
+df -a
+df -m
+df -h
+
+文件大小排序：
+ls -lSr
+ls -l --sort=size
+ls -lX

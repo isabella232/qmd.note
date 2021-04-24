@@ -1,0 +1,135 @@
+
+1. Vmware X86 ubuntu-14.04平台
+
+
+
+参考：http://wiki.blender.org/index.php/Dev:Doc/Building_Blender/Linux/Ubuntu/CMake
+
+
+
+环境：
+
+git version 1.9.1
+
+
+
+cmake version 2.8.12.2
+
+
+
+下载源码：
+
+qmd@u3:blender-git$ cd /home/qmd/sdh/blender/blender-git
+
+qmd@u3:blender-git$ git clone http://git.blender.org/blender.git
+
+qmd@u3:blender-git$ cd blender
+
+qmd@u3:blender-git$ git submodule update --init --recursive
+
+qmd@u3:blender-git$ git submodule foreach git checkout master
+
+qmd@u3:blender-git$ git submodule foreach git pull --rebase origin master
+
+
+
+安装依赖：
+
+qmd@u3:blender-git$ sudo apt-get update; sudo apt-get install git build-essential
+
+qmd@u3:blender-git$ ./blender/build_files/build_environment/install_deps.sh --source=/home/qmd/sdh/blender/src/blender-deps --install=/home/qmd/sdh/blender/opt/lib --skip-osl
+
+
+
+编译Blender：
+
+qmd@u3:blender-git$ cd blender/
+
+qmd@u3:blender$ make BUILD_CMAKE_ARGS=" -D OPENCOLORIO_ROOT_DIR=/home/qmd/sdh/blender/opt/lib/ocio -D OPENEXR_ROOT_DIR=/home/qmd/sdh/blender/opt/lib/openexr -D OPENIMAGEIO_ROOT_DIR=/home/qmd/sdh/blender/opt/lib/oiio -D WITH_CYCLES_OSL=OFF -D WITH_LLVM=OFF -D WITH_CODEC_FFMPEG=ON -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;theora;theoraenc;theoradec;vorbis;vorbisfile;vorbisenc;ogg;x264;openjpeg' -D FFMPEG=/home/qmd/sdh/blender/opt/lib/ffmpeg"
+
+
+
+报错：/usr/local/include/ft2build.h:56:38: fatal error: freetype/config/ftheader.h: No such file or directory
+
+解决：qmd@u3:blender$ sudo ln -s /usr/include/freetype2 /usr/include/freetype
+
+
+
+运行：
+
+qmd@u3:blender$ ../build_linux/bin/blender
+
+
+
+
+
+2. X64 Windows-8.1平台
+
+
+
+参考：http://wiki.blender.org/index.php/Dev:Doc/Building_Blender/Windows/msvc/CMake
+
+
+
+环境：
+
+Git-1.9.5-preview20141217.exe
+
+TortoiseGit_1.8.9.0_32bit.msi
+
+Slik-Subversion-1.8.13-x64.msi
+
+TortoiseSVN_1.8.10.26129_win32.msi
+
+cmake-3.2.1-win32-x86.exe
+
+Microsoft Visual Studio Community 2013 Update 4
+
+
+
+下载源码：
+
+E:\zblender>git clone git://git.blender.org/blender.git
+
+
+
+E:\zblender>cd blender
+E:\zblender>git submodule update --init --recursive
+E:\zblender>git submodule foreach git checkout master
+E:\zblender>git submodule foreach git pull --rebase origin master
+
+可以使用命令行的Git，也可以使用GUI的TortoiseGit。
+
+
+
+下载依赖库：
+
+
+
+E:\zblender>svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/win64_vc12  lib/win64_vc12
+
+可以使用命令行的Slik-Subversion，也可以使用GUI的TortoiseSVN。
+
+
+
+cmake：
+
+新建E:\zblender\build目录作为编译目录；
+
+
+
+运行cmake-gui.exe ---> 选择源码路径和编译路径 ---> 选择Visual Studio 2013 X64 ---> 配置 ---> 生成
+
+
+
+
+
+编译：
+
+双击Blender.sln ---> 选择Release ---> 编译Solution ---> 编译INSTALL（拷贝DLL）
+
+
+
+运行：
+
+双击运行E:\zblender\build\bin\Release\blender.exe

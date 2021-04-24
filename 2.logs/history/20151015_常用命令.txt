@@ -1,0 +1,57 @@
+【Linux】
+
+cat /proc/mtd 显示flash分区名称、大小
+
+cat /proc/partition  显示block
+
+cat /proc/<pid>/maps 查看进程内存分布
+
+
+
+【windows】
+
+ipconfig /all
+
+查看wlan保存的profile：netsh wlan show profiles
+
+查看wlan profile中的密码：netsh wlan show profile name="Tenda_48A460" key=clear
+
+参考：http://windows.microsoft.com/zh-CN/windows-8/manage-wireless-network-profiles
+
+
+
+【coredump】
+
+addr2line 2ab1e274 2ab28250 3ab9ccf8 -s -C -f -e qmd
+echo "coredump.%t.%e.%p.%s.qmd" > /proc/sys/kernel/core_pattern
+
+
+
+【vim常用命令】
+http://blog.chinaunix.net/uid-20147410-id-1989428.html
+删除重复行：
+
+1. 删除连续的重复行
+1.1 保留最后一行
+:g/^\(.*\)$\n\1$/d 
+1.2 保留最开始一行
+:g/\%(^\1$\n\)\@<=\(.*\)$/d
+1.3 删除连续多个空行，只保留一行空行
+:g/^\s*$\n\s*$/d 
+2. 删除不连续的重复行
+2.1 删除重复行，结果不要求按原顺序
+:sort u
+2.2 删除重复行，结果按照原顺序排列(这个有点麻烦)
+2.2.1为了保存原有顺序，首先给每行加上行号和1个{
+:let i=1|g/^/s//\=i.'{'/|let i+=1
+2.2.2 按照行号后面的内容排序，参考:help :sort
+:sort /^\d\{-}{/
+2.2.3 删除行号后面的内容相同的行
+2.2.3.1 保留后面的行
+:g/^\d\{-}{\(.*\)$\n\d\{-}{\1$/d 
+2.2.3.2 保留开始的行
+:g/\%(^\d\{-}{\1$\n\)\@<=\d\{-}{\(.*\)$/d 
+2.2.4 按照行号恢复顺序
+:sort n
+2.2.5 删除行首的原来的行号和{
+:%s/\d\{-}{// 

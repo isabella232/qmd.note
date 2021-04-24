@@ -1,0 +1,99 @@
+
+1. 下载源码
+
+http://www.tcpdump.org/
+
+libpcap-1.7.4
+
+tcpdump-4.7.4
+
+2. 编译
+
+
+
+<pre name="code" class="plain">#!/bin/sh
+
+INSTALL_DIR=$(echo `pwd`/install)
+#export LDFLAGS="-L${PREFIX_PATH}/lib -L${PREFIX_PATH}/usr/lib -ldl -lm"
+#export CC=$GCC
+#export CPPFLAGS="-I${PREFIX_PATH}/usr/include -I${PREFIX_PATH}/include"
+#export CXXFLAGS="-I${PREFIX_PATH}/usr/include -I${PREFIX_PATH}/include"
+#export CFLAGS="-I${PREFIX_PATH}/usr/include -I${PREFIX_PATH}/include"
+#export CXX=$CPP
+#export PATH=$PATH:${GCC_PATH}
+export AR=mips-linux-ar
+export CC=mips-linux-gcc
+export CXX=mips-linux-g++
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$INSTALL_DIR
+
+function make_libpcap()
+{
+        app=libpcap-1.7.4
+        #rm -rf $app
+        #tar vfx $app.tar.gz
+        cd $app
+
+        ./configure --prefix=`pwd`/../install --host=mips-linux --with-pcap=linux
+
+        if [ x"$?" != x"0" ];then
+                echo "$app configure failed"
+                exit 1
+        fi
+
+        make
+        if [ x"$?" != x"0" ]; then
+                echo "$app make failed"
+                exit 1
+        fi
+
+        make install
+        if [ x"$?" != x"0" ]; then
+                echo "$app make install failed"
+                exit 1
+        fi
+
+        cd -
+}
+
+function make_tcpdump()
+{
+        app=tcpdump-4.7.4
+        #rm -rf $app
+        #tar vfx $app.tar.gz
+        cd $app
+
+        ./configure --prefix=`pwd`/../install --host=mips-linux
+
+        if [ x"$?" != x"0" ];then
+                echo "$app configure failed"
+                exit 1
+        fi
+
+        make
+        if [ x"$?" != x"0" ]; then
+                echo "$app make failed"
+                exit 1
+        fi
+
+        make install
+        if [ x"$?" != x"0" ]; then
+                echo "$app make install failed"
+                exit 1
+        fi
+
+        cd -
+}
+
+sudo apt-get install byacc
+sudo apt-get install flex
+make_libpcap
+make_tcpdump
+
+
+
+
+
+
+3. 运行
+
+tcpdump -i wlan1 -w tcpdump.pcap

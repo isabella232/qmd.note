@@ -1,0 +1,20 @@
+
+Ubuntu
+
+变量GLUT_INCLUDE_DIR未找到：sudo apt-get install freeglut freeglut-dev
+
+变量GLUT_Xmu_LIBRARY未找到：sudo apt-get install libxmu-dev
+
+
+
+-------------------------------------------
+
+error: incomplete type ‘’ used in nested name specifier
+出现这个错误表示头文件相互包含,不但要用到#include，而且还要分别声明要用到的类。
+比如A.h中，添加#include"B.h"，而且要添加class B;B.h中也是一样，否则就报错。
+
+-------------------------------------------
+
+expected unqualified-id before numeric constant
+一种原因是变量名和宏定义同名了。
+-------------------------------------------

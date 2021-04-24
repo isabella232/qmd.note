@@ -1,0 +1,58 @@
+Android-6.0编译分析
+
+
+
+
+
+
+#Start
+source env.sh
+    source build/envsetup.sh
+        . device/.../vendorsetup.sh
+        . vendor/.../vendorsetup.sh
+        addcompletions
+
+lunch ...
+    set_stuff_for_environment
+        setpaths
+            local ARCH=$(get_build_var TARGET_ARCH)
+                get_build_var()
+                    CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
+                        command make --no-print-directory -f build/core/config.mk dumpvar-$1
+                    build/core/config.mk dumpvar-TARGET_ARCH
+                        include $(BUILD_SYSTEM)/dumpvar.mk
+                            $(dumpvar_target):@echo $(DUMPVAR_VALUE)
+
+make
+Makefile
+    build/core/main.mk
+        include $(BUILD_SYSTEM)/config.mk
+            include $(BUILD_SYSTEM)/envsetup.mk
+            FIND_LEAVES_EXCLUDES := $(addprefix --prune=, $(OUT_DIR) $(SCAN_EXCLUDE_DIRS) .repo .git)
+            include $(BUILD_SYSTEM)/product_config.mk
+                include $(BUILD_SYSTEM)/product.mk
+                #查找所有AndroidProducts.mk
+                all_product_configs := $(get-all-product-makefiles)
+                    $(call get-product-makefiles,$(_find-android-products-files)) #product.mk
+                        $(eval include $(f))
+                        #include device/.../AndroidProducts.mk
+                        #include vendor/.../AndroidProducts.mk
+                        #include $(SRC_TARGET_DIR)/product/AndroidProducts.mk
+                            TARGET_BUILD_APPS=
+                #查找所有product配置Makefile
+                $(call import-products, $(current_product_makefile))
+                    $(call import-nodes,PRODUCTS,$(1),$(_product_var_list))
+                    ----
+                    device/r/k/r_k.mk
+                        $(call inherit-product, device/r/k/device.mk)
+                        $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
+                            $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
+                                $(call inherit-product, $(SRC_TARGET_DIR)/product/generic_no_telephony.mk)
+                                    $(call inherit-product, $(SRC_TARGET_DIR)/product/core.mk)
+                        $(call inherit-product, device/r/k/r/r.mk)
+                    ----
+        #查找所有Android.mk
+        subdir_makefiles := $(shell build/tools/findleaves.py $(FIND_LEAVES_EXCLUDES) $(subdirs) Android.mk)
+        $(foreach mk, $(subdir_makefiles), $(info including $(mk) ...)$(eval include $(mk)))
+
+#End

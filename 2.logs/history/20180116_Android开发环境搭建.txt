@@ -1,0 +1,159 @@
+
+gradlew -v #查看gradle wrapper版本
+
+gradle wrapper --gradle-version 4.1 # 设置gradle wrapper版本
+
+创建虚拟机：
+
+avdmanager list avd       #Lists existing targets or virtual devices.
+avdmanager create avd       #Creates a new Android Virtual Device.
+sdkmanager "system-images;android-25;google_apis;x86"
+avdmanager list 查看-d 7
+avdmanager create avd -k "system-images;android-25;google_apis;x86" -b x86 -d 7 -n Nexus_4_API_25_x86_cmd
+删除虚拟机：avdmanager delete avd -n Nexus_4_API_25_x86_cmd
+
+启动虚拟机：./emulator @Nexus_4_API_25_x86_cmd
+
+命令行开发环境：
+
+1. 安装JDK、Gradle、SDK Tools
+
+ROOT=/home/work/cmd
+echo ROOT=$ROOT
+export ANDROID_HOME=$ROOT/sdk
+export JAVA_HOME=$ROOT/tools/jdk1.8.0_172
+export GRADLE_HOME=$ROOT/tools/gradle-4.6
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export PATH=$JAVA_HOME/bin:$PATH
+export PATH=$GRADLE_HOME/bin:$PATH
+export PATH=$ANDROID_HOME/tools/bin:$PATH
+echo PATH=$PATH
+
+2. 下载安装SDK
+
+sdkmanager --list
+sdkmanager --install "build-tools;27.0.3"
+sdkmanager --install "platform-tools"
+sdkmanager --install "platforms;android-25"
+sdkmanager --install "ndk-bundle"
+...
+
+注意
+
+1. Root build.gradle里面repositories配置一定要正确，否则subproject build.gradle 的dependencies在网上下载不到相应的implementation。 使用jcenter() google()。
+
+2. Subproject build.gradle com.android.support:appcompat-v7:25.1.0的版本号要与compileSdkVersion一致，否则编译有可能失败。
+
+android stuido v3.0.1 - 2017.11.10 JRE1.8.0.152
+
+openjdk v1.8.0.152
+gradle v4.1
+sdk tools v26.1.1
+sdk platform tools v27.0.1
+sdk build tools v28-rc1
+sdk ndk v16.1.4479499
+sdk cmake v3.6.4111459
+sdk emulator v27.0.5
+
+javac -cp android.jar:support-v4-23.4.0-sources.jar:./ Main.java
+
+dx --dex --output=Main.dex Main.class
+
+exec app_process /sdcard Main home
+
+Remote android emulator使用方法：
+
+1. 在Remote PC 192.168.1.116上启动emulator，用netstat查看端口。
+
+2. 在Local PC上执行ssh -N -L 5555:127.0.0.1:5555 ocean@192.168.1.116。
+
+3. 在Local PC上执行adb connect 127.0.0.1。
+
+Android gradle plugin version <===> gradle version
+
+1.0.0 - 1.1.3     <===>     2.2.1 - 2.3
+1.2.0 - 1.3.1    <===>     2.2.1 - 2.9
+1.5.0                <===>      2.2.1 - 2.13
+2.0.0 - 2.1.2    <===>      2.10 - 2.13
+2.1.3 - 2.2.3    <===>      2.14.1+
+2.3.0+             <===>       3.3+
+3.0.0+              <===>      4.1+
+3.1.0+             <===>        4.4+
+
+Android NDK - https://developer.android.google.cn/ndk/downloads/revision_history.html
+
+r16b ----> 2017.12
+r15c ----> 2017.07
+r14b ----> 2017.03
+r13b ----> 2016.10
+
+Android SDK tools - https://developer.android.google.cn/studio/releases/sdk-tools.html
+
+r26.0.2 ----> 2017.04
+r25.3.0 ----> 2017.03
+r24.4.1 ----> 2015.10
+r23.0.5 ----> 2014.10
+
+Android SDK与JDK版本对应关系（JDK向下兼容）：
+
+Android4.3 JellyBean SDK18 JDK6
+Android4.4 KitKat SDK19 JDK6
+Android5.0 Lollipop SDK21 JDK7
+Android5.1 Lollipop SDK22 JDK7
+Android6.0 Marshmallow SDK23 JDK-
+Android7.0 Nougat SDK24 JDK-
+Android7.1 Nougat SDK25 JDK8
+Android8.0 Oreo SDK26 JDK-
+
+测试环境ubuntu14.04 x86_64。
+
+
+Step 1. 安装ANT，JDK8和Android SDK。
+
+
+ANT：apache-ant-1.10.1-bin.tar.gz  ---->  http://ant.apache.org/bindownload.cgi
+
+JDK8：jdk-8u152-linux-x64.tar.gz  ---->  http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+Android SDK tools：android-sdk_r24.4.1-linux.tgz  ---->  http://www.androiddevtools.cn/
+
+配置路径：
+
+export JAVA_HOME=`pwd`/jdk1.8.0_152
+
+export PATH=$PATH:$JAVA_HOME/bin
+
+export ANDROID_HOME=`pwd`/android-sdk-linux
+
+export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools
+
+export ANT_HOME=`pwd`/apache-ant-1.10.1
+
+export PATH=$PATH:$ANT_HOME/bin
+
+运行android，用SDK manager安装android SDK 23 （android 6.0）及相关工具。
+
+Step 2. 创建和编译工程
+
+
+查看target：android list target
+
+创建工程：android create project --target 1 --name MyApp --path MyApp --activity MainActivity --package com.example.myapp
+
+编译工程：cd MyApp/ && ant debug
+
+Step 3. 创建android虚拟机并安装apk
+
+
+创建虚拟机：android create avd --name ocean --target 1 --abi default/x86_64
+
+删除虚拟机：android delete avd --name ocean
+
+启动虚拟机：emulator -wipe-data -avd ocean > /dev/null 2>&1 &
+
+安装apk：adb -e install bin/MyApp-debug.apk
+
+卸载apk：adb -e uninstall com.example.myapp
+
+
+启动虚拟机时报错：ioctl(KVM_CREATE_VM) failed: 16 Device or resource busy，可能是因为有virtualbox或者vmware正在运行。
