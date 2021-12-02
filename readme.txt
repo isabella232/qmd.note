@@ -73,6 +73,7 @@ git remote add origin H:\01.Personal\test
 git pull
 git remote remove origin 
 git remote add origin H:\01.Personal\test1
+git remote set-url origin ssh://git@github.com/qiumengda/xxx.git
 git pull 
 
 git submodule add --name xxx https://xxxxx/xxx/xxx.git

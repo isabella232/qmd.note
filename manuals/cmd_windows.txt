@@ -1,5 +1,8 @@
 cmd.exe常用命令
 
+20210719
+dumpbin /LINKERMEMBER xxx.lib
+dumpbin /exports xxx.dll
 
 > Open Group Policy Editor and navigate to Computer Configuration > Administrative Templates > Network > QoS Packet Scheduler. 
   Double-click on Limit reservable bandwidth. Click on Enabled, then change the Bandwidth limit to 0 or 5 to reserve a little bandwidth.
